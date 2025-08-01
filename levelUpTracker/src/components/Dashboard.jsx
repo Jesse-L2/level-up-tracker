@@ -1,3 +1,4 @@
+// src/components/Dashboard.jsx
 import React, { useState, useMemo, useCallback } from "react";
 import {
   BarChart,
@@ -52,12 +53,13 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
   }, [userProfile.workoutHistory]);
 
   return (
-    <div className="p-4 md:p-8 text-white animate-fade-in">
+    <div className="p-4 md:p-8  animate-fade-in">
       <div className="max-w-6xl mx-auto">
+        {/* Header */}
         <header className="flex flex-wrap justify-between items-center mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold">LevelUp Tracker</h1>
-            <p className="text-gray-400">
+            <h1 className="text-4xl font-bold text-white">LevelUp Tracker</h1>
+            <p className="text-gray-300">
               Your personalized workout dashboard.
             </p>
           </div>
@@ -72,11 +74,16 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
           </div>
         </header>
 
+        {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Current Plan Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Your Current Plan</h2>
+                <h2 className="text-2xl font-semibold text-white">
+                  Your Current Plan
+                </h2>
                 <button
                   onClick={() => onNavigate("generator")}
                   className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
@@ -97,7 +104,9 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                         aria-expanded={expandedDay === index}
                         aria-controls={`workout-day-${index}`}
                       >
-                        <span className="font-bold text-lg">{day.name}</span>
+                        <span className="font-bold text-lg text-white">
+                          {day.name}
+                        </span>
                         <div className="flex items-center gap-4">
                           <button
                             onClick={(e) => {
@@ -108,6 +117,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                           >
                             Start Workout
                           </button>
+                          {/* FIX: Explicitly set icon color */}
                           {expandedDay === index ? (
                             <ChevronUp
                               className="text-white"
@@ -131,16 +141,16 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                               day.exercises.map((ex, exIndex) => (
                                 <li
                                   key={exIndex}
-                                  className="flex justify-between items-center"
+                                  className="flex justify-between items-center text-white"
                                 >
                                   <span>{ex.name}</span>
-                                  <span className="text-gray-400">
+                                  <span className="text-gray-300">
                                     {ex.sets} x {ex.reps} @ {ex.weight} lbs
                                   </span>
                                 </li>
                               ))
                             ) : (
-                              <p className="text-gray-500">
+                              <p className="text-gray-400">
                                 No exercises planned for this day.
                               </p>
                             )}
@@ -165,8 +175,9 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
               )}
             </div>
 
+            {/* Progress Chart Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-semibold mb-4">
+              <h2 className="text-2xl font-semibold text-white mb-4">
                 Progress Overview (Total Volume)
               </h2>
               {chartData.length > 0 ? (
@@ -195,25 +206,31 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-8">
+                <p className="text-gray-400 text-center py-8">
                   Complete some workouts to see your progress!
                 </p>
               )}
             </div>
           </div>
 
+          {/* Right Column */}
           <div className="space-y-8">
+            {/* Tools Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-semibold mb-4">Tools</h2>
+              <h2 className="text-2xl font-semibold text-white mb-4">Tools</h2>
               <button
                 onClick={() => onNavigate("calculator")}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
+                {/* FIX: Explicitly set icon color */}
                 <Weight size={20} className="text-white" /> Plate Calculator
               </button>
             </div>
+            {/* History Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-semibold mb-4">Workout History</h2>
+              <h2 className="text-2xl font-semibold text-white mb-4">
+                Workout History
+              </h2>
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {userProfile.workoutHistory &&
                 userProfile.workoutHistory.length > 0 ? (
@@ -222,14 +239,16 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                     .reverse()
                     .map((session, index) => (
                       <div key={index} className="bg-gray-700 p-3 rounded-lg">
-                        <p className="font-semibold">{session.dayName}</p>
+                        <p className="font-semibold text-white">
+                          {session.dayName}
+                        </p>
                         <p className="text-sm text-gray-400">
                           {new Date(session.date).toLocaleDateString()}
                         </p>
                       </div>
                     ))
                 ) : (
-                  <p className="text-gray-500">No workouts completed yet.</p>
+                  <p className="text-gray-400">No workouts completed yet.</p>
                 )}
               </div>
               <button
@@ -256,7 +275,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
               .reverse()
               .map((session, index) => (
                 <div key={index} className="bg-gray-700 p-4 rounded-lg">
-                  <h4 className="font-bold text-lg">
+                  <h4 className="font-bold text-lg text-white">
                     {session.dayName} -{" "}
                     {new Date(session.date).toLocaleDateString()}
                   </h4>
@@ -271,7 +290,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                         </li>
                       ))
                     ) : (
-                      <p className="text-gray-500">
+                      <p className="text-gray-400">
                         No sets logged for this exercise.
                       </p>
                     )}
@@ -279,7 +298,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                 </div>
               ))
           ) : (
-            <p className="text-gray-500">No history to show.</p>
+            <p className="text-gray-400">No history to show.</p>
           )}
         </div>
       </Modal>

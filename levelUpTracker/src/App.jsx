@@ -132,8 +132,6 @@ export default function App() {
   };
 
   return (
-    <div className="bg-gray-900 min-h-screen font-sans text-white">
-      {renderPage()}
-    </div>
+    <div className="bg-gray-900 min-h-screen font-sans">{renderPage()}</div>
   );
 }
