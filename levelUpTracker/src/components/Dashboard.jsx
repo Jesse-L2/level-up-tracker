@@ -1,4 +1,3 @@
-// src/components/Dashboard.jsx
 import React, { useState, useMemo, useCallback } from "react";
 import {
   BarChart,
@@ -12,17 +11,42 @@ import {
 } from "recharts";
 import { ChevronDown, ChevronUp, Settings, Weight } from "lucide-react";
 import { Modal } from "./ui/Modal";
+import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
+
+const daysOrder = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 export const Dashboard = ({ userProfile, onNavigate }) => {
   const [expandedDay, setExpandedDay] = useState(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   const toggleDay = useCallback(
-    (dayIndex) => {
-      setExpandedDay(expandedDay === dayIndex ? null : dayIndex);
+    (dayName) => {
+      setExpandedDay(expandedDay === dayName ? null : dayName);
     },
     [expandedDay]
   );
+
+  // Memoize and sort the workout plan by day of the week
+  const sortedWorkoutPlan = useMemo(() => {
+    if (
+      !userProfile.workoutPlan ||
+      typeof userProfile.workoutPlan !== "object"
+    ) {
+      return [];
+    }
+    // Convert the plan object to an array and sort it
+    return Object.entries(userProfile.workoutPlan).sort(([dayA], [dayB]) => {
+      return daysOrder.indexOf(dayA) - daysOrder.indexOf(dayB);
+    });
+  }, [userProfile.workoutPlan]);
 
   const chartData = useMemo(() => {
     if (!userProfile.workoutHistory || userProfile.workoutHistory.length === 0)
@@ -53,9 +77,8 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
   }, [userProfile.workoutHistory]);
 
   return (
-    <div className="p-4 md:p-8  animate-fade-in">
+    <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <header className="flex flex-wrap justify-between items-center mb-8 gap-4">
           <div>
             <h1 className="text-4xl font-bold text-white">LevelUp Tracker</h1>
@@ -74,51 +97,55 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
           </div>
         </header>
 
-        {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Current Plan Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold text-white">
-                  Your Current Plan
+                  Your Weekly Plan
                 </h2>
                 <button
-                  onClick={() => onNavigate("generator")}
+                  onClick={() => onNavigate("create_workout")}
                   className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                 >
-                  New Plan
+                  Add/Edit Workout Day
                 </button>
               </div>
-              {userProfile.workoutPlan && userProfile.workoutPlan.length > 0 ? (
+              {sortedWorkoutPlan.length > 0 ? (
                 <div className="space-y-4">
-                  {userProfile.workoutPlan.map((day, index) => (
+                  {sortedWorkoutPlan.map(([dayName, workoutDetails]) => (
                     <div
-                      key={index}
+                      key={dayName}
                       className="bg-gray-700 rounded-lg overflow-hidden"
                     >
                       <button
-                        onClick={() => toggleDay(index)}
+                        onClick={() => toggleDay(dayName)}
                         className="w-full flex justify-between items-center p-4 text-left"
-                        aria-expanded={expandedDay === index}
-                        aria-controls={`workout-day-${index}`}
+                        aria-expanded={expandedDay === dayName}
+                        aria-controls={`workout-day-${dayName}`}
                       >
-                        <span className="font-bold text-lg text-white">
-                          {day.name}
-                        </span>
+                        <div className="flex flex-col text-left">
+                          <span className="font-bold text-lg text-white">
+                            {dayName}
+                          </span>
+                          <span className="text-sm text-gray-300">
+                            {workoutDetails.name}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-4">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onNavigate("player", day);
+                              onNavigate("player", {
+                                ...workoutDetails,
+                                dayIdentifier: dayName,
+                              });
                             }}
                             className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                           >
                             Start Workout
                           </button>
-                          {/* FIX: Explicitly set icon color */}
-                          {expandedDay === index ? (
+                          {expandedDay === dayName ? (
                             <ChevronUp
                               className="text-white"
                               aria-label="Collapse"
@@ -131,22 +158,29 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                           )}
                         </div>
                       </button>
-                      {expandedDay === index && (
+                      {expandedDay === dayName && (
                         <div
-                          id={`workout-day-${index}`}
+                          id={`workout-day-${dayName}`}
                           className="p-4 bg-gray-900/50 border-t border-gray-600"
                         >
                           <ul className="space-y-2">
-                            {day.exercises.length > 0 ? (
-                              day.exercises.map((ex, exIndex) => (
-                                <li
-                                  key={exIndex}
-                                  className="flex justify-between items-center text-white"
-                                >
-                                  <span>{ex.name}</span>
-                                  <span className="text-gray-300">
-                                    {ex.sets} x {ex.reps} @ {ex.weight} lbs
-                                  </span>
+                            {workoutDetails.exercises.length > 0 ? (
+                              workoutDetails.exercises.map((ex, exIndex) => (
+                                <li key={exIndex} className="text-white">
+                                  <div className="flex justify-between items-center">
+                                    <span>{ex.name}</span>
+                                    <span className="text-gray-300">
+                                      {ex.sets} x {ex.reps} @ {ex.weight} lbs
+                                    </span>
+                                  </div>
+                                  {ex.type === "barbell" && (
+                                    <MiniPlateDisplay
+                                      targetWeight={ex.weight}
+                                      availablePlates={
+                                        userProfile.availablePlates
+                                      }
+                                    />
+                                  )}
                                 </li>
                               ))
                             ) : (
@@ -163,19 +197,18 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
               ) : (
                 <div className="text-center py-10">
                   <p className="text-gray-400 mb-4">
-                    No workout plan found. Let's create one!
+                    Your plan is empty. Let's build your first workout!
                   </p>
                   <button
-                    onClick={() => onNavigate("generator")}
+                    onClick={() => onNavigate("create_workout")}
                     className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
                   >
-                    Generate Your First Plan
+                    Create a Workout
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Progress Chart Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
               <h2 className="text-2xl font-semibold text-white mb-4">
                 Progress Overview (Total Volume)
@@ -213,20 +246,16 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="space-y-8">
-            {/* Tools Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
               <h2 className="text-2xl font-semibold text-white mb-4">Tools</h2>
               <button
                 onClick={() => onNavigate("calculator")}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                {/* FIX: Explicitly set icon color */}
                 <Weight size={20} className="text-white" /> Plate Calculator
               </button>
             </div>
-            {/* History Card */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
               <h2 className="text-2xl font-semibold text-white mb-4">
                 Workout History

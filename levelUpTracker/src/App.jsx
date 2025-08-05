@@ -3,8 +3,8 @@ import { useFirebaseUser } from "./hooks/useFirebaseUser";
 import { Dashboard } from "./components/Dashboard";
 import { SettingsPage } from "./components/SettingsPage";
 import { PlateCalculator } from "./components/PlateCalculator";
-import { WorkoutGenerator } from "./components/WorkoutGenerator";
 import { WorkoutPlanner } from "./components/WorkoutPlanner";
+import { CreateWorkout } from "./components/CreateWorkout";
 import { Loader2 } from "lucide-react";
 
 export default function App() {
@@ -14,7 +14,7 @@ export default function App() {
     useFirebaseUser();
 
   const handleNavigate = useCallback((page, data = null) => {
-    if (page === "player") {
+    if (page === "planner") {
       setWorkoutData(data);
     }
     setCurrentPage(page);
@@ -27,12 +27,20 @@ export default function App() {
     [updateUserProfileInFirestore]
   );
 
-  const handleGenerateWorkout = useCallback(
-    (newPlan) => {
+  const handleSaveCustomWorkout = useCallback(
+    (customWorkout) => {
+      if (!userProfile) return;
+      const { day, ...workoutDetails } = customWorkout;
+
+      const newPlan = {
+        ...(userProfile.workoutPlan || {}),
+        [day]: workoutDetails,
+      };
+
       handleUpdateProfile({ workoutPlan: newPlan });
       setCurrentPage("dashboard");
     },
-    [handleUpdateProfile]
+    [userProfile, handleUpdateProfile]
   );
 
   const handleFinishWorkout = useCallback(
@@ -50,13 +58,13 @@ export default function App() {
 
   const handleUpdateExercise = useCallback(
     (exerciseIndex, updatedExercise) => {
-      if (!userProfile || !workoutData) return;
+      if (!userProfile || !workoutData || !workoutData.dayIdentifier) return;
+
       const newPlan = JSON.parse(JSON.stringify(userProfile.workoutPlan));
-      const dayIndex = newPlan.findIndex(
-        (day) => day.name === workoutData.name
-      );
-      if (dayIndex !== -1) {
-        newPlan[dayIndex].exercises[exerciseIndex] = updatedExercise;
+      const dayToUpdate = workoutData.dayIdentifier;
+
+      if (newPlan[dayToUpdate]) {
+        newPlan[dayToUpdate].exercises[exerciseIndex] = updatedExercise;
         handleUpdateProfile({ workoutPlan: newPlan });
       }
     },
@@ -100,17 +108,16 @@ export default function App() {
             updateUserProfile={handleUpdateProfile}
           />
         );
-      case "generator":
+      case "create_workout":
         return (
-          <WorkoutGenerator
-            userProfile={userProfile}
-            onGenerate={handleGenerateWorkout}
+          <CreateWorkout
+            onSave={handleSaveCustomWorkout}
             onBack={() => setCurrentPage("dashboard")}
           />
         );
-      case "player":
+      case "planner":
         return (
-          <WorkoutPlayer
+          <WorkoutPlanner
             workoutDay={workoutData}
             onFinish={handleFinishWorkout}
             onUpdateExercise={handleUpdateExercise}
@@ -132,6 +139,8 @@ export default function App() {
   };
 
   return (
-    <div className="bg-gray-900 min-h-screen font-sans">{renderPage()}</div>
+    <div className="bg-gray-900 min-h-screen font-sans text-white">
+      {renderPage()}
+    </div>
   );
 }
