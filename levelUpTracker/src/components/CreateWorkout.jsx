@@ -1,14 +1,7 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { FormField } from "./ui/FormField";
 import { Plus, Trash2, Save } from "lucide-react";
-
-const initialExerciseState = {
-  name: "",
-  sets: "3",
-  reps: "10",
-  weight: "135",
-  type: "other", // 'barbell' or 'other'
-};
+import { getPercentageForReps } from "../lib/rep_scheme";
 
 const daysOfWeek = [
   "Monday",
@@ -20,38 +13,95 @@ const daysOfWeek = [
   "Sunday",
 ];
 
-export const CreateWorkout = ({ onSave, onBack }) => {
+const initialWeightedSet = { reps: "5", percentage: getPercentageForReps(5) };
+const initialBodyweightSet = { reps: "10", addedWeight: "0" };
+
+export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
   const [dayOfWeek, setDayOfWeek] = useState("Monday");
   const [workoutName, setWorkoutName] = useState("My Custom Workout");
   const [exercises, setExercises] = useState([]);
-  const [currentExercise, setCurrentExercise] = useState(initialExerciseState);
+  const [selectedLibraryExerciseName, setSelectedLibraryExerciseName] =
+    useState("");
+  const [sets, setSets] = useState([]);
   const [message, setMessage] = useState("");
 
-  const handleInputChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    if (name === "isBarbell") {
-      setCurrentExercise((prev) => ({
-        ...prev,
-        type: checked ? "barbell" : "other",
-      }));
+  const library = useMemo(
+    () => userProfile.exerciseLibrary || [],
+    [userProfile.exerciseLibrary]
+  );
+  const selectedExercise = useMemo(
+    () => library.find((ex) => ex.name === selectedLibraryExerciseName),
+    [library, selectedLibraryExerciseName]
+  );
+
+  useEffect(() => {
+    if (selectedExercise) {
+      if (selectedExercise.type === "weighted") {
+        setSets([initialWeightedSet]);
+      } else {
+        setSets([initialBodyweightSet]);
+      }
     } else {
-      setCurrentExercise((prev) => ({ ...prev, [name]: value }));
+      setSets([]);
     }
-  }, []);
+  }, [selectedExercise]);
+
+  const handleSetChange = (index, field, value) => {
+    const newSets = [...sets];
+    newSets[index][field] = value;
+    if (selectedExercise.type === "weighted" && field === "reps") {
+      newSets[index].percentage = getPercentageForReps(value);
+    }
+    setSets(newSets);
+  };
+
+  const addSet = () => {
+    if (!selectedExercise) return;
+    const newSet =
+      selectedExercise.type === "weighted"
+        ? initialWeightedSet
+        : initialBodyweightSet;
+    setSets((prev) => [...prev, { ...newSet }]);
+  };
+
+  const removeSet = (index) =>
+    setSets((prev) => prev.filter((_, i) => i !== index));
 
   const handleAddExercise = useCallback(() => {
-    if (
-      !currentExercise.name ||
-      !currentExercise.sets ||
-      !currentExercise.reps
-    ) {
-      setMessage("Please fill out all exercise fields.");
+    if (!selectedExercise) {
+      setMessage("Please select an exercise from your library.");
       return;
     }
-    setExercises((prev) => [...prev, { ...currentExercise, id: Date.now() }]);
-    setCurrentExercise(initialExerciseState);
+
+    let finalSets;
+    if (selectedExercise.type === "weighted") {
+      finalSets = sets.map((set) => ({
+        reps: set.reps,
+        percentage: set.percentage,
+        weight:
+          Math.round((selectedExercise.oneRepMax * set.percentage) / 2.5) * 2.5,
+      }));
+    } else {
+      // Bodyweight
+      finalSets = sets.map((set) => ({
+        reps: set.reps,
+        addedWeight: parseFloat(set.addedWeight) || 0,
+      }));
+    }
+
+    const newExercise = {
+      id: Date.now(),
+      name: selectedExercise.name,
+      type: selectedExercise.type,
+      oneRepMax: selectedExercise.oneRepMax, // Keep for reference
+      sets: finalSets,
+    };
+
+    setExercises((prev) => [...prev, newExercise]);
+    setSelectedLibraryExerciseName("");
+    setSets([]);
     setMessage("");
-  }, [currentExercise]);
+  }, [selectedExercise, sets]);
 
   const handleRemoveExercise = useCallback((id) => {
     setExercises((prev) => prev.filter((ex) => ex.id !== id));
@@ -62,11 +112,10 @@ export const CreateWorkout = ({ onSave, onBack }) => {
       setMessage("Please add at least one exercise to the workout.");
       return;
     }
-    // The object to save now includes the day of the week
     const workoutToSave = {
       day: dayOfWeek,
       name: workoutName,
-      exercises: exercises.map(({ id, ...rest }) => rest), // Remove temporary id
+      exercises: exercises.map(({ id, ...rest }) => rest),
       isCustom: true,
     };
     onSave(workoutToSave);
@@ -85,7 +134,6 @@ export const CreateWorkout = ({ onSave, onBack }) => {
           </button>
         </div>
 
-        {/* Workout Details Form */}
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
           <h2 className="text-2xl font-semibold mb-4">Workout Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,33 +155,43 @@ export const CreateWorkout = ({ onSave, onBack }) => {
               id="workoutName"
               value={workoutName}
               onChange={(e) => setWorkoutName(e.target.value)}
-              placeholder="e.g., Chest & Triceps"
+              placeholder="e.g., Heavy Bench Day"
             />
           </div>
         </div>
 
-        {/* Added Exercises List */}
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Exercises</h2>
+          <h2 className="text-2xl font-semibold mb-4">Added Exercises</h2>
           {exercises.length > 0 ? (
             <div className="space-y-3">
               {exercises.map((ex) => (
-                <div
-                  key={ex.id}
-                  className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-bold text-white">{ex.name}</p>
-                    <p className="text-sm text-gray-300">
-                      {ex.sets} sets of {ex.reps} reps @ {ex.weight} lbs
+                <div key={ex.id} className="bg-gray-700 p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <p className="font-bold text-white">
+                      {ex.name}{" "}
+                      <span className="text-sm text-gray-400">
+                        {ex.type === "weighted"
+                          ? `(1RM: ${ex.oneRepMax} lbs)`
+                          : "(Bodyweight)"}
+                      </span>
                     </p>
+                    <button
+                      onClick={() => handleRemoveExercise(ex.id)}
+                      className="text-red-400 hover:text-red-300 p-2"
+                    >
+                      <Trash2 size={20} />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleRemoveExercise(ex.id)}
-                    className="text-red-400 hover:text-red-300 p-2"
-                  >
-                    <Trash2 size={20} />
-                  </button>
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {ex.sets.map((s, i) => (
+                      <li key={i} className="text-gray-300">
+                        Set {i + 1}: {s.reps} reps @{" "}
+                        {ex.type === "weighted"
+                          ? `${s.weight} lbs (${s.percentage * 100}%)`
+                          : `Bodyweight + ${s.addedWeight} lbs`}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
@@ -144,58 +202,105 @@ export const CreateWorkout = ({ onSave, onBack }) => {
           )}
         </div>
 
-        {/* Add New Exercise Form */}
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-          <h2 className="text-2xl font-semibold mb-4">Add New Exercise</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              label="Exercise Name"
-              id="name"
-              name="name"
-              value={currentExercise.name}
-              onChange={handleInputChange}
-            />
-            <FormField
-              label="Sets"
-              id="sets"
-              name="sets"
-              type="number"
-              value={currentExercise.sets}
-              onChange={handleInputChange}
-            />
-            <FormField
-              label="Reps"
-              id="reps"
-              name="reps"
-              value={currentExercise.reps}
-              onChange={handleInputChange}
-              placeholder="e.g., 8-12"
-            />
-            <FormField
-              label="Weight (lbs)"
-              id="weight"
-              name="weight"
-              type="number"
-              value={currentExercise.weight}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="mt-4 flex items-center">
-            <input
-              type="checkbox"
-              id="isBarbell"
-              name="isBarbell"
-              checked={currentExercise.type === "barbell"}
-              onChange={handleInputChange}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="isBarbell"
-              className="ml-2 block text-sm text-gray-300"
-            >
-              This is a barbell exercise
-            </label>
-          </div>
+          <h2 className="text-2xl font-semibold mb-4">
+            Add Exercise to Workout
+          </h2>
+          <FormField
+            label="Select from Library"
+            id="libraryExercise"
+            type="select"
+            value={selectedLibraryExerciseName}
+            onChange={(e) => setSelectedLibraryExerciseName(e.target.value)}
+          >
+            <option value="">-- Choose a Lift --</option>
+            {library.map((ex) => (
+              <option key={ex.name} value={ex.name}>
+                {ex.name}
+              </option>
+            ))}
+          </FormField>
+
+          {selectedExercise && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">
+                Set Scheme for {selectedExercise.name}
+              </h3>
+              {sets.map((set, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 mb-2 p-2 bg-gray-700/50 rounded-md"
+                >
+                  <span className="text-gray-400">Set {index + 1}:</span>
+                  {selectedExercise.type === "weighted" ? (
+                    <>
+                      <FormField
+                        label=""
+                        id={`reps-${index}`}
+                        type="number"
+                        value={set.reps}
+                        onChange={(e) =>
+                          handleSetChange(index, "reps", e.target.value)
+                        }
+                        className="w-20"
+                      />
+                      <span className="text-gray-400">reps @</span>
+                      <FormField
+                        label=""
+                        id={`perc-${index}`}
+                        type="number"
+                        step="0.01"
+                        value={set.percentage}
+                        onChange={(e) =>
+                          handleSetChange(index, "percentage", e.target.value)
+                        }
+                        className="w-24"
+                      />
+                      <span className="text-gray-400">%</span>
+                    </>
+                  ) : (
+                    <>
+                      <FormField
+                        label=""
+                        id={`reps-${index}`}
+                        type="number"
+                        value={set.reps}
+                        onChange={(e) =>
+                          handleSetChange(index, "reps", e.target.value)
+                        }
+                        className="w-20"
+                      />
+                      <span className="text-gray-400">reps with</span>
+                      <FormField
+                        label=""
+                        id={`addedWeight-${index}`}
+                        type="number"
+                        value={set.addedWeight}
+                        onChange={(e) =>
+                          handleSetChange(index, "addedWeight", e.target.value)
+                        }
+                        className="w-24"
+                      />
+                      <span className="text-gray-400">lbs added</span>
+                    </>
+                  )}
+                  <button
+                    onClick={() => removeSet(index)}
+                    className="text-red-400 hover:text-red-300 p-2 ml-auto"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={addSet}
+                className="text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2"
+              >
+                <Plus size={16} /> Add Set
+              </button>
+            </div>
+          )}
+
           {message && (
             <p className="text-red-400 text-center mt-4">{message}</p>
           )}
@@ -203,7 +308,7 @@ export const CreateWorkout = ({ onSave, onBack }) => {
             onClick={handleAddExercise}
             className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
           >
-            <Plus size={20} /> Add Exercise to Workout
+            <Plus size={20} /> Add Exercise to Day
           </button>
         </div>
 

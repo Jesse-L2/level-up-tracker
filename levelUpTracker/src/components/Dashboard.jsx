@@ -9,7 +9,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { ChevronDown, ChevronUp, Settings, Weight } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Settings,
+  Weight,
+  BookOpen, // New Icon
+} from "lucide-react";
 import { Modal } from "./ui/Modal";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 
@@ -34,7 +40,6 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
     [expandedDay]
   );
 
-  // Memoize and sort the workout plan by day of the week
   const sortedWorkoutPlan = useMemo(() => {
     if (
       !userProfile.workoutPlan ||
@@ -42,7 +47,6 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
     ) {
       return [];
     }
-    // Convert the plan object to an array and sort it
     return Object.entries(userProfile.workoutPlan).sort(([dayA], [dayB]) => {
       return daysOrder.indexOf(dayA) - daysOrder.indexOf(dayB);
     });
@@ -136,14 +140,14 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onNavigate("player", {
+                              onNavigate("planner", {
                                 ...workoutDetails,
                                 dayIdentifier: dayName,
                               });
                             }}
                             className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                           >
-                            Start Workout
+                            Start Planner
                           </button>
                           {expandedDay === dayName ? (
                             <ChevronUp
@@ -164,30 +168,33 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                           className="p-4 bg-gray-900/50 border-t border-gray-600"
                         >
                           <ul className="space-y-2">
-                            {workoutDetails.exercises.length > 0 ? (
-                              workoutDetails.exercises.map((ex, exIndex) => (
-                                <li key={exIndex} className="text-white">
-                                  <div className="flex justify-between items-center">
-                                    <span>{ex.name}</span>
-                                    <span className="text-gray-300">
-                                      {ex.sets} x {ex.reps} @ {ex.weight} lbs
-                                    </span>
-                                  </div>
-                                  {ex.type === "barbell" && (
-                                    <MiniPlateDisplay
-                                      targetWeight={ex.weight}
-                                      availablePlates={
-                                        userProfile.availablePlates
-                                      }
-                                    />
-                                  )}
-                                </li>
-                              ))
-                            ) : (
-                              <p className="text-gray-400">
-                                No exercises planned for this day.
-                              </p>
-                            )}
+                            {workoutDetails.exercises.map((ex, exIndex) => (
+                              <li key={exIndex} className="text-white">
+                                <div className="flex justify-between items-center">
+                                  <span>{ex.name}</span>
+                                  <span className="text-gray-300">
+                                    {ex.sets.length} sets
+                                  </span>
+                                </div>
+                                <ul className="pl-4 mt-1 border-l-2 border-gray-600">
+                                  {ex.sets.map((s, i) => (
+                                    <li
+                                      key={i}
+                                      className="text-sm text-gray-300"
+                                    >
+                                      Set {i + 1}: {s.reps} reps @ {s.weight}{" "}
+                                      lbs ({s.percentage * 100}%)
+                                      <MiniPlateDisplay
+                                        targetWeight={s.weight}
+                                        availablePlates={
+                                          userProfile.availablePlates
+                                        }
+                                      />
+                                    </li>
+                                  ))}
+                                </ul>
+                              </li>
+                            ))}
                           </ul>
                         </div>
                       )}
@@ -248,13 +255,23 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
 
           <div className="space-y-8">
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-semibold text-white mb-4">Tools</h2>
-              <button
-                onClick={() => onNavigate("calculator")}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <Weight size={20} className="text-white" /> Plate Calculator
-              </button>
+              <h2 className="text-2xl font-semibold text-white mb-4">
+                Tools & Library
+              </h2>
+              <div className="space-y-3">
+                <button
+                  onClick={() => onNavigate("calculator")}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Weight size={20} className="text-white" /> Plate Calculator
+                </button>
+                <button
+                  onClick={() => onNavigate("exercise_library")}
+                  className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <BookOpen size={20} className="text-white" /> Exercise Library
+                </button>
+              </div>
             </div>
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
               <h2 className="text-2xl font-semibold text-white mb-4">

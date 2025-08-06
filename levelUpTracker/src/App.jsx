@@ -5,6 +5,7 @@ import { SettingsPage } from "./components/SettingsPage";
 import { PlateCalculator } from "./components/PlateCalculator";
 import { WorkoutPlanner } from "./components/WorkoutPlanner";
 import { CreateWorkout } from "./components/CreateWorkout";
+import { ExerciseLibrary } from "./components/ExerciseLibrary";
 import { Loader2 } from "lucide-react";
 
 export default function App() {
@@ -39,6 +40,17 @@ export default function App() {
 
       handleUpdateProfile({ workoutPlan: newPlan });
       setCurrentPage("dashboard");
+    },
+    [userProfile, handleUpdateProfile]
+  );
+
+  const handleUpdateLibrary = useCallback(
+    (exerciseName, newOneRepMax) => {
+      if (!userProfile) return;
+      const newLibrary = userProfile.exerciseLibrary.map((ex) =>
+        ex.name === exerciseName ? { ...ex, oneRepMax: newOneRepMax } : ex
+      );
+      handleUpdateProfile({ exerciseLibrary: newLibrary });
     },
     [userProfile, handleUpdateProfile]
   );
@@ -103,7 +115,10 @@ export default function App() {
         return (
           <SettingsPage
             userProfile={userProfile}
-            onSave={() => setCurrentPage("dashboard")}
+            onSave={() => {
+              handleUpdateProfile(userProfile);
+              setCurrentPage("dashboard");
+            }}
             onBack={() => setCurrentPage("dashboard")}
             updateUserProfile={handleUpdateProfile}
           />
@@ -111,7 +126,16 @@ export default function App() {
       case "create_workout":
         return (
           <CreateWorkout
+            userProfile={userProfile}
             onSave={handleSaveCustomWorkout}
+            onBack={() => setCurrentPage("dashboard")}
+          />
+        );
+      case "exercise_library":
+        return (
+          <ExerciseLibrary
+            userProfile={userProfile}
+            onSave={handleUpdateProfile}
             onBack={() => setCurrentPage("dashboard")}
           />
         );
@@ -121,6 +145,7 @@ export default function App() {
             workoutDay={workoutData}
             onFinish={handleFinishWorkout}
             onUpdateExercise={handleUpdateExercise}
+            onUpdateLibrary={handleUpdateLibrary}
           />
         );
       case "calculator":
