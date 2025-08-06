@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 
 export const useFirebaseUser = () => {
+  // A custom React Hook to handle user auth and profile data w/ firebase
   const [userId, setUserId] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
