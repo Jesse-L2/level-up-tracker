@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FormField } from "./ui/FormField";
 import { Edit, Save, X } from "lucide-react";
+import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 
 export const WorkoutPlanner = ({
   workoutDay,
   onFinish,
   onUpdateExercise,
   onUpdateLibrary,
+  availablePlates,
 }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [sessionLog, setSessionLog] = useState({});
-  const [isEditing, setIsEditing] = useState(null);
-  const [editValue, setEditValue] = useState({ reps: "", weight: "" });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState({ oneRepMax: "" });
   const [message, setMessage] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const currentExercise = workoutDay.exercises[currentExerciseIndex];
 
@@ -29,6 +32,23 @@ export const WorkoutPlanner = ({
     });
     setSessionLog(initialLog);
   }, [workoutDay]);
+
+  const handleStartEditOneRepMax = () => {
+    setIsEditing(true);
+    setEditValue({ oneRepMax: currentExercise.oneRepMax });
+  };
+
+  const handleSaveOneRepMax = () => {
+    const newOneRepMax = parseFloat(editValue.oneRepMax);
+    if (newOneRepMax > 0) {
+      onUpdateLibrary(currentExercise.name, newOneRepMax);
+      setIsEditing(false);
+      // Optimistically update the UI
+      currentExercise.oneRepMax = newOneRepMax;
+    } else {
+      setMessage("Please enter a valid 1 Rep Max.");
+    }
+  };
 
   const handleFinishWorkout = useCallback(() => {
     const completedWorkout = {
@@ -59,7 +79,6 @@ export const WorkoutPlanner = ({
       }
 
       if (newMax !== originalMax) {
-        // Use window.confirm as a simple modal for this suggestion
         const confirmed = window.confirm(
           `Based on your feedback, we suggest updating your 1 Rep Max for ${currentExercise.name} from ${originalMax} lbs to ${newMax} lbs. Do you want to save this change to your library?`
         );
@@ -98,8 +117,10 @@ export const WorkoutPlanner = ({
     });
   }, []);
 
-  // Other handlers (handleStartEdit, handleSaveEdit, etc.) remain similar but should use target values
-  // For brevity, the logic is kept concise here. A full implementation would expand these.
+  const handleSelectExercise = (index) => {
+    setCurrentExerciseIndex(index);
+    setIsMenuOpen(false);
+  };
 
   if (!currentExercise) {
     return (
@@ -116,15 +137,73 @@ export const WorkoutPlanner = ({
           <h1 className="text-3xl font-bold text-center mb-1">
             {workoutDay.name}
           </h1>
-          <p className="text-center text-gray-400 mb-4">
-            Exercise {currentExerciseIndex + 1} of {workoutDay.exercises.length}
-          </p>
+          <div className="relative text-center">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-400 mb-4"
+            >
+              Exercise {currentExerciseIndex + 1} of{" "}
+              {workoutDay.exercises.length} (Click to select)
+            </button>
+            {isMenuOpen && (
+              <div className="absolute z-10 top-full left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-lg shadow-lg mt-2">
+                <ul className="py-2">
+                  {workoutDay.exercises.map((ex, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleSelectExercise(index)}
+                      className="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+                    >
+                      {ex.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-4xl font-bold mb-2 text-center text-blue-400">
             {currentExercise.name}
           </h2>
+          <div className="text-center mb-4">
+            <p className="text-gray-400">
+              Current 1 Rep Max: {currentExercise.oneRepMax} lbs
+            </p>
+            {isEditing ? (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <FormField
+                  id="newOneRepMax"
+                  type="number"
+                  value={editValue.oneRepMax}
+                  onChange={(e) =>
+                    setEditValue({ ...editValue, oneRepMax: e.target.value })
+                  }
+                  className="w-24"
+                />
+                <button
+                  onClick={handleSaveOneRepMax}
+                  className="bg-green-600 hover:bg-green-500 text-white font-bold py-1 px-3 rounded-lg"
+                >
+                  <Save size={18} />
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-lg"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleStartEditOneRepMax}
+                className="text-blue-400 hover:text-blue-300 mt-1"
+              >
+                Edit 1RM
+              </button>
+            )}
+          </div>
           <div className="space-y-3 mt-6">
             {currentExercise.sets.map((set, setIndex) => (
               <div
@@ -145,9 +224,17 @@ export const WorkoutPlanner = ({
                   >
                     {setIndex + 1}
                   </div>
-                  <p className="font-semibold">
-                    Target: {set.reps} reps @ {set.weight} lbs
-                  </p>
+                  <div>
+                    <p className="font-semibold">
+                      Target: {set.reps} reps @ {set.weight} lbs
+                    </p>
+                    {set.weight > 45 && (
+                      <MiniPlateDisplay
+                        targetWeight={set.weight}
+                        availablePlates={availablePlates}
+                      />
+                    )}
+                  </div>
                 </div>
                 {!sessionLog[currentExerciseIndex]?.[setIndex]?.completed && (
                   <button

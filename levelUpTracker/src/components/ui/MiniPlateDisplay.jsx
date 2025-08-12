@@ -26,7 +26,7 @@ export const MiniPlateDisplay = ({
         plateType.count--;
       }
     }
-    return platesForOneSide;
+    return platesForOneSide.sort((a, b) => b - a); // Sort heaviest to lightest for display
   }, [targetWeight, availablePlates, barbellWeight]);
 
   if (platesPerSide.length === 0) {

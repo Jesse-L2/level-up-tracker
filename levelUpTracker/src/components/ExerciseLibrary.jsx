@@ -8,11 +8,22 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
   const [library, setLibrary] = useState(userProfile.exerciseLibrary || []);
   const [newExercise, setNewExercise] = useState(initialExerciseState);
   const [message, setMessage] = useState("");
+  const [editingExercise, setEditingExercise] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewExercise((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleEditExercise = useCallback((exercise) => {
+    setEditingExercise(exercise);
+    setNewExercise({
+      name: exercise.name,
+      oneRepMax: exercise.oneRepMax,
+      type: exercise.type,
+    });
+    setMessage("");
+  }, []);
 
   const handleAddExercise = useCallback(() => {
     if (!newExercise.name) {
@@ -27,18 +38,34 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
       return;
     }
 
-    const exerciseToAdd = {
+    const exerciseToSave = {
       name: newExercise.name,
       type: newExercise.type,
-      // Store 1RM as a number, or 0 for bodyweight exercises
       oneRepMax:
         newExercise.type === "weighted" ? parseFloat(newExercise.oneRepMax) : 0,
     };
 
-    setLibrary((prev) => [...prev, exerciseToAdd]);
+    if (editingExercise) {
+      // Update existing exercise
+      setLibrary((prev) =>
+        prev.map((ex) =>
+          ex.name === editingExercise.name ? exerciseToSave : ex
+        )
+      );
+      setEditingExercise(null);
+    } else {
+      // Add new exercise
+      setLibrary((prev) => [...prev, exerciseToSave]);
+    }
     setNewExercise(initialExerciseState);
     setMessage("");
-  }, [newExercise]);
+  }, [newExercise, editingExercise]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingExercise(null);
+    setNewExercise(initialExerciseState);
+    setMessage("");
+  }, []);
 
   const handleRemoveExercise = useCallback((nameToRemove) => {
     // FIX: Filter by name to prevent deleting all exercises.
@@ -80,12 +107,20 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
                         : "Bodyweight"}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleRemoveExercise(ex.name)}
-                    className="text-red-400 hover:text-red-300 p-2"
-                  >
-                    <Trash2 size={20} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditExercise(ex)}
+                      className="text-blue-400 hover:text-blue-300 p-2"
+                    >
+                      <Edit size={20} />
+                    </button>
+                    <button
+                      onClick={() => handleRemoveExercise(ex.name)}
+                      className="text-red-400 hover:text-red-300 p-2"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -97,7 +132,9 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
         </div>
 
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-          <h2 className="text-2xl font-semibold mb-4">Add New Lift</h2>
+          <h2 className="text-2xl font-semibold mb-4">
+            {editingExercise ? "Edit Lift" : "Add New Lift"}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               label="Exercise Name"
@@ -133,12 +170,27 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
           {message && (
             <p className="text-red-400 text-center mt-4">{message}</p>
           )}
-          <button
-            onClick={handleAddExercise}
-            className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
-          >
-            <Plus size={20} /> Add to Library
-          </button>
+          <div className="flex gap-2 mt-6">
+            <button
+              onClick={handleAddExercise}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+            >
+              {editingExercise ? (
+                <Save size={20} />
+              ) : (
+                <Plus size={20} />
+              )}{" "}
+              {editingExercise ? "Save Changes" : "Add to Library"}
+            </button>
+            {editingExercise && (
+              <button
+                onClick={handleCancelEdit}
+                className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+              >
+                <X size={20} /> Cancel
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-8 flex justify-end">
