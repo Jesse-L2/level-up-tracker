@@ -1,0 +1,12 @@
+[
+  { "weight": 45, "quantity": 2 },
+  { "weight": 35, "quantity": 2 },
+  { "weight": 25, "quantity": 2 },
+  { "weight": 10, "quantity": 4 },
+  { "weight": 5, "quantity": 2 },
+  { "weight": 2.5, "quantity": 2 },
+  { "weight": 1, "quantity": 2 },
+  { "weight": 0.75, "quantity": 2 },
+  { "weight": 0.5, "quantity": 2 },
+  { "weight": 0.25, "quantity": 2 }
+]

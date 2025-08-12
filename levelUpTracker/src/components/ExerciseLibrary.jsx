@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { FormField } from "./ui/FormField";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Edit, X } from "lucide-react";
 
 const initialExerciseState = { name: "", oneRepMax: "", type: "weighted" };
 
@@ -43,6 +43,7 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
       type: newExercise.type,
       oneRepMax:
         newExercise.type === "weighted" ? parseFloat(newExercise.oneRepMax) : 0,
+      lastUpdated: new Date().toISOString(), // Add lastUpdated timestamp
     };
 
     if (editingExercise) {
@@ -175,11 +176,7 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
               onClick={handleAddExercise}
               className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
             >
-              {editingExercise ? (
-                <Save size={20} />
-              ) : (
-                <Plus size={20} />
-              )}{" "}
+              {editingExercise ? <Save size={20} /> : <Plus size={20} />}{" "}
               {editingExercise ? "Save Changes" : "Add to Library"}
             </button>
             {editingExercise && (

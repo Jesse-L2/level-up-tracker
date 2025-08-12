@@ -47,9 +47,32 @@ export default function App() {
   const handleUpdateLibrary = useCallback(
     (exerciseName, newOneRepMax) => {
       if (!userProfile) return;
-      const newLibrary = userProfile.exerciseLibrary.map((ex) =>
-        ex.name === exerciseName ? { ...ex, oneRepMax: newOneRepMax } : ex
-      );
+
+      const newLibrary = userProfile.exerciseLibrary.map((ex) => {
+        if (ex.name === exerciseName) {
+          const oldOneRepMax = ex.oneRepMax;
+          const lastUpdated = ex.lastUpdated ? new Date(ex.lastUpdated) : new Date(0); // Default to epoch if not set
+          const now = new Date();
+          const daysSinceLastUpdate = Math.floor((now - lastUpdated) / (1000 * 60 * 60 * 24));
+          const weeksSinceLastUpdate = daysSinceLastUpdate / 7;
+
+          let cappedNewOneRepMax = newOneRepMax;
+
+          // Only apply cap if 1RM is increasing and it's a weighted exercise
+          if (newOneRepMax > oldOneRepMax && ex.type === "weighted") {
+            const maxIncreaseAllowed = weeksSinceLastUpdate * 5; // 5 lbs per week
+            const actualIncrease = newOneRepMax - oldOneRepMax;
+
+            if (actualIncrease > maxIncreaseAllowed) {
+              cappedNewOneRepMax = oldOneRepMax + maxIncreaseAllowed;
+              console.warn(`1RM increase for ${exerciseName} capped to ${cappedNewOneRepMax} (max ${maxIncreaseAllowed} lbs increase allowed).`);
+            }
+          }
+
+          return { ...ex, oneRepMax: cappedNewOneRepMax, lastUpdated: now.toISOString() };
+        }
+        return ex;
+      });
       handleUpdateProfile({ exerciseLibrary: newLibrary });
     },
     [userProfile, handleUpdateProfile]

@@ -10,13 +10,38 @@ export const SettingsPage = ({
   updateUserProfile,
 }) => {
   const [profile, setProfile] = useState(userProfile);
-  const [newWeight, setNewWeight] = useState({ value: "", quantity: 1 });
+  const [newWeight, setNewWeight] = useState({ value: "", quantity: 2 });
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    setProfile(userProfile);
+    if (userProfile) {
+      setProfile(userProfile);
+    }
   }, [userProfile]);
+
+  useEffect(() => {
+    const fetchPlateData = async () => {
+      if (profile && (!profile.availablePlates || profile.availablePlates.length === 0)) {
+        try {
+          const response = await fetch('/plate-data.json');
+          const data = await response.json();
+          const plates = data.map(p => ({ weight: p.weight, count: p.quantity }));
+          setProfile(prevProfile => ({
+            ...prevProfile,
+            availablePlates: plates.sort((a, b) => b.weight - a.weight),
+          }));
+        } catch (error) {
+          console.error("Failed to fetch plate data:", error);
+        }
+      }
+    };
+
+    if (profile) {
+      fetchPlateData();
+    }
+  }, [profile]);
+
 
   const handleEquipmentChange = useCallback((equipmentId) => {
     setProfile((prevProfile) => {
@@ -65,7 +90,7 @@ export const SettingsPage = ({
       };
     });
 
-    setNewWeight({ value: "", quantity: 1 });
+    setNewWeight({ value: "", quantity: 2 });
     setMessage(null);
   }, [newWeight]);
 
@@ -91,6 +116,14 @@ export const SettingsPage = ({
       setIsSaving(false);
     }
   };
+
+  if (!profile) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin text-white" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
@@ -185,7 +218,7 @@ export const SettingsPage = ({
                 type="number"
                 placeholder="e.g., 2"
                 value={newWeight.quantity}
-                min="1"
+                min="2"
                 onChange={(e) =>
                   setNewWeight({
                     ...newWeight,

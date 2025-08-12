@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { FormField } from "./ui/FormField";
 import { Weight } from "lucide-react";
 
@@ -7,6 +7,29 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
   const [barbellWeight, setBarbellWeight] = useState(45);
   const [calculation, setCalculation] = useState(null);
   const [message, setMessage] = useState(null);
+  const [plates, setPlates] = useState(availablePlates);
+
+  useEffect(() => {
+    const fetchPlateData = async () => {
+      try {
+        const response = await fetch("/plate-data.json");
+        const data = await response.json();
+        const formattedPlates = data.map((p) => ({
+          weight: p.weight,
+          count: p.quantity,
+        }));
+        setPlates(formattedPlates);
+      } catch (error) {
+        console.error("Failed to fetch plate data:", error);
+      }
+    };
+
+    if (!availablePlates || availablePlates.length === 0) {
+      fetchPlateData();
+    } else {
+      setPlates(availablePlates);
+    }
+  }, [availablePlates]);
 
   const calculatePlates = useCallback(() => {
     const target = parseFloat(targetWeight);
@@ -35,7 +58,7 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
     const platesForOneSide = [];
     let currentWeightOnSide = 0;
 
-    const platesWorkingPool = availablePlates
+    const platesWorkingPool = plates
       .map((p) => ({ weight: p.weight, count: Math.floor(p.count / 2) }))
       .sort((a, b) => b.weight - a.weight);
 
@@ -70,7 +93,7 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
         totalAchieved: achievedTotalWeight,
       });
     }
-  }, [targetWeight, barbellWeight, availablePlates]);
+  }, [targetWeight, barbellWeight, plates]);
 
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
@@ -123,42 +146,19 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
               <div className="flex items-center justify-center space-x-2 bg-gray-700 p-4 rounded-lg overflow-x-auto">
                 <div
                   className="h-2 bg-gray-400 rounded-l-lg flex-shrink-0"
-                  style={{ width: "50px" }}
+                  style={{ width: "3rem" }}
                 ></div>
-                <div className="h-8 w-2 bg-gray-400 flex-shrink-0"></div>
-                {calculation.platesPerSide.map((plateWeight, index) => (
-                  <div
-                    key={`plate-${index}-${plateWeight}`}
-                    className="bg-blue-500 text-white flex items-center justify-center font-bold rounded-sm text-sm flex-shrink-0"
-                    style={{
-                      height: `${Math.min(90, 40 + plateWeight * 1.5)}px`,
-                      width: "25px",
-                    }}
-                    title={`${plateWeight} lbs`}
-                    aria-label={`${plateWeight} pound plate`}
-                  >
-                    {plateWeight}
-                  </div>
-                ))}
-                <div
-                  className="flex-grow h-2 bg-gray-500 flex-shrink-0"
-                  style={{ minWidth: "50px" }}
-                ></div>
-                <div className="text-gray-400 font-mono flex-shrink-0">BAR</div>
-                <div
-                  className="flex-grow h-2 bg-gray-500 flex-shrink-0"
-                  style={{ minWidth: "50px" }}
-                ></div>
+                <div className="h-8 w-1 bg-gray-400 flex-shrink-0"></div>
                 {calculation.platesPerSide
                   .slice()
                   .reverse()
                   .map((plateWeight, index) => (
                     <div
-                      key={`mirror-${index}-${plateWeight}`}
+                      key={`plate-${index}-${plateWeight}`}
                       className="bg-blue-500 text-white flex items-center justify-center font-bold rounded-sm text-sm flex-shrink-0"
                       style={{
                         height: `${Math.min(90, 40 + plateWeight * 1.5)}px`,
-                        width: "25px",
+                        width: "1.25rem",
                       }}
                       title={`${plateWeight} lbs`}
                       aria-label={`${plateWeight} pound plate`}
@@ -166,7 +166,26 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
                       {plateWeight}
                     </div>
                   ))}
-                <div className="h-8 w-2 bg-gray-400 flex-shrink-0"></div>
+                <div
+                  className="flex-grow h-2 bg-gray-400 flex-shrink-0"
+                  style={{ minWidth: "1.5rem" }}
+                ></div>
+
+                {calculation.platesPerSide.map((plateWeight, index) => (
+                  <div
+                    key={`mirror-${index}-${plateWeight}`}
+                    className="bg-blue-500 text-white flex items-center justify-center font-bold rounded-sm text-sm flex-shrink-0"
+                    style={{
+                      height: `${Math.min(90, 40 + plateWeight * 1.5)}px`,
+                      width: "1.25rem",
+                    }}
+                    title={`${plateWeight} lbs`}
+                    aria-label={`${plateWeight} pound plate`}
+                  >
+                    {plateWeight}
+                  </div>
+                ))}
+                <div className="h-8 w-1 bg-gray-400 flex-shrink-0"></div>
                 <div
                   className="h-2 bg-gray-400 rounded-r-lg flex-shrink-0"
                   style={{ width: "50px" }}

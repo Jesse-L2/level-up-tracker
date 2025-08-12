@@ -79,14 +79,12 @@ export const WorkoutPlanner = ({
       }
 
       if (newMax !== originalMax) {
-        const confirmed = window.confirm(
-          `Based on your feedback, we suggest updating your 1 Rep Max for ${currentExercise.name} from ${originalMax} lbs to ${newMax} lbs. Do you want to save this change to your library?`
-        );
-        if (confirmed) {
-          onUpdateLibrary(currentExercise.name, newMax);
-        }
+        // Instead of window.confirm, set state to show inline update form
+        // For now, we'll just progress and let the user manually update if they wish
+        // This will be handled by the new UI for 1RM update
       }
 
+      // Always progress to the next exercise after feedback
       if (currentExerciseIndex < workoutDay.exercises.length - 1) {
         setCurrentExerciseIndex(currentExerciseIndex + 1);
       } else {
@@ -168,32 +166,34 @@ export const WorkoutPlanner = ({
             {currentExercise.name}
           </h2>
           <div className="text-center mb-4">
-            <p className="text-gray-400">
-              Current 1 Rep Max: {currentExercise.oneRepMax} lbs
-            </p>
             {isEditing ? (
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <FormField
-                  id="newOneRepMax"
-                  type="number"
-                  value={editValue.oneRepMax}
-                  onChange={(e) =>
-                    setEditValue({ ...editValue, oneRepMax: e.target.value })
-                  }
-                  className="w-24"
-                />
-                <button
-                  onClick={handleSaveOneRepMax}
-                  className="bg-green-600 hover:bg-green-500 text-white font-bold py-1 px-3 rounded-lg"
-                >
-                  <Save size={18} />
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-lg"
-                >
-                  <X size={18} />
-                </button>
+              <div className="flex flex-col items-center justify-center gap-2 mt-2">
+                <p className="text-gray-400">
+                  Old 1RM: {currentExercise.oneRepMax} lbs
+                </p>
+                <div className="flex items-center gap-2">
+                  <FormField
+                    id="newOneRepMax"
+                    type="number"
+                    value={editValue.oneRepMax}
+                    onChange={(e) =>
+                      setEditValue({ ...editValue, oneRepMax: e.target.value })
+                    }
+                    className="w-24"
+                  />
+                  <button
+                    onClick={handleSaveOneRepMax}
+                    className="bg-green-600 hover:bg-green-500 text-white font-bold py-1 px-3 rounded-lg"
+                  >
+                    <Save size={18} />
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-lg"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
             ) : (
               <button
