@@ -6,17 +6,22 @@ import { PlateCalculator } from "./components/PlateCalculator";
 import { WorkoutPlanner } from "./components/WorkoutPlanner";
 import { CreateWorkout } from "./components/CreateWorkout";
 import { ExerciseLibrary } from "./components/ExerciseLibrary";
+import ProgramTemplates from "./components/ProgramTemplates";
+import ProgramTemplateDetails from "./components/ProgramTemplateDetails";
 import { Loader2 } from "lucide-react";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [workoutData, setWorkoutData] = useState(null);
+  const [programTemplateId, setProgramTemplateId] = useState(null);
   const { userProfile, isLoading, error, updateUserProfileInFirestore } =
     useFirebaseUser();
 
-  const handleNavigate = useCallback((page, data = null) => {
+  const handleNavigate = useCallback((page, data = null, id = null) => {
     if (page === "planner") {
       setWorkoutData(data);
+    } else if (page === "program_template_details") {
+      setProgramTemplateId(id);
     }
     setCurrentPage(page);
   }, []);
@@ -169,6 +174,7 @@ export default function App() {
             onFinish={handleFinishWorkout}
             onUpdateExercise={handleUpdateExercise}
             onUpdateLibrary={handleUpdateLibrary}
+            availablePlates={userProfile.availablePlates}
           />
         );
       case "calculator":
@@ -177,6 +183,14 @@ export default function App() {
             availablePlates={userProfile.availablePlates}
             onBack={() => setCurrentPage("dashboard")}
           />
+        );
+      case "program_templates":
+        return (
+          <ProgramTemplates onNavigate={handleNavigate} />
+        );
+      case "program_template_details":
+        return (
+          <ProgramTemplateDetails id={programTemplateId} onBack={() => setCurrentPage("program_templates")} onNavigate={handleNavigate} />
         );
       case "dashboard":
       default:

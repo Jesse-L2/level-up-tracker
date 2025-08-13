@@ -5,7 +5,33 @@ import { Plus, Trash2, Save, Edit, X } from "lucide-react";
 const initialExerciseState = { name: "", oneRepMax: "", type: "weighted" };
 
 export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
+  const [templateExercises, setTemplateExercises] = useState([]);
   const [library, setLibrary] = useState(userProfile.exerciseLibrary || []);
+  useEffect(() => {
+    fetch('/program-templates.json')
+      .then(response => response.json())
+      .then(data => {
+        const allTemplateLifts = new Set();
+        data.forEach(template => {
+          template.lifts.forEach(lift => {
+            allTemplateLifts.add(lift);
+          });
+        });
+        const formattedTemplateExercises = Array.from(allTemplateLifts).map(liftName => ({
+          name: liftName,
+          oneRepMax: 0, // Default for template exercises
+          type: "weighted", // Assuming most template lifts are weighted
+          isTemplate: true // Mark as template exercise
+        }));
+        setTemplateExercises(formattedTemplateExercises);
+        // Filter out template exercises from the user's library to avoid duplicates
+        setLibrary(prevLibrary => {
+          const templateNames = new Set(formattedTemplateExercises.map(ex => ex.name));
+          return prevLibrary.filter(ex => !templateNames.has(ex.name));
+        });
+      })
+      .catch(error => console.error("Error fetching program templates for library:", error));
+  }, []); // Empty dependency array means this runs once on mount
   const [newExercise, setNewExercise] = useState(initialExerciseState);
   const [message, setMessage] = useState("");
   const [editingExercise, setEditingExercise] = useState(null);
@@ -128,6 +154,33 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
           ) : (
             <p className="text-gray-500 text-center py-4">
               Your library is empty. Add a lift to get started.
+            </p>
+          )}
+        </div>
+
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Template Exercises</h2>
+          {templateExercises.length > 0 ? (
+            <div className="space-y-3">
+              {templateExercises.map((ex) => (
+                <div
+                  key={ex.name}
+                  className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"
+                >
+                  <div>
+                    <p className="font-bold text-white">{ex.name}</p>
+                    <p className="text-sm text-gray-300">
+                      {ex.type === "weighted"
+                        ? `1RM: ${ex.oneRepMax} lbs`
+                        : "Bodyweight"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-4">
+              No template exercises found.
             </p>
           )}
         </div>

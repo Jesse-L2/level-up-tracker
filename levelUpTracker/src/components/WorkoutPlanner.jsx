@@ -12,6 +12,7 @@ export const WorkoutPlanner = ({
 }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [sessionLog, setSessionLog] = useState({});
+  const [suggested1RM, setSuggested1RM] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState({ oneRepMax: "" });
   const [message, setMessage] = useState(null);
@@ -236,15 +237,35 @@ export const WorkoutPlanner = ({
                     )}
                   </div>
                 </div>
-                {!sessionLog[currentExerciseIndex]?.[setIndex]?.completed && (
-                  <button
-                    onClick={() =>
-                      handleSetComplete(currentExerciseIndex, setIndex)
-                    }
-                    className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
-                  >
-                    Complete
-                  </button>
+                {!sessionLog[currentExerciseIndex]?.[setIndex]?.completed ? (
+                  <div className="flex items-center gap-2">
+                    <FormField
+                      id={`reps-${setIndex}`}
+                      type="number"
+                      placeholder="Reps"
+                      className="w-20 bg-gray-800"
+                      onChange={(e) => {
+                        const reps = e.target.value;
+                        setSessionLog((prevLog) => {
+                          const newLog = JSON.parse(JSON.stringify(prevLog));
+                          newLog[currentExerciseIndex][setIndex].reps = reps;
+                          return newLog;
+                        });
+                      }}
+                    />
+                    <button
+                      onClick={() =>
+                        handleSetComplete(currentExerciseIndex, setIndex)
+                      }
+                      className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-lg">
+                    {sessionLog[currentExerciseIndex]?.[setIndex]?.reps} reps
+                  </p>
                 )}
               </div>
             ))}

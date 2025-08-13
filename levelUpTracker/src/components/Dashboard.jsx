@@ -271,6 +271,12 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                 >
                   <BookOpen size={20} className="text-white" /> Exercise Library
                 </button>
+                <button
+                  onClick={() => onNavigate("program_templates")}
+                  className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <BookOpen size={20} className="text-white" /> Program Templates
+                </button>
               </div>
             </div>
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
