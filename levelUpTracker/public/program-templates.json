@@ -240,38 +240,114 @@
         }
       }
     },
-    "nsuns_531": {
-      "id": "nsuns_531",
-      "name": "nSuns 5/3/1",
-      "description": "A high-volume variation of Wendler's 5/3/1, often with 4-day or 5-day splits.",
-      "structure": "Varies by template (4, 5, or 6 day splits), high frequency and volume.",
-      "notes": "Incorporates T1 (main) and T2 (supplemental) lifts with specific rep schemes.",
-      "day_1": {
-        "squat_t1": {
-          "sets": 9,
-          "reps": [5, 3, "1+", 3, 3, 3, 5, 3, "1+"],
-          "percentages": [75, 85, 95, 90, 85, 80, 75, 70, 65],
-          "notes": "T1 main lift - percentages of training max (already accounts for rep-max relationship)"
+    "custom_531": {
+      "id": "custom_531",
+      "name": "Custom 5/3/1",
+      "description": "A high-volume variation of Wendler's 5/3/1 with a 4 day split.",
+      "structure": "Upper/Lower split with high frequency and volume.",
+      "notes": "Incorporates primary and secondary lifts with specific rep schemes.",
+      "day_1_upper": {
+        "bench_press_primary": {
+          "sets": 7,
+          "reps": [10, 6, 4, 4, 4, 6, "8+"],
+          "percentages": [60, 75, 85, 85, 85, 75, 65],
+          "notes": "Primary bench press movement"
         },
-        "sumo_deadlift_t2": {
-          "sets": 8,
-          "reps": [5, 5, 3, 3, 3, 3, 3, 3],
-          "percentages": [65, 70, 75, 75, 75, 70, 70, 70],
-          "notes": "T2 supplemental lift - adjusted for rep ranges"
+        "overhead_press_primary": {
+          "sets": 6,
+          "reps": [8, 8, 8, 8, 8, 8],
+          "percentages": [65, 65, 65, 65, 65, 65],
+          "notes": "Primary overhead press movement"
+        },
+        "barbell_row_secondary": {
+          "sets": 3,
+          "reps": [12, 12, 12],
+          "percentages": [65, 65, 65],
+          "notes": "Secondary rowing movement"
+        },
+        "dumbbell_curl": {
+          "sets": 4,
+          "reps": [12, "8-12", "8-12", "8-12"],
+          "percentages": [70, 70, 70, 70],
+          "notes": "Isolation curl movement"
+        },
+        "pull_ups": {
+          "sets": 3,
+          "reps": [12, 12, 12],
+          "percentages": [70, 70, 70],
+          "notes": "Bodyweight or weighted pull-ups"
         }
       },
-      "day_2": {
-        "bench_press_t1": {
-          "sets": 9,
-          "reps": [5, 3, "1+", 3, 3, 3, 5, 3, "1+"],
-          "percentages": [75, 85, 95, 90, 85, 80, 75, 70, 65],
-          "notes": "T1 main lift - percentages of training max (already accounts for rep-max relationship)"
+      "day_2_lower": {
+        "squat_primary": {
+          "sets": 7,
+          "reps": [10, 6, 4, 4, 4, 6, "8+"],
+          "percentages": [60, 75, 85, 85, 85, 75, 65],
+          "notes": "Primary squat movement"
         },
-        "overhead_press_t2": {
-          "sets": 8,
-          "reps": [6, 6, 6, 6, 6, 6, 6, 6],
-          "percentages": [85, 85, 85, 85, 85, 85, 85, 85],
-          "notes": "T2 supplemental lift - 6 reps at 85% 1RM"
+        "sumo_deadlift_primary": {
+          "sets": 4,
+          "reps": [8, 4, 4, 4],
+          "percentages": [50, 80, 80, 80],
+          "notes": "Primary sumo deadlift movement"
+        },
+        "calf_raise_secondary": {
+          "sets": 4,
+          "reps": ["12+", "12+", "12+", "12+"],
+          "percentages": [70, 70, 70, 70],
+          "notes": "Secondary calf development"
+        }
+      },
+      "day_3_upper": {
+        "bench_press": {
+          "sets": 5,
+          "reps": [10, 8, 8, 8, 8],
+          "percentages": [60, 72, 73, 74, 75],
+          "notes": "Primary bench press movement"
+        },
+        "close_grip_bench": {
+          "sets": 4,
+          "reps": [10, 10, 10, 10],
+          "percentages": [60, 62, 64, 66],
+          "notes": "Secondary tricep-focused movement"
+        },
+        "barbell_row": {
+          "sets": 4,
+          "reps": [12, 12, 12, 12],
+          "percentages": [65, 65, 65, 65],
+          "notes": "Secondary rowing movement"
+        },
+        "dumbbell_curl": {
+          "sets": 4,
+          "reps": ["8-12", "8-12", "8-12", "8-12"],
+          "percentages": [70, 70, 70, 70],
+          "notes": "Isolation curl movement"
+        },
+        "pull_ups": {
+          "sets": 3,
+          "reps": ["12-15", "8-12", "8-12"],
+          "percentages": [65, 70, 70],
+          "notes": "Bodyweight or weighted pull-ups"
+        }
+      },
+      "day_4_lower": {
+        "deadlift_primary": {
+          "sets": 5,
+          "reps": [8, 6, "3-4", "3-4", "3-4"],
+          "percentages": [67, 75, 87, 87, 87],
+          "notes": "Primary deadlift movement"
+        },
+        "front_squat_primary": {
+          "sets": 6,
+          "reps": [6, 6, 6, 6, 6, 6],
+          "percentages": [60, 62, 63, 64, 65, 66],
+          "notes": "Primary front squat movement"
+        },
+        "calf_raise_secondary": {
+          "sets": 4,
+          "reps": ["12+", "12+", "12+", "12+"],
+          "percentages": [70, 70, 70, 70],
+          "notes": "Secondary calf development"
         }
       }
     },
@@ -280,7 +356,7 @@
       "name": "StrongLifts 5x5",
       "description": "A beginner strength program similar to Starting Strength, using 5 sets of 5 reps.",
       "structure": "Alternating A/B days, 3 times a week.",
-      "notes": "Focus on linear progression and compound movements. Deadlift is 1x5.",
+      "notes": "Focus on linear progression and compound movements. .",
       "workout_a": {
         "squat": {
           "sets": 5,
@@ -315,10 +391,10 @@
           "notes": "Working weight across all sets"
         },
         "deadlift": {
-          "sets": 1,
-          "reps": [5],
+          "sets": 5,
+          "reps": [5, 5, 5, 5, 5],
           "percentages": [86],
-          "notes": "Single heavy set"
+          "notes": ""
         }
       }
     },
