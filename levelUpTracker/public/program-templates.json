@@ -87,45 +87,38 @@
       "name": "Starting Strength",
       "description": "A beginner linear progression program focused on compound lifts.",
       "structure": "Alternating A/B days, 3 times a week.",
-      "notes": "Focus on proper form and consistent weight progression.",
       "workout_a": {
         "squat": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86]
         },
         "bench_press": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86]
         },
         "deadlift": {
           "sets": 1,
           "reps": [5],
-          "percentages": [86],
-          "notes": "Single heavy set"
+          "percentages": [86]
         }
       },
       "workout_b": {
         "squat": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86]
         },
         "overhead_press": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86]
         },
         "power_clean": {
           "sets": 5,
           "reps": [3, 3, 3, 3, 3],
-          "percentages": [90, 90, 90, 90, 90],
-          "notes": "Working weight across all sets"
+          "percentages": [90, 90, 90, 90, 90]
         }
       }
     },
@@ -134,109 +127,92 @@
       "name": "5/3/1",
       "description": "A popular strength program by Jim Wendler, focused on 4 main lifts.",
       "structure": "Each lift trained once a week, typically over a 4-week cycle.",
-      "notes": "Uses training maxes and percentages for progression. Includes accessory work.",
       "week_1": {
         "squat": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [65, 75, 85],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [65, 75, 85]
         },
         "bench_press": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [65, 75, 85],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [65, 75, 85]
         },
         "deadlift": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [65, 75, 85],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [65, 75, 85]
         },
         "overhead_press": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [65, 75, 85],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [65, 75, 85]
         }
       },
       "week_2": {
         "squat": {
           "sets": 3,
           "reps": [3, 3, 3],
-          "percentages": [70, 80, 90],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [70, 80, 90]
         },
         "bench_press": {
           "sets": 3,
           "reps": [3, 3, 3],
-          "percentages": [70, 80, 90],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [70, 80, 90]
         },
         "deadlift": {
           "sets": 3,
           "reps": [3, 3, 3],
-          "percentages": [70, 80, 90],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [70, 80, 90]
         },
         "overhead_press": {
           "sets": 3,
           "reps": [3, 3, 3],
-          "percentages": [70, 80, 90],
-          "notes": "Based on training max (90% of 1RM)"
+          "percentages": [70, 80, 90]
         }
       },
       "week_3": {
         "squat": {
           "sets": 3,
           "reps": [5, 3, "1+"],
-          "percentages": [75, 85, 95],
-          "notes": "Last set is AMRAP (As Many Reps As Possible)"
+          "percentages": [75, 85, 95]
         },
         "bench_press": {
           "sets": 3,
           "reps": [5, 3, "1+"],
-          "percentages": [75, 85, 95],
-          "notes": "Last set is AMRAP (As Many Reps As Possible)"
+          "percentages": [75, 85, 95]
         },
         "deadlift": {
           "sets": 3,
           "reps": [5, 3, "1+"],
-          "percentages": [75, 85, 95],
-          "notes": "Last set is AMRAP (As Many Reps As Possible)"
+          "percentages": [75, 85, 95]
         },
         "overhead_press": {
           "sets": 3,
           "reps": [5, 3, "1+"],
-          "percentages": [75, 85, 95],
-          "notes": "Last set is AMRAP (As Many Reps As Possible)"
+          "percentages": [75, 85, 95]
         }
       },
       "week_4": {
         "squat": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [40, 50, 60],
-          "notes": "Deload week - lighter weights"
+          "percentages": [40, 50, 60]
         },
         "bench_press": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [40, 50, 60],
-          "notes": "Deload week - lighter weights"
+          "percentages": [40, 50, 60]
         },
         "deadlift": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [40, 50, 60],
-          "notes": "Deload week - lighter weights"
+          "percentages": [40, 50, 60]
         },
         "overhead_press": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [40, 50, 60],
-          "notes": "Deload week - lighter weights"
+          "percentages": [40, 50, 60]
         }
       }
     },
@@ -245,109 +221,92 @@
       "name": "Custom 5/3/1",
       "description": "A high-volume variation of Wendler's 5/3/1 with a 4 day split.",
       "structure": "Upper/Lower split with high frequency and volume.",
-      "notes": "Incorporates primary and secondary lifts with specific rep schemes.",
       "day_1_upper": {
-        "bench_press_primary": {
+        "bench_press": {
           "sets": 7,
           "reps": [10, 6, 4, 4, 4, 6, "8+"],
-          "percentages": [60, 75, 85, 85, 85, 75, 65],
-          "notes": "Primary bench press movement"
+          "percentages": [60, 75, 85, 85, 85, 75, 65]
         },
-        "overhead_press_primary": {
+        "overhead_press": {
           "sets": 6,
           "reps": [8, 8, 8, 8, 8, 8],
-          "percentages": [65, 65, 65, 65, 65, 65],
-          "notes": "Primary overhead press movement"
+          "percentages": [50, 65, 65, 65, 65, 65]
         },
-        "barbell_row_secondary": {
-          "sets": 3,
-          "reps": [12, 12, 12],
-          "percentages": [65, 65, 65],
-          "notes": "Secondary rowing movement"
+        "barbell_row": {
+          "sets": 4,
+          "reps": [12, 12, 12, 12],
+          "percentages": [65, 65, 65]
         },
         "dumbbell_curl": {
           "sets": 4,
-          "reps": [12, "8-12", "8-12", "8-12"],
-          "percentages": [70, 70, 70, 70],
-          "notes": "Isolation curl movement"
+          "reps": [12, 12, 12, 12],
+          "percentages": [70, 70, 70, 70]
         },
         "pull_ups": {
           "sets": 3,
           "reps": [12, 12, 12],
-          "percentages": [70, 70, 70],
-          "notes": "Bodyweight or weighted pull-ups"
+          "percentages": [100, 100, 100]
         }
       },
       "day_2_lower": {
-        "squat_primary": {
+        "squat": {
           "sets": 7,
           "reps": [10, 6, 4, 4, 4, 6, "8+"],
-          "percentages": [60, 75, 85, 85, 85, 75, 65],
-          "notes": "Primary squat movement"
+          "percentages": [60, 75, 85, 85, 85, 75, 65]
         },
-        "sumo_deadlift_primary": {
+        "sumo_deadlift": {
           "sets": 4,
           "reps": [8, 4, 4, 4],
-          "percentages": [50, 80, 80, 80],
-          "notes": "Primary sumo deadlift movement"
+          "percentages": [50, 80, 80, 80]
         },
-        "calf_raise_secondary": {
+        "calf_raise": {
           "sets": 4,
           "reps": ["12+", "12+", "12+", "12+"],
-          "percentages": [70, 70, 70, 70],
-          "notes": "Secondary calf development"
+          "percentages": [70, 70, 70, 70]
         }
       },
       "day_3_upper": {
         "bench_press": {
           "sets": 5,
-          "reps": [10, 8, 8, 8, 8],
-          "percentages": [60, 72, 73, 74, 75],
-          "notes": "Primary bench press movement"
+          "reps": [10, 10, 10, 10, 10],
+          "percentages": [60, 70, 70, 70, 70]
         },
         "close_grip_bench": {
           "sets": 4,
           "reps": [10, 10, 10, 10],
-          "percentages": [60, 62, 64, 66],
-          "notes": "Secondary tricep-focused movement"
+          "percentages": [60, 60, 60, 60]
         },
         "barbell_row": {
           "sets": 4,
           "reps": [12, 12, 12, 12],
-          "percentages": [65, 65, 65, 65],
-          "notes": "Secondary rowing movement"
+          "percentages": [65, 65, 65, 65]
         },
         "dumbbell_curl": {
           "sets": 4,
-          "reps": ["8-12", "8-12", "8-12", "8-12"],
-          "percentages": [70, 70, 70, 70],
-          "notes": "Isolation curl movement"
+          "reps": [12, 12, 12, 12],
+          "percentages": [70, 70, 70, 70]
         },
         "pull_ups": {
-          "sets": 3,
-          "reps": ["12-15", "8-12", "8-12"],
-          "percentages": [65, 70, 70],
-          "notes": "Bodyweight or weighted pull-ups"
+          "sets": 4,
+          "reps": [12, 12, 12, 12],
+          "percentages": [0, 70, 70, 70]
         }
       },
       "day_4_lower": {
-        "deadlift_primary": {
+        "deadlift": {
           "sets": 5,
-          "reps": [8, 6, "3-4", "3-4", "3-4"],
-          "percentages": [67, 75, 87, 87, 87],
-          "notes": "Primary deadlift movement"
+          "reps": [8, 6, 4, 4, 4],
+          "percentages": [67, 75, 87, 87, 87]
         },
-        "front_squat_primary": {
+        "front_squat": {
           "sets": 6,
           "reps": [6, 6, 6, 6, 6, 6],
-          "percentages": [60, 62, 63, 64, 65, 66],
-          "notes": "Primary front squat movement"
+          "percentages": [60, 60, 60, 60, 60, 60]
         },
-        "calf_raise_secondary": {
+        "calf_raise": {
           "sets": 4,
-          "reps": ["12+", "12+", "12+", "12+"],
-          "percentages": [70, 70, 70, 70],
-          "notes": "Secondary calf development"
+          "reps": [12, 12, 12, 12],
+          "percentages": [70, 70, 70, 70]
         }
       }
     },
@@ -356,45 +315,38 @@
       "name": "StrongLifts 5x5",
       "description": "A beginner strength program similar to Starting Strength, using 5 sets of 5 reps.",
       "structure": "Alternating A/B days, 3 times a week.",
-      "notes": "Focus on linear progression and compound movements. .",
       "workout_a": {
         "squat": {
           "sets": 5,
           "reps": [5, 5, 5, 5, 5],
-          "percentages": [86, 86, 86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86, 86, 86]
         },
         "bench_press": {
           "sets": 5,
           "reps": [5, 5, 5, 5, 5],
-          "percentages": [86, 86, 86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86, 86, 86]
         },
         "barbell_row": {
           "sets": 5,
           "reps": [5, 5, 5, 5, 5],
-          "percentages": [86, 86, 86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86, 86, 86]
         }
       },
       "workout_b": {
         "squat": {
           "sets": 5,
           "reps": [5, 5, 5, 5, 5],
-          "percentages": [86, 86, 86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86, 86, 86]
         },
         "overhead_press": {
           "sets": 5,
           "reps": [5, 5, 5, 5, 5],
-          "percentages": [86, 86, 86, 86, 86],
-          "notes": "Working weight across all sets"
+          "percentages": [86, 86, 86, 86, 86]
         },
         "deadlift": {
           "sets": 5,
           "reps": [5, 5, 5, 5, 5],
-          "percentages": [86],
-          "notes": ""
+          "percentages": [86]
         }
       }
     },
@@ -403,77 +355,65 @@
       "name": "Push Pull Legs (PPL)",
       "description": "A common split for hypertrophy and strength, dividing workouts by movement pattern.",
       "structure": "Typically 3 or 6 days a week, repeating the cycle.",
-      "notes": "Allows for high frequency and volume for each muscle group.",
       "push_day": {
         "bench_press": {
           "sets": 4,
           "reps": [8, 8, 8, 8],
-          "percentages": [80, 80, 80, 80],
-          "notes": "Compound movement - 8 reps at 80% 1RM"
+          "percentages": [80, 80, 80, 80]
         },
         "overhead_press": {
           "sets": 3,
           "reps": [10, 10, 10],
-          "percentages": [75, 75, 75],
-          "notes": "Secondary compound movement - 10 reps at 75% 1RM"
+          "percentages": [75, 75, 75]
         },
         "incline_bench": {
           "sets": 3,
           "reps": [10, 10, 10],
-          "percentages": [75, 75, 75],
-          "notes": "Upper chest focus - 10 reps at 75% 1RM"
+          "percentages": [75, 75, 75]
         },
         "dips": {
           "sets": 3,
           "reps": [12, 12, 12],
-          "percentages": [70, 70, 70],
-          "notes": "Bodyweight or weighted - 12 reps at 70% 1RM"
+          "percentages": [70, 70, 70]
         }
       },
       "pull_day": {
         "deadlift": {
           "sets": 4,
           "reps": [6, 6, 6, 6],
-          "percentages": [85, 85, 85, 85],
-          "notes": "Main compound pull - 6 reps at 85% 1RM"
+          "percentages": [85, 85, 85, 85]
         },
         "barbell_row": {
           "sets": 4,
           "reps": [8, 8, 8, 8],
-          "percentages": [80, 80, 80, 80],
-          "notes": "Secondary compound - 8 reps at 80% 1RM"
+          "percentages": [80, 80, 80, 80]
         },
         "lat_pulldown": {
           "sets": 3,
           "reps": [10, 10, 10],
-          "percentages": [75, 75, 75],
-          "notes": "Lat focused movement - 10 reps at 75% 1RM"
+          "percentages": [75, 75, 75]
         },
         "pull_ups": {
           "sets": 3,
           "reps": [12, 12, 12],
-          "percentages": [70, 70, 70],
-          "notes": "Bodyweight or weighted - 12 reps at 70% 1RM"
+          "percentages": [70, 70, 70]
         }
       },
       "legs_day": {
         "squat": {
           "sets": 4,
           "reps": [8, 8, 8, 8],
-          "percentages": [80, 80, 80, 80],
-          "notes": "Main compound leg movement - 8 reps at 80% 1RM"
+          "percentages": [80, 80, 80, 80]
         },
         "romanian_deadlift": {
           "sets": 3,
           "reps": [10, 10, 10],
-          "percentages": [75, 75, 75],
-          "notes": "Hamstring and glute focus - 10 reps at 75% 1RM"
+          "percentages": [75, 75, 75]
         },
         "leg_press": {
           "sets": 3,
           "reps": [12, 12, 12],
-          "percentages": [70, 70, 70],
-          "notes": "Quad focused accessory - 12 reps at 70% 1RM"
+          "percentages": [70, 70, 70]
         }
       }
     },
@@ -482,85 +422,72 @@
       "name": "Power Hypertrophy Upper Lower (PHUL)",
       "description": "Combines power and hypertrophy training, with upper/lower splits.",
       "structure": "4 days a week, with two power days and two hypertrophy days.",
-      "notes": "Aims to build both strength and muscle mass.",
       "upper_power": {
         "bench_press": {
           "sets": 4,
           "reps": [4, 4, 4, 4],
-          "percentages": [88, 88, 88, 88],
-          "notes": "Heavy compound movement - 4 reps at 88% 1RM"
+          "percentages": [88, 88, 88, 88]
         },
         "barbell_row": {
           "sets": 4,
           "reps": [4, 4, 4, 4],
-          "percentages": [88, 88, 88, 88],
-          "notes": "Heavy pulling movement - 4 reps at 88% 1RM"
+          "percentages": [88, 88, 88, 88]
         },
         "overhead_press": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [86, 86, 86],
-          "notes": "Secondary pressing movement - 5 reps at 86% 1RM"
+          "percentages": [86, 86, 86]
         }
       },
       "lower_power": {
         "squat": {
           "sets": 4,
           "reps": [4, 4, 4, 4],
-          "percentages": [88, 88, 88, 88],
-          "notes": "Heavy compound movement - 4 reps at 88% 1RM"
+          "percentages": [88, 88, 88, 88]
         },
         "deadlift": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [86, 86, 86],
-          "notes": "Heavy pulling movement - 5 reps at 86% 1RM"
+          "percentages": [86, 86, 86]
         },
         "front_squat": {
           "sets": 3,
           "reps": [5, 5, 5],
-          "percentages": [86, 86, 86],
-          "notes": "Secondary leg movement - 5 reps at 86% 1RM"
+          "percentages": [86, 86, 86]
         }
       },
       "upper_hypertrophy": {
         "dumbbell_bench": {
           "sets": 4,
           "reps": [10, 10, 10, 10],
-          "percentages": [75, 75, 75, 75],
-          "notes": "Moderate intensity for volume - 10 reps at 75% 1RM"
+          "percentages": [75, 75, 75, 75]
         },
         "lat_pulldown": {
           "sets": 4,
           "reps": [10, 10, 10, 10],
-          "percentages": [75, 75, 75, 75],
-          "notes": "Back width focus - 10 reps at 75% 1RM"
+          "percentages": [75, 75, 75, 75]
         },
         "dumbbell_shoulder_press": {
           "sets": 3,
           "reps": [12, 12, 12],
-          "percentages": [70, 70, 70],
-          "notes": "Shoulder development - 12 reps at 70% 1RM"
+          "percentages": [70, 70, 70]
         }
       },
       "lower_hypertrophy": {
         "leg_press": {
           "sets": 4,
           "reps": [12, 12, 12, 12],
-          "percentages": [70, 70, 70, 70],
-          "notes": "Quad focused volume - 12 reps at 70% 1RM"
+          "percentages": [70, 70, 70, 70]
         },
         "romanian_deadlift": {
           "sets": 3,
           "reps": [10, 10, 10],
-          "percentages": [75, 75, 75],
-          "notes": "Hamstring and glute volume - 10 reps at 75% 1RM"
+          "percentages": [75, 75, 75]
         },
         "front_squat": {
           "sets": 3,
           "reps": [12, 12, 12],
-          "percentages": [70, 70, 70],
-          "notes": "Quad emphasis with volume - 12 reps at 70% 1RM"
+          "percentages": [70, 70, 70]
         }
       }
     }
