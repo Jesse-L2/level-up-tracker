@@ -122,11 +122,12 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                       key={dayName}
                       className="bg-gray-700 rounded-lg overflow-hidden"
                     >
-                      <button
+                      <div
                         onClick={() => toggleDay(dayName)}
-                        className="w-full flex justify-between items-center p-4 text-left"
+                        className="w-full flex justify-between items-center p-4 text-left cursor-pointer"
                         aria-expanded={expandedDay === dayName}
                         aria-controls={`workout-day-${dayName}`}
+                        role="button"
                       >
                         <div className="flex flex-col text-left">
                           <span className="font-bold text-lg text-white">
@@ -161,7 +162,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                             />
                           )}
                         </div>
-                      </button>
+                      </div>
                       {expandedDay === dayName && (
                         <div
                           id={`workout-day-${dayName}`}

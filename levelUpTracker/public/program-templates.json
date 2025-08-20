@@ -79,6 +79,21 @@
       "id": "dips",
       "name": "Dips",
       "muscle_groups": ["Chest", "Triceps", "Shoulders"]
+    },
+    "dumbbell_curl": {
+      "id": "dumbbell_curl",
+      "name": "Dumbbell Curl",
+      "muscle_groups": ["Biceps"]
+    },
+    "close_grip_bench": {
+      "id": "close_grip_bench",
+      "name": "Close Grip Bench Press",
+      "muscle_groups": ["Triceps", "Chest"]
+    },
+    "calf_raise": {
+      "id": "calf_raise",
+      "name": "Calf Raise",
+      "muscle_groups": ["Calves"]
     }
   },
   "programs": {

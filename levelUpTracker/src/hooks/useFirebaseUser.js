@@ -7,6 +7,7 @@ import {
   signInWithCustomToken,
   onAuthStateChanged,
 } from "firebase/auth";
+import programTemplates from "../../public/program-templates.json";
 
 export const useFirebaseUser = () => {
   // A custom React Hook to handle user auth and profile data w/ firebase
@@ -69,12 +70,54 @@ export const useFirebaseUser = () => {
           if (docSnap.exists()) {
             setUserProfile(docSnap.data());
           } else {
+            const custom531Program = programTemplates.programs.custom_531;
+            const lifts = programTemplates.lifts;
+
+            const exerciseLibrary = Object.keys(custom531Program)
+              .filter((key) => key.startsWith("day_"))
+              .flatMap((day) => Object.keys(custom531Program[day]))
+              .reduce((acc, exerciseId) => {
+                if (!acc.find((ex) => ex.id === exerciseId)) {
+                  const lift = lifts[exerciseId];
+                  acc.push({
+                    id: exerciseId,
+                    name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+                    oneRepMax: 100, // Default 1RM
+                    lastUpdated: new Date().toISOString(),
+                    type: "weighted", // Assuming all are weighted for now
+                  });
+                }
+                return acc;
+              }, []);
+
+            const workoutPlan = Object.keys(custom531Program)
+              .filter((key) => key.startsWith("day_"))
+              .reduce((acc, day) => {
+                const dayExercises = custom531Program[day];
+                acc[day] = {
+                  name: day.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+                  exercises: Object.keys(dayExercises).map((exerciseId) => {
+                    const exercise = dayExercises[exerciseId];
+                    const lift = lifts[exerciseId];
+                    return {
+                      id: exerciseId,
+                      name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+                      sets: exercise.sets,
+                      reps: exercise.reps.map(rep => typeof rep === 'string' ? parseInt(rep.replace('+', '')) : rep),
+                      percentages: exercise.percentages,
+                    };
+                  }),
+                };
+                return acc;
+              }, {});
+
             const defaultProfile = {
               goal: "strength",
               level: "intermediate",
               availableEquipment: [],
               availablePlates: [],
-              workoutPlan: [],
+              exerciseLibrary,
+              workoutPlan,
               workoutHistory: [],
             };
             setDoc(userDocRef, defaultProfile)

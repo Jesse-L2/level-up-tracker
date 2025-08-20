@@ -23,7 +23,7 @@ export const WorkoutPlanner = ({
   useEffect(() => {
     const initialLog = {};
     workoutDay.exercises.forEach((ex, exIndex) => {
-      initialLog[exIndex] = ex.sets.map((set) => ({
+      initialLog[exIndex] = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
         reps: "",
         weight: "",
         completed: false,
@@ -206,7 +206,7 @@ export const WorkoutPlanner = ({
             )}
           </div>
           <div className="space-y-3 mt-6">
-            {currentExercise.sets.map((set, setIndex) => (
+            {(Array.isArray(currentExercise.sets) ? currentExercise.sets : []).map((set, setIndex) => (
               <div
                 key={setIndex}
                 className={`flex items-center justify-between p-4 rounded-lg ${

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function ProgramTemplateDetails({ id, onBack, onNavigate }) {
+function ProgramTemplateDetails({ id, onBack, onNavigate, onSelectProgram }) {
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,7 +14,7 @@ function ProgramTemplateDetails({ id, onBack, onNavigate }) {
         return response.json();
       })
       .then(data => {
-        const foundProgram = data.find(p => p.id === id);
+        const foundProgram = data.programs[id];
         if (foundProgram) {
           setProgram(foundProgram);
         } else {
@@ -29,11 +29,8 @@ function ProgramTemplateDetails({ id, onBack, onNavigate }) {
       });
   }, [id]);
 
-  const handleCustomize = () => {
-    // In a real application, this would navigate to a workout creation/customization page
-    // and pre-populate it with the selected program's details.
-    // alert(`Customizing ${program.name}! (This is a placeholder for actual customization logic.)`);
-    onNavigate('create_workout', { programTemplate: program });
+  const handleSelectProgram = () => {
+    onSelectProgram(program);
   };
 
   if (loading) {
@@ -62,23 +59,15 @@ function ProgramTemplateDetails({ id, onBack, onNavigate }) {
 
       <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
         <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-2">Key Lifts:</h2>
-          <p className="text-gray-400">{program.lifts.join(', ')}</p>
-        </div>
-        <div className="mb-4">
           <h2 className="text-xl font-semibold mb-2">Structure:</h2>
           <p className="text-gray-400">{program.structure}</p>
         </div>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Notes:</h2>
-          <p className="text-gray-400">{program.notes}</p>
-        </div>
 
         <button
-          onClick={handleCustomize}
+          onClick={handleSelectProgram}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg transition-colors duration-200"
         >
-          Customize This Program
+          Select This Program
         </button>
       </div>
     </div>

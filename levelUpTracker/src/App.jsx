@@ -33,6 +33,50 @@ export default function App() {
     [updateUserProfileInFirestore]
   );
 
+  const handleSelectProgramTemplate = useCallback(
+    (program) => {
+      if (!userProfile) return;
+
+      const newWorkoutPlan = {};
+      const workoutDays = Object.keys(program).filter(k => k.startsWith('workout_') || k.startsWith('day_') || k.endsWith('_day'));
+
+      workoutDays.forEach(dayKey => {
+        const workoutDay = program[dayKey];
+        const exercises = [];
+
+        for (const exerciseName in workoutDay) {
+          const exerciseDetails = workoutDay[exerciseName];
+          const libraryExercise = userProfile.exerciseLibrary.find(e => e.name === exerciseName);
+          const oneRepMax = libraryExercise ? libraryExercise.oneRepMax : 100;
+
+          const sets = exerciseDetails.reps.map((rep, index) => {
+            const percentage = exerciseDetails.percentages[index] / 100;
+            return {
+              reps: rep,
+              percentage: percentage,
+              weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
+            };
+          });
+
+          exercises.push({
+            name: exerciseName,
+            type: 'weighted',
+            oneRepMax: oneRepMax,
+            sets: sets,
+          });
+        }
+        newWorkoutPlan[dayKey] = {
+          name: program.name + ' - ' + dayKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          exercises: exercises,
+        };
+      });
+
+      handleUpdateProfile({ workoutPlan: newWorkoutPlan });
+      setCurrentPage("dashboard");
+    },
+    [userProfile, handleUpdateProfile]
+  );
+
   const handleSaveCustomWorkout = useCallback(
     (customWorkout) => {
       if (!userProfile) return;
@@ -190,7 +234,7 @@ export default function App() {
         );
       case "program_template_details":
         return (
-          <ProgramTemplateDetails id={programTemplateId} onBack={() => setCurrentPage("program_templates")} onNavigate={handleNavigate} />
+          <ProgramTemplateDetails id={programTemplateId} onBack={() => setCurrentPage("program_templates")} onNavigate={handleNavigate} onSelectProgram={handleSelectProgramTemplate} />
         );
       case "dashboard":
       default:
