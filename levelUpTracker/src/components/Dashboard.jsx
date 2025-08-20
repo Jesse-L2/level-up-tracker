@@ -174,11 +174,11 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                                 <div className="flex justify-between items-center">
                                   <span>{ex.name}</span>
                                   <span className="text-gray-300">
-                                    {ex.sets.length} sets
+                                    {Array.isArray(ex.sets) ? ex.sets.length : 0} sets
                                   </span>
                                 </div>
                                 <ul className="pl-4 mt-1 border-l-2 border-gray-600">
-                                  {ex.sets.map((s, i) => (
+                                  {(Array.isArray(ex.sets) ? ex.sets : []).map((s, i) => (
                                     <li
                                       key={i}
                                       className="text-sm text-gray-300"

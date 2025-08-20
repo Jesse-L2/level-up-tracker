@@ -103,6 +103,15 @@ export const SettingsPage = ({
     }));
   }, []);
 
+  const handleOneRepMaxChange = useCallback((exerciseId, newOneRepMax) => {
+    setProfile((prevProfile) => ({
+      ...prevProfile,
+      exerciseLibrary: prevProfile.exerciseLibrary.map((ex) =>
+        ex.id === exerciseId ? { ...ex, oneRepMax: newOneRepMax } : ex
+      ),
+    }));
+  }, []);
+
   const handleSave = async () => {
     setIsSaving(true);
     setMessage(null);
@@ -187,6 +196,24 @@ export const SettingsPage = ({
               >
                 {equip.name}
               </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+          <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
+            Your Max Lifts (1RM)
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {profile.exerciseLibrary.map((ex) => (
+              <FormField
+                key={ex.id}
+                label={ex.name}
+                id={`1rm-${ex.id}`}
+                type="number"
+                value={ex.oneRepMax}
+                onChange={(e) => handleOneRepMaxChange(ex.id, parseFloat(e.target.value) || 0)}
+              />
             ))}
           </div>
         </div>

@@ -38,15 +38,20 @@ export default function App() {
       if (!userProfile) return;
 
       const newWorkoutPlan = {};
-      const workoutDays = Object.keys(program).filter(k => k.startsWith('workout_') || k.startsWith('day_') || k.endsWith('_day'));
+      const workoutDays = Object.keys(program).filter(
+        (k) =>
+          k.startsWith("workout_") || k.startsWith("day_") || k.endsWith("_day")
+      );
 
-      workoutDays.forEach(dayKey => {
+      workoutDays.forEach((dayKey) => {
         const workoutDay = program[dayKey];
         const exercises = [];
 
         for (const exerciseName in workoutDay) {
           const exerciseDetails = workoutDay[exerciseName];
-          const libraryExercise = userProfile.exerciseLibrary.find(e => e.name === exerciseName);
+          const libraryExercise = userProfile.exerciseLibrary.find(
+            (e) => e.name === exerciseName
+          );
           const oneRepMax = libraryExercise ? libraryExercise.oneRepMax : 100;
 
           const sets = exerciseDetails.reps.map((rep, index) => {
@@ -60,15 +65,13 @@ export default function App() {
 
           exercises.push({
             name: exerciseName,
-            type: 'weighted',
+            type: "weighted",
             oneRepMax: oneRepMax,
             sets: sets,
           });
         }
-        newWorkoutPlan[dayKey] = {
-          name: program.name + ' - ' + dayKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          exercises: exercises,
-        };
+
+        newWorkoutPlan[dayKey] = { exercises };
       });
 
       handleUpdateProfile({ workoutPlan: newWorkoutPlan });
@@ -100,9 +103,13 @@ export default function App() {
       const newLibrary = userProfile.exerciseLibrary.map((ex) => {
         if (ex.name === exerciseName) {
           const oldOneRepMax = ex.oneRepMax;
-          const lastUpdated = ex.lastUpdated ? new Date(ex.lastUpdated) : new Date(0); // Default to epoch if not set
+          const lastUpdated = ex.lastUpdated
+            ? new Date(ex.lastUpdated)
+            : new Date(0); // Default to epoch if not set
           const now = new Date();
-          const daysSinceLastUpdate = Math.floor((now - lastUpdated) / (1000 * 60 * 60 * 24));
+          const daysSinceLastUpdate = Math.floor(
+            (now - lastUpdated) / (1000 * 60 * 60 * 24)
+          );
           const weeksSinceLastUpdate = daysSinceLastUpdate / 7;
 
           let cappedNewOneRepMax = newOneRepMax;
@@ -114,11 +121,17 @@ export default function App() {
 
             if (actualIncrease > maxIncreaseAllowed) {
               cappedNewOneRepMax = oldOneRepMax + maxIncreaseAllowed;
-              console.warn(`1RM increase for ${exerciseName} capped to ${cappedNewOneRepMax} (max ${maxIncreaseAllowed} lbs increase allowed).`);
+              console.warn(
+                `1RM increase for ${exerciseName} capped to ${cappedNewOneRepMax} (max ${maxIncreaseAllowed} lbs increase allowed).`
+              );
             }
           }
 
-          return { ...ex, oneRepMax: cappedNewOneRepMax, lastUpdated: now.toISOString() };
+          return {
+            ...ex,
+            oneRepMax: cappedNewOneRepMax,
+            lastUpdated: now.toISOString(),
+          };
         }
         return ex;
       });
@@ -229,12 +242,15 @@ export default function App() {
           />
         );
       case "program_templates":
-        return (
-          <ProgramTemplates onNavigate={handleNavigate} />
-        );
+        return <ProgramTemplates onNavigate={handleNavigate} />;
       case "program_template_details":
         return (
-          <ProgramTemplateDetails id={programTemplateId} onBack={() => setCurrentPage("program_templates")} onNavigate={handleNavigate} onSelectProgram={handleSelectProgramTemplate} />
+          <ProgramTemplateDetails
+            id={programTemplateId}
+            onBack={() => setCurrentPage("program_templates")}
+            onNavigate={handleNavigate}
+            onSelectProgram={handleSelectProgramTemplate}
+          />
         );
       case "dashboard":
       default:

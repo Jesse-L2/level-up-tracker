@@ -1,0 +1,13 @@
+{
+  "squat": 240,
+  "bench_press": 225,
+  "deadlift": 275,
+  "overhead_press": 165,
+  "barbell_row": 135,
+  "sumo_deadlift": 285,
+  "front_squat": 155,
+  "close_grip_bench": 165,
+  "pull_ups": 20,
+  "dumbbell_curl": 35,
+  "calf_raise": 90
+}

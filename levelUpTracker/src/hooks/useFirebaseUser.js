@@ -70,61 +70,82 @@ export const useFirebaseUser = () => {
           if (docSnap.exists()) {
             setUserProfile(docSnap.data());
           } else {
-            const custom531Program = programTemplates.programs.custom_531;
-            const lifts = programTemplates.lifts;
+            const createDefaultProfile = (defaultMaxes) => {
+              const custom531Program = programTemplates.programs.custom_531;
+              const lifts = programTemplates.lifts;
 
-            const exerciseLibrary = Object.keys(custom531Program)
-              .filter((key) => key.startsWith("day_"))
-              .flatMap((day) => Object.keys(custom531Program[day]))
-              .reduce((acc, exerciseId) => {
-                if (!acc.find((ex) => ex.id === exerciseId)) {
-                  const lift = lifts[exerciseId];
-                  acc.push({
-                    id: exerciseId,
-                    name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-                    oneRepMax: 100, // Default 1RM
-                    lastUpdated: new Date().toISOString(),
-                    type: "weighted", // Assuming all are weighted for now
-                  });
-                }
-                return acc;
-              }, []);
+              const exerciseLibrary = Object.keys(custom531Program)
+                .filter((key) => key.startsWith("day_"))
+                .flatMap((day) => Object.keys(custom531Program[day]))
+                .reduce((acc, exerciseId) => {
+                  if (!acc.find((ex) => ex.id === exerciseId)) {
+                    const lift = lifts[exerciseId];
+                    acc.push({
+                      id: exerciseId,
+                      name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+                      oneRepMax: defaultMaxes[exerciseId] || 100, // Default 1RM
+                      lastUpdated: new Date().toISOString(),
+                      type: "weighted", // Assuming all are weighted for now
+                    });
+                  }
+                  return acc;
+                }, []);
 
-            const workoutPlan = Object.keys(custom531Program)
-              .filter((key) => key.startsWith("day_"))
-              .reduce((acc, day) => {
-                const dayExercises = custom531Program[day];
-                acc[day] = {
-                  name: day.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-                  exercises: Object.keys(dayExercises).map((exerciseId) => {
+              const workoutPlan = Object.keys(custom531Program)
+                .filter((key) => key.startsWith("day_"))
+                .reduce((acc, day) => {
+                  const dayExercises = custom531Program[day];
+                  acc[day] = {
+                    name: day.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+                                      exercises: Object.keys(dayExercises).map((exerciseId) => {
                     const exercise = dayExercises[exerciseId];
                     const lift = lifts[exerciseId];
+                    const oneRepMax = (exerciseLibrary.find(e => e.id === exerciseId) || {}).oneRepMax || 100;
+
+                    const sets = exercise.reps.map((rep, index) => {
+                      const percentage = exercise.percentages[index] / 100;
+                      return {
+                        reps: rep,
+                        percentage: percentage,
+                        weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
+                      };
+                    });
+
                     return {
                       id: exerciseId,
                       name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-                      sets: exercise.sets,
-                      reps: exercise.reps.map(rep => typeof rep === 'string' ? parseInt(rep.replace('+', '')) : rep),
-                      percentages: exercise.percentages,
+                      sets: sets,
                     };
                   }),
-                };
-                return acc;
-              }, {});
+                  };
+                  return acc;
+                }, {});
 
-            const defaultProfile = {
-              goal: "strength",
-              level: "intermediate",
-              availableEquipment: [],
-              availablePlates: [],
-              exerciseLibrary,
-              workoutPlan,
-              workoutHistory: [],
+              const defaultProfile = {
+                goal: "strength",
+                level: "intermediate",
+                availableEquipment: [],
+                availablePlates: [],
+                exerciseLibrary,
+                workoutPlan,
+                workoutHistory: [],
+              };
+              setDoc(userDocRef, defaultProfile)
+                .then(() => setUserProfile(defaultProfile))
+                .catch((err) => {
+                  console.error("Error setting default profile:", err);
+                  setError(err.message);
+                });
             };
-            setDoc(userDocRef, defaultProfile)
-              .then(() => setUserProfile(defaultProfile))
+
+            fetch("/default-maxes.json")
+              .then((response) => response.json())
+              .then((defaultMaxes) => {
+                createDefaultProfile(defaultMaxes);
+              })
               .catch((err) => {
-                console.error("Error setting default profile:", err);
-                setError(err.message);
+                console.error("Error fetching default maxes:", err);
+                createDefaultProfile({}); // Pass empty object to use fallback
               });
           }
           setIsLoading(false);
