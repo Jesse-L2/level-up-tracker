@@ -229,7 +229,7 @@ export const WorkoutPlanner = ({
                     <p className="font-semibold">
                       Target: {set.reps} reps @ {set.weight} lbs
                     </p>
-                    {set.weight > 45 && (
+                    {currentExercise.type === "barbell" && set.weight > 0 && (
                       <MiniPlateDisplay
                         targetWeight={set.weight}
                         availablePlates={availablePlates}

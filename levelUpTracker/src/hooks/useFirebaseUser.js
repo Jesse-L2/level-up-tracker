@@ -8,6 +8,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import programTemplates from "../../public/program-templates.json";
+import { EXERCISE_DATABASE } from "../lib/constants";
 
 export const useFirebaseUser = () => {
   // A custom React Hook to handle user auth and profile data w/ firebase
@@ -68,9 +69,40 @@ export const useFirebaseUser = () => {
         userDocRef,
         (docSnap) => {
           if (docSnap.exists()) {
-            setUserProfile(docSnap.data());
+            const userProfileData = docSnap.data();
+            let needsUpdate = false;
+            if (userProfileData.workoutPlan) {
+              for (const day in userProfileData.workoutPlan) {
+                const exercises = userProfileData.workoutPlan[day].exercises;
+                for (const exercise of exercises) {
+                  if (!exercise.type) {
+                    const exerciseInfo = Object.values(EXERCISE_DATABASE)
+                      .flat()
+                      .find((ex) => ex.name === exercise.name);
+                    if (exerciseInfo) {
+                      exercise.type = exerciseInfo.type;
+                      needsUpdate = true;
+                    }
+                  }
+                }
+              }
+            }
+            if (!userProfileData.availablePlates || userProfileData.availablePlates.length === 0) {
+              fetch("/plate-data.json")
+                .then(response => response.json())
+                .then(plateData => {
+                  userProfileData.availablePlates = plateData.map((p) => ({ weight: p.weight, count: p.quantity }));
+                  needsUpdate = true;
+                  if (needsUpdate) {
+                    updateDoc(doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile"), { availablePlates: userProfileData.availablePlates, workoutPlan: userProfileData.workoutPlan });
+                  }
+                });
+            } else if (needsUpdate) {
+              updateDoc(doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile"), { workoutPlan: userProfileData.workoutPlan });
+            }
+            setUserProfile(userProfileData);
           } else {
-            const createDefaultProfile = (defaultMaxes) => {
+            const createDefaultProfile = (defaultMaxes, plateData) => {
               const custom531Program = programTemplates.programs.custom_531;
               const lifts = programTemplates.lifts;
 
@@ -80,12 +112,16 @@ export const useFirebaseUser = () => {
                 .reduce((acc, exerciseId) => {
                   if (!acc.find((ex) => ex.id === exerciseId)) {
                     const lift = lifts[exerciseId];
+                    const exerciseInfo = Object.values(EXERCISE_DATABASE)
+                      .flat()
+                      .find((ex) => ex.name === (lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())));
+                    const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
                     acc.push({
                       id: exerciseId,
                       name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
                       oneRepMax: defaultMaxes[exerciseId] || 100, // Default 1RM
                       lastUpdated: new Date().toISOString(),
-                      type: "weighted", // Assuming all are weighted for now
+                      type: exerciseType,
                     });
                   }
                   return acc;
@@ -102,6 +138,11 @@ export const useFirebaseUser = () => {
                     const lift = lifts[exerciseId];
                     const oneRepMax = (exerciseLibrary.find(e => e.id === exerciseId) || {}).oneRepMax || 100;
 
+                    const exerciseInfo = Object.values(EXERCISE_DATABASE)
+                      .flat()
+                      .find((ex) => ex.name === (lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())));
+                    const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
+
                     const sets = exercise.reps.map((rep, index) => {
                       const percentage = exercise.percentages[index] / 100;
                       return {
@@ -114,6 +155,7 @@ export const useFirebaseUser = () => {
                     return {
                       id: exerciseId,
                       name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+                      type: exerciseType,
                       sets: sets,
                     };
                   }),
@@ -125,7 +167,7 @@ export const useFirebaseUser = () => {
                 goal: "strength",
                 level: "intermediate",
                 availableEquipment: [],
-                availablePlates: [],
+                availablePlates: plateData.map((p) => ({ weight: p.weight, count: p.quantity })), 
                 exerciseLibrary,
                 workoutPlan,
                 workoutHistory: [],
@@ -141,11 +183,19 @@ export const useFirebaseUser = () => {
             fetch("/default-maxes.json")
               .then((response) => response.json())
               .then((defaultMaxes) => {
-                createDefaultProfile(defaultMaxes);
+                fetch("/plate-data.json")
+                  .then((response) => response.json())
+                  .then((plateData) => {
+                    createDefaultProfile(defaultMaxes, plateData);
+                  })
+                  .catch((err) => {
+                     console.error("Error fetching plate data:", err);
+                     createDefaultProfile(defaultMaxes, []); // Pass empty array to use fallback
+                  });
               })
               .catch((err) => {
                 console.error("Error fetching default maxes:", err);
-                createDefaultProfile({}); // Pass empty object to use fallback
+                createDefaultProfile({}, []); // Pass empty object to use fallback
               });
           }
           setIsLoading(false);

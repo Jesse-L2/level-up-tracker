@@ -31,7 +31,8 @@ export const EXERCISE_DATABASE = {
     { name: "Leg Press", type: "machine", requires: ["leg_press_machine"] },
     { name: "Lunges", type: "dumbbell", requires: ["dumbbell"] },
     { name: "Leg Curls", type: "machine", requires: ["leg_curl_machine"] },
-    { name: "Calf Raises", type: "bodyweight", requires: [] },
+    { name: "Sumo Deadlift", type: "barbell", requires: ["barbell"] },
+    { name: "Calf Raises", type: "barbell", requires: [] },
   ],
   shoulders: [
     { name: "Overhead Press", type: "barbell", requires: ["barbell"] },

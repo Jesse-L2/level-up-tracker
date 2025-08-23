@@ -1,4 +1,3 @@
-// src/components/ui/MiniPlateDisplay.jsx
 import React, { useMemo } from "react";
 
 export const MiniPlateDisplay = ({
@@ -35,18 +34,22 @@ export const MiniPlateDisplay = ({
 
   return (
     <div
-      className="flex items-center gap-1 mt-1"
+      className="flex items-center gap-1 mt-2"
       aria-label={`Plates for ${targetWeight} lbs`}
     >
-      <span className="text-xs text-gray-400 mr-1">Plates:</span>
+      <div className="h-1 bg-gray-500 rounded-l-sm" style={{ width: '1rem' }}></div>
+      <div className="h-4 w-0.5 bg-gray-500"></div>
       {platesPerSide.map((plate, index) => (
         <div
           key={index}
-          className="bg-gray-500 text-white text-xs font-bold rounded-sm flex items-center justify-center"
-          style={{ width: "18px", height: "18px" }}
+          className="bg-blue-500 text-white text-xs font-bold rounded-sm flex items-center justify-center"
+          style={{ 
+            height: `${24 + plate * 0.6}px`,
+            width: '1.5rem'
+          }}
           title={`${plate} lbs`}
         >
-          {plate}
+          <span className="text-xs">{plate}</span>
         </div>
       ))}
     </div>

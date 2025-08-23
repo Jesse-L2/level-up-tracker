@@ -9,6 +9,7 @@ import { ExerciseLibrary } from "./components/ExerciseLibrary";
 import ProgramTemplates from "./components/ProgramTemplates";
 import ProgramTemplateDetails from "./components/ProgramTemplateDetails";
 import { Loader2 } from "lucide-react";
+import { EXERCISE_DATABASE } from "./lib/constants";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -54,6 +55,11 @@ export default function App() {
           );
           const oneRepMax = libraryExercise ? libraryExercise.oneRepMax : 100;
 
+          const exerciseInfo = Object.values(EXERCISE_DATABASE)
+            .flat()
+            .find((ex) => ex.name === exerciseName);
+          const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
+
           const sets = exerciseDetails.reps.map((rep, index) => {
             const percentage = exerciseDetails.percentages[index] / 100;
             return {
@@ -65,7 +71,7 @@ export default function App() {
 
           exercises.push({
             name: exerciseName,
-            type: "weighted",
+            type: exerciseType,
             oneRepMax: oneRepMax,
             sets: sets,
           });
