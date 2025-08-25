@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useFirebaseUser } from "./hooks/useFirebaseUser";
 import { Dashboard } from "./components/Dashboard";
 import { SettingsPage } from "./components/SettingsPage";
@@ -8,6 +9,8 @@ import { CreateWorkout } from "./components/CreateWorkout";
 import { ExerciseLibrary } from "./components/ExerciseLibrary";
 import ProgramTemplates from "./components/ProgramTemplates";
 import ProgramTemplateDetails from "./components/ProgramTemplateDetails";
+import { Login } from "./components/Login";
+import { Signup } from "./components/Signup";
 import { Loader2 } from "lucide-react";
 import { EXERCISE_DATABASE } from "./lib/constants";
 
@@ -15,8 +18,21 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [workoutData, setWorkoutData] = useState(null);
   const [programTemplateId, setProgramTemplateId] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isLoginView, setIsLoginView] = useState(true);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const { userProfile, isLoading, error, updateUserProfileInFirestore } =
-    useFirebaseUser();
+    useFirebaseUser(user ? user.uid : null);
 
   const handleNavigate = useCallback((page, data = null, id = null) => {
     if (page === "planner") {
@@ -175,12 +191,20 @@ export default function App() {
   );
 
   const renderPage = () => {
-    if (isLoading) {
+    if (authLoading || isLoading) {
       return (
         <div className="flex flex-col justify-center items-center h-screen text-white">
           <Loader2 size={64} className="animate-spin text-blue-500" />
-          <p className="mt-4 text-xl">Loading Your Workout Data...</p>
+          <p className="mt-4 text-xl">Loading...</p>
         </div>
+      );
+    }
+
+    if (!user) {
+      return isLoginView ? (
+        <Login onSwitchToSignup={() => setIsLoginView(false)} />
+      ) : (
+        <Signup onSwitchToLogin={() => setIsLoginView(true)} />
       );
     }
 

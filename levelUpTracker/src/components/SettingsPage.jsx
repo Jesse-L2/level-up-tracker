@@ -112,6 +112,18 @@ export const SettingsPage = ({
     }));
   }, []);
 
+  const handleResetProgress = async () => {
+    if (window.confirm("Are you sure you want to reset all your progress? This action cannot be undone.")) {
+      try {
+        await updateUserProfile({ workoutHistory: [] });
+        setMessage("Your progress has been successfully reset.");
+      } catch (error) {
+        console.error("Failed to reset progress:", error);
+        setMessage("Failed to reset progress. Please try again.");
+      }
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     setMessage(null);
@@ -218,7 +230,7 @@ export const SettingsPage = ({
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Your Weight Plates (lbs)
           </h2>
@@ -288,6 +300,26 @@ export const SettingsPage = ({
                 No plates added yet.
               </p>
             )}
+          </div>
+        </div>
+
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+          <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
+            Reset Progress
+          </h2>
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-semibold text-lg">Clear Workout History</h3>
+              <p className="text-gray-400">
+                This will permanently delete all of your workout history. This action cannot be undone.
+              </p>
+            </div>
+            <button
+              onClick={handleResetProgress}
+              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            >
+              Reset Progress
+            </button>
           </div>
         </div>
 

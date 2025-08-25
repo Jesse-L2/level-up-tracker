@@ -9,12 +9,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { getAuth, signOut } from "firebase/auth";
 import {
   ChevronDown,
   ChevronUp,
   Settings,
   Weight,
   BookOpen, // New Icon
+  LogOut,
 } from "lucide-react";
 import { Modal } from "./ui/Modal";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
@@ -125,6 +127,13 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
               aria-label="Settings"
             >
               <Settings size={20} className="text-white" />
+            </button>
+            <button
+              onClick={() => signOut(getAuth())}
+              className="bg-gray-700 hover:bg-gray-600 p-3 rounded-full transition-colors"
+              aria-label="Logout"
+            >
+              <LogOut size={20} className="text-white" />
             </button>
           </div>
         </header>
