@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -52,33 +52,61 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
     });
   }, [userProfile.workoutPlan]);
 
+  const [selectedExercise, setSelectedExercise] = useState(null);
+
+  const uniqueExercises = useMemo(() => {
+    const exercises = new Set();
+    if (userProfile.workoutPlan) {
+      Object.values(userProfile.workoutPlan).forEach((day) => {
+        day.exercises.forEach((ex) => exercises.add(ex.name));
+      });
+    }
+    return Array.from(exercises);
+  }, [userProfile.workoutPlan]);
+
+  // Set default selected exercise
+  useEffect(() => {
+    if (uniqueExercises.length > 0 && !selectedExercise) {
+      setSelectedExercise(uniqueExercises[0]);
+    }
+  }, [uniqueExercises, selectedExercise]);
+
   const chartData = useMemo(() => {
-    if (!userProfile.workoutHistory || userProfile.workoutHistory.length === 0)
+    if (
+      !userProfile.workoutHistory ||
+      userProfile.workoutHistory.length === 0 ||
+      !selectedExercise
+    )
       return [];
 
-    const volumeByDay = {};
-    userProfile.workoutHistory.forEach((session) => {
-      const date = new Date(session.date).toISOString().split("T")[0];
-      const totalVolume = session.exercises.reduce((totalVol, ex) => {
-        const exerciseVolume = ex.sets.reduce((setVol, s) => {
-          const reps = parseInt(s.reps, 10);
-          const weight = parseFloat(s.weight);
-          return setVol + (isNaN(reps) || isNaN(weight) ? 0 : reps * weight);
-        }, 0);
-        return totalVol + exerciseVolume;
-      }, 0);
+    const exerciseData = userProfile.workoutHistory
+      .map((session) => {
+        const exercise = session.exercises.find(
+          (ex) => ex.name === selectedExercise
+        );
+        if (!exercise) return null;
 
-      if (!volumeByDay[date]) {
-        volumeByDay[date] = 0;
-      }
-      volumeByDay[date] += totalVolume;
-    });
+        const topSet = exercise.sets.reduce(
+          (max, set) => (set.weight > max.weight ? set : max),
+          { weight: 0, reps: 0 }
+        );
 
-    return Object.entries(volumeByDay)
-      .map(([date, volume]) => ({ date, volume }))
+        if (topSet.weight === 0) return null;
+
+        // Epley 1RM Formula
+        const oneRepMax = topSet.weight * (1 + topSet.reps / 30);
+
+        return {
+          date: new Date(session.date).toISOString().split("T")[0],
+          oneRepMax: oneRepMax,
+        };
+      })
+      .filter(Boolean);
+
+    return exerciseData
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(-10);
-  }, [userProfile.workoutHistory]);
+  }, [userProfile.workoutHistory, selectedExercise]);
 
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
@@ -218,9 +246,24 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
             </div>
 
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-semibold text-white mb-4">
-                Progress Overview (Total Volume)
-              </h2>
+              <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+                <h2 className="text-2xl font-semibold text-white">
+                  1RM Progress
+                </h2>
+                {uniqueExercises.length > 0 && (
+                  <select
+                    value={selectedExercise || ''}
+                    onChange={(e) => setSelectedExercise(e.target.value)}
+                    className="bg-gray-700 text-white p-2 rounded-lg"
+                  >
+                    {uniqueExercises.map((ex) => (
+                      <option key={ex} value={ex}>
+                        {ex}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
               {chartData.length > 0 ? (
                 <div style={{ width: "100%", height: 300 }}>
                   <ResponsiveContainer>
@@ -238,17 +281,19 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                         }}
                         formatter={(value) => [
                           `${value.toFixed(1)} lbs`,
-                          "Volume",
+                          "1RM",
                         ]}
                       />
                       <Legend />
-                      <Bar dataKey="volume" fill="#4299E1" />
+                      <Bar dataKey="oneRepMax" fill="#4299E1" name="Est. 1RM" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
                 <p className="text-gray-400 text-center py-8">
-                  Complete some workouts to see your progress!
+                  {selectedExercise
+                    ? `No data for ${selectedExercise}. Complete a workout to track your progress!`
+                    : "No exercises found in your plan."}
                 </p>
               )}
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { FormField } from "./ui/FormField";
 import { Plus, Trash2, Save, Edit, X } from "lucide-react";
 
@@ -12,9 +12,14 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
       .then(response => response.json())
       .then(data => {
         const allTemplateLifts = new Set();
-        data.forEach(template => {
-          template.lifts.forEach(lift => {
-            allTemplateLifts.add(lift);
+        Object.values(data.programs).forEach(template => {
+          Object.keys(template).filter(key => key.startsWith('day_') || key.startsWith('workout_')).forEach(dayKey => {
+            const day = template[dayKey];
+            Object.keys(day).forEach(liftId => {
+              if(data.lifts[liftId]){
+                allTemplateLifts.add(data.lifts[liftId].name);
+              }
+            });
           });
         });
         const formattedTemplateExercises = Array.from(allTemplateLifts).map(liftName => ({
@@ -57,10 +62,10 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
       return;
     }
     if (
-      newExercise.type === "weighted" &&
+      (newExercise.type === "weighted" || newExercise.type === "barbell") &&
       (!newExercise.oneRepMax || parseFloat(newExercise.oneRepMax) <= 0)
     ) {
-      setMessage("Weighted lifts must have a 1 Rep Max greater than 0.");
+      setMessage("Weighted and barbell lifts must have a 1 Rep Max greater than 0.");
       return;
     }
 
@@ -68,7 +73,7 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
       name: newExercise.name,
       type: newExercise.type,
       oneRepMax:
-        newExercise.type === "weighted" ? parseFloat(newExercise.oneRepMax) : 0,
+        newExercise.type === "weighted" || newExercise.type === "barbell" ? parseFloat(newExercise.oneRepMax) : 0,
       lastUpdated: new Date().toISOString(), // Add lastUpdated timestamp
     };
 
@@ -129,7 +134,7 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
                   <div>
                     <p className="font-bold text-white">{ex.name}</p>
                     <p className="text-sm text-gray-300">
-                      {ex.type === "weighted"
+                      {ex.type === "weighted" || ex.type === "barbell"
                         ? `1RM: ${ex.oneRepMax} lbs`
                         : "Bodyweight"}
                     </p>
@@ -170,7 +175,7 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
                   <div>
                     <p className="font-bold text-white">{ex.name}</p>
                     <p className="text-sm text-gray-300">
-                      {ex.type === "weighted"
+                      {ex.type === "weighted" || ex.type === "barbell"
                         ? `1RM: ${ex.oneRepMax} lbs`
                         : "Bodyweight"}
                     </p>
@@ -207,9 +212,10 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
             >
               <option value="weighted">Weighted</option>
               <option value="bodyweight">Bodyweight</option>
+              <option value="barbell">Barbell</option>
             </FormField>
           </div>
-          {newExercise.type === "weighted" && (
+          {(newExercise.type === "weighted" || newExercise.type === "barbell") && (
             <div className="mt-4">
               <FormField
                 label="Theoretical 1 Rep Max (lbs)"

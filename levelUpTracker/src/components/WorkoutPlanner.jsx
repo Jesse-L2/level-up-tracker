@@ -23,13 +23,15 @@ export const WorkoutPlanner = ({
   useEffect(() => {
     const initialLog = {};
     workoutDay.exercises.forEach((ex, exIndex) => {
-      initialLog[exIndex] = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
-        reps: "",
-        weight: "",
-        completed: false,
-        targetReps: set.reps,
-        targetWeight: set.weight,
-      }));
+      initialLog[exIndex] = (Array.isArray(ex.sets) ? ex.sets : []).map(
+        (set) => ({
+          reps: "",
+          weight: "",
+          completed: false,
+          targetReps: set.reps,
+          targetWeight: set.weight,
+        })
+      );
     });
     setSessionLog(initialLog);
   }, [workoutDay]);
@@ -136,14 +138,20 @@ export const WorkoutPlanner = ({
           <h1 className="text-3xl font-bold text-center mb-1">
             {workoutDay.name}
           </h1>
+        </div>
+
+        <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
           <div className="relative text-center">
-            <button
+            <h2
+              className="text-4xl font-bold mb-2 text-center text-blue-400 cursor-pointer"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-400 mb-4"
             >
+              {currentExercise.name}
+            </h2>
+            <p className="text-gray-400 mb-4">
               Exercise {currentExerciseIndex + 1} of{" "}
-              {workoutDay.exercises.length} (Click to select)
-            </button>
+              {workoutDay.exercises.length}
+            </p>
             {isMenuOpen && (
               <div className="absolute z-10 top-full left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-lg shadow-lg mt-2">
                 <ul className="py-2">
@@ -160,12 +168,7 @@ export const WorkoutPlanner = ({
               </div>
             )}
           </div>
-        </div>
 
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
-          <h2 className="text-4xl font-bold mb-2 text-center text-blue-400">
-            {currentExercise.name}
-          </h2>
           <div className="text-center mb-4">
             {isEditing ? (
               <div className="flex flex-col items-center justify-center gap-2 mt-2">
@@ -205,8 +208,12 @@ export const WorkoutPlanner = ({
               </button>
             )}
           </div>
+
           <div className="space-y-3 mt-6">
-            {(Array.isArray(currentExercise.sets) ? currentExercise.sets : []).map((set, setIndex) => (
+            {(Array.isArray(currentExercise.sets)
+              ? currentExercise.sets
+              : []
+            ).map((set, setIndex) => (
               <div
                 key={setIndex}
                 className={`flex items-center justify-between p-4 rounded-lg ${
@@ -297,6 +304,7 @@ export const WorkoutPlanner = ({
             </div>
           </div>
         </div>
+
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleFinishWorkout}
