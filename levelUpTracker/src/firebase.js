@@ -33,21 +33,11 @@ export const rtdb = getDatabase(app);
 if (window.location.hostname === "localhost") {
   console.log("Connecting to Firebase Emulators...");
 
-  // Authentication Emulator (default port 9099)
   connectAuthEmulator(auth, "http://localhost:9099");
 
-  // Firestore Emulator (default port 8080)
   connectFirestoreEmulator(db, "localhost", 8080);
 
-  // Storage Emulator (default port 9199)
   connectStorageEmulator(storage, "localhost", 9199);
 
-  // Functions Emulator (default port 5001)
-  // Note: For callable functions, you'll generally use the default region
-  // but the host/port is for the emulator
   connectFunctionsEmulator(functions, "localhost", 5001);
-
-  // You can also connect to other emulators if you set them up (e.g., Realtime Database)
-  // If you plan to use Realtime Database, uncomment the line below:
-  // connectDatabaseEmulator(rtdb, "localhost", 9000);
 }
