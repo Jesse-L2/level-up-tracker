@@ -10,7 +10,6 @@ const firebaseConfig =
   typeof __firebase_config !== "undefined"
     ? JSON.parse(__firebase_config)
     : {
-        // --- IMPORTANT: Use import.meta.env.VITE_ instead of process.env ---
         apiKey: import.meta.env.VITE_API_KEY,
         authDomain: import.meta.env.VITE_AUTH_DOMAIN,
         projectId: import.meta.env.VITE_PROJECT_ID,
@@ -37,7 +36,10 @@ if (window.location.hostname === "localhost") {
 
   connectFirestoreEmulator(db, "localhost", 8080);
 
-  connectStorageEmulator(storage, "localhost", 9199);
+    connectStorageEmulator(storage, "localhost", 9199);
 
   connectFunctionsEmulator(functions, "localhost", 5001);
+
+  connectDatabaseEmulator(rtdb, "localhost", 9000);
 }
+
