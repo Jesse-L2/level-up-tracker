@@ -1,0 +1,54 @@
+levelUpTracker/
+├── .firebaserc
+├── .gitignore
+├── database-debug.log
+├── database.rules.json
+├── firebase-debug.log
+├── firebase.json
+├── firestore-debug.log
+├── firestore.indexes.json
+├── firestore.rules
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── README.md
+├── storage.rules
+├── tailwind.config.js
+├── vite.config.js
+├── functions/
+│   ├── .eslintrc.js
+│   ├── .gitignore
+│   ├── index.js
+│   ├── package-lock.json
+│   └── package.json
+├── public/
+│   ├── default-maxes.json
+│   ├── plate-data.json
+│   └── program-templates.json
+└── src/
+    ├── App.jsx
+    ├── firebase.js
+    ├── main.css
+    ├── main.jsx
+    ├── components/
+    │   ├── CreateWorkout.jsx
+    │   ├── Dashboard.jsx
+    │   ├── ExerciseLibrary.jsx
+    │   ├── Login.jsx
+    │   ├── PlateCalculator.jsx
+    │   ├── ProgramTemplateDetails.jsx
+    │   ├── ProgramTemplates.jsx
+    │   ├── SettingsPage.jsx
+    │   ├── Signup.jsx
+    │   ├── WorkoutGenerator.jsx
+    │   ├── WorkoutPlanner.jsx
+    │   └── ui/
+    │       ├── FormField.jsx
+    │       ├── MiniPlateDisplay.jsx
+    │       └── Modal.jsx
+    ├── hooks/
+    │   └── useFirebaseUser.js
+    └── lib/
+        ├── constants.js
+        └── rep_scheme.js

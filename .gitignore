@@ -11,3 +11,7 @@ npm-debug.log*
 *.suo
 *.user
 *.sln
+firebase-emulator-data
+firebase-emulator-data/
+firebase-emulator-export
+firebase-emulator-export/

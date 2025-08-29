@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase.js';
 
 export const Login = ({ onSwitchToSignup }) => {
   const [email, setEmail] = useState('');
@@ -9,7 +10,6 @@ export const Login = ({ onSwitchToSignup }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
-    const auth = getAuth();
     try {
       await signInWithEmailAndPassword(auth, email, password);
       // The onAuthStateChanged listener in App.jsx will handle the redirect

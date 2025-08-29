@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 import { useFirebaseUser } from "./hooks/useFirebaseUser";
 import { Dashboard } from "./components/Dashboard";
 import { SettingsPage } from "./components/SettingsPage";
@@ -23,7 +24,6 @@ export default function App() {
   const [isLoginView, setIsLoginView] = useState(true);
 
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setAuthLoading(false);

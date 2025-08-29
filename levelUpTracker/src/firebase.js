@@ -1,5 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
+import {
+  getAuth,
+  connectAuthEmulator,
+  setPersistence,
+  indexedDBLocalPersistence,
+} from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
@@ -27,19 +32,15 @@ export const storage = getStorage(app);
 export const functions = getFunctions(app);
 export const rtdb = getDatabase(app);
 
-// --- CONNECT TO EMULATORS IN DEVELOPMENT ---
-// Check if we are running on localhost (common for React dev servers)
-if (window.location.hostname === "localhost") {
-  console.log("Connecting to Firebase Emulators...");
-
-  connectAuthEmulator(auth, "http://localhost:9099");
-
-  connectFirestoreEmulator(db, "localhost", 8080);
-
+// --- CONNECT TO EMULATORS AND SET PERSISTENCE ---
+if (typeof window !== "undefined") {
+  if (window.location.hostname === "localhost") {
+    console.log("Connecting to Firebase Emulators...");
+    connectAuthEmulator(auth, "http://localhost:9099");
+    connectFirestoreEmulator(db, "localhost", 8080);
     connectStorageEmulator(storage, "localhost", 9199);
-
-  connectFunctionsEmulator(functions, "localhost", 5001);
-
-  connectDatabaseEmulator(rtdb, "localhost", 9000);
+    connectFunctionsEmulator(functions, "localhost", 5001);
+    connectDatabaseEmulator(rtdb, "localhost", 9000);
+  }
+  setPersistence(auth, indexedDBLocalPersistence);
 }
-
