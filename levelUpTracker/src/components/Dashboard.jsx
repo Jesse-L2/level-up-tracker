@@ -22,13 +22,13 @@ import { Modal } from "./ui/Modal";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 
 const daysOrder = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+  "Day 1",
+  "Day 2",
+  "Day 3",
+  "Day 4",
+  "Day 5",
+  "Day 6",
+  "Day 7",
 ];
 
 export const Dashboard = ({ userProfile, onNavigate }) => {
@@ -50,7 +50,9 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
       return [];
     }
     return Object.entries(userProfile.workoutPlan).sort(([dayA], [dayB]) => {
-      return daysOrder.indexOf(dayA) - daysOrder.indexOf(dayB);
+      const dayNumA = parseInt(dayA.split('_')[1]);
+      const dayNumB = parseInt(dayB.split('_')[1]);
+      return dayNumA - dayNumB;
     });
   }, [userProfile.workoutPlan]);
 
@@ -168,10 +170,10 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                       >
                         <div className="flex flex-col text-left">
                           <span className="font-bold text-lg text-white">
-                            {dayName}
+                            {dayName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                           </span>
                           <span className="text-sm text-gray-300">
-                            {workoutDetails.name}
+                            {workoutDetails.name.split('_').slice(2).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                           </span>
                         </div>
                         <div className="flex items-center gap-4">
@@ -211,25 +213,30 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                                 <div className="flex justify-between items-center">
                                   <span>{ex.name}</span>
                                   <span className="text-gray-300">
-                                    {Array.isArray(ex.sets) ? ex.sets.length : 0} sets
+                                    {Array.isArray(ex.sets)
+                                      ? ex.sets.length
+                                      : 0}{" "}
+                                    sets
                                   </span>
                                 </div>
                                 <ul className="pl-4 mt-1 border-l-2 border-gray-600">
-                                  {(Array.isArray(ex.sets) ? ex.sets : []).map((s, i) => (
-                                    <li
-                                      key={i}
-                                      className="text-sm text-gray-300"
-                                    >
-                                      Set {i + 1}: {s.reps} reps @ {s.weight}{" "}
-                                      lbs ({s.percentage * 100}%)
-                                      <MiniPlateDisplay
-                                        targetWeight={s.weight}
-                                        availablePlates={
-                                          userProfile.availablePlates
-                                        }
-                                      />
-                                    </li>
-                                  ))}
+                                  {(Array.isArray(ex.sets) ? ex.sets : []).map(
+                                    (s, i) => (
+                                      <li
+                                        key={i}
+                                        className="text-sm text-gray-300"
+                                      >
+                                        Set {i + 1}: {s.reps} reps @ {s.weight}{" "}
+                                        lbs ({s.percentage * 100}%)
+                                        <MiniPlateDisplay
+                                          targetWeight={s.weight}
+                                          availablePlates={
+                                            userProfile.availablePlates
+                                          }
+                                        />
+                                      </li>
+                                    )
+                                  )}
                                 </ul>
                               </li>
                             ))}
@@ -261,7 +268,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                 </h2>
                 {uniqueExercises.length > 0 && (
                   <select
-                    value={selectedExercise || ''}
+                    value={selectedExercise || ""}
                     onChange={(e) => setSelectedExercise(e.target.value)}
                     className="bg-gray-700 text-white p-2 rounded-lg"
                   >
@@ -330,7 +337,8 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                   onClick={() => onNavigate("program_templates")}
                   className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  <BookOpen size={20} className="text-white" /> Program Templates
+                  <BookOpen size={20} className="text-white" /> Program
+                  Templates
                 </button>
               </div>
             </div>

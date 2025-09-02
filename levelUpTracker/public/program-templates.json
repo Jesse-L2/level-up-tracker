@@ -23,7 +23,7 @@
     "power_clean": {
       "id": "power_clean",
       "name": "Power Clean",
-      "muscle_groups": ["Full Body", "Explosive"]
+      "muscle_groups": ["Full Body"]
     },
     "barbell_row": {
       "id": "barbell_row",
