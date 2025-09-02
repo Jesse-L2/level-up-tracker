@@ -262,6 +262,7 @@ export default function App() {
             onUpdateExercise={handleUpdateExercise}
             onUpdateLibrary={handleUpdateLibrary}
             availablePlates={userProfile.availablePlates}
+            onNavigate={handleNavigate}
           />
         );
       case "calculator":

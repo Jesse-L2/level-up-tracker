@@ -9,6 +9,7 @@ export const WorkoutPlanner = ({
   onUpdateExercise,
   onUpdateLibrary,
   availablePlates,
+  onNavigate,
 }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [sessionLog, setSessionLog] = useState({});
@@ -134,10 +135,19 @@ export const WorkoutPlanner = ({
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-center mb-1">
+        <div className="bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 flex justify-between items-center">
+          <div className="flex-1"></div>
+          <h1 className="text-3xl font-bold text-center mb-1 flex-1">
             {workoutDay.name}
           </h1>
+          <div className="flex-1 flex justify-end">
+            <button
+              onClick={() => onNavigate("dashboard")}
+              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            >
+              Return to Dashboard
+            </button>
+          </div>
         </div>
 
         <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
