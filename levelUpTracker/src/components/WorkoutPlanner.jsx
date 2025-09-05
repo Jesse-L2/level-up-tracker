@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FormField } from "./ui/FormField";
 import { Edit, Save, X } from "lucide-react";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
+import { Timer } from "./ui/Timer";
 
 export const WorkoutPlanner = ({
   workoutDay,
@@ -10,6 +11,7 @@ export const WorkoutPlanner = ({
   onUpdateLibrary,
   availablePlates,
   onNavigate,
+  userProfile,
 }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [sessionLog, setSessionLog] = useState({});
@@ -18,6 +20,9 @@ export const WorkoutPlanner = ({
   const [editValue, setEditValue] = useState({ oneRepMax: "" });
   const [message, setMessage] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [lastCompletedSetIndex, setLastCompletedSetIndex] = useState(null);
+
 
   const currentExercise = workoutDay.exercises[currentExerciseIndex];
 
@@ -117,7 +122,15 @@ export const WorkoutPlanner = ({
       };
       return newLog;
     });
+    setLastCompletedSetIndex(setIndex);
+    setIsTimerActive(true);
   }, []);
+
+  const handleTimerComplete = () => {
+    setIsTimerActive(false);
+    // Optional: play a sound or show a notification
+    alert("Rest period is over!");
+  };
 
   const handleSelectExercise = (index) => {
     setCurrentExerciseIndex(index);
@@ -224,67 +237,76 @@ export const WorkoutPlanner = ({
               ? currentExercise.sets
               : []
             ).map((set, setIndex) => (
-              <div
-                key={setIndex}
-                className={`flex items-center justify-between p-4 rounded-lg ${
-                  sessionLog[currentExerciseIndex]?.[setIndex]?.completed
-                    ? "bg-green-800/50"
-                    : "bg-gray-700"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                      sessionLog[currentExerciseIndex]?.[setIndex]?.completed
-                        ? "bg-green-500"
-                        : "bg-gray-600"
-                    }`}
-                  >
-                    {setIndex + 1}
-                  </div>
-                  <div>
-                    <p className="font-semibold">
-                      Target: {set.reps} reps @ {set.weight} lbs
-                    </p>
-                    {currentExercise.type === "barbell" && set.weight > 0 && (
-                      <MiniPlateDisplay
-                        targetWeight={set.weight}
-                        availablePlates={availablePlates}
-                      />
-                    )}
-                  </div>
-                </div>
-                {!sessionLog[currentExerciseIndex]?.[setIndex]?.completed ? (
-                  <div className="flex items-center gap-2">
-                    <FormField
-                      id={`reps-${setIndex}`}
-                      type="number"
-                      placeholder="Reps"
-                      className="w-20 bg-gray-800"
-                      onChange={(e) => {
-                        const reps = e.target.value;
-                        setSessionLog((prevLog) => {
-                          const newLog = JSON.parse(JSON.stringify(prevLog));
-                          newLog[currentExerciseIndex][setIndex].reps = reps;
-                          return newLog;
-                        });
-                      }}
-                    />
-                    <button
-                      onClick={() =>
-                        handleSetComplete(currentExerciseIndex, setIndex)
-                      }
-                      className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
+              <React.Fragment key={setIndex}>
+                <div
+                  className={`flex items-center justify-between p-4 rounded-lg ${
+                    sessionLog[currentExerciseIndex]?.[setIndex]?.completed
+                      ? "bg-green-800/50"
+                      : "bg-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+                        sessionLog[currentExerciseIndex]?.[setIndex]?.completed
+                          ? "bg-green-500"
+                          : "bg-gray-600"
+                      }`}
                     >
-                      Save
-                    </button>
+                      {setIndex + 1}
+                    </div>
+                    <div>
+                      <p className="font-semibold">
+                        Target: {set.reps} reps @ {set.weight} lbs
+                      </p>
+                      {currentExercise.type === "barbell" && set.weight > 0 && (
+                        <MiniPlateDisplay
+                          targetWeight={set.weight}
+                          availablePlates={availablePlates}
+                        />
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-lg">
-                    {sessionLog[currentExerciseIndex]?.[setIndex]?.reps} reps
-                  </p>
+                  {!sessionLog[currentExerciseIndex]?.[setIndex]?.completed ? (
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        id={`reps-${setIndex}`}
+                        type="number"
+                        placeholder="Reps"
+                        className="w-20 bg-gray-800"
+                        onChange={(e) => {
+                          const reps = e.target.value;
+                          setSessionLog((prevLog) => {
+                            const newLog = JSON.parse(JSON.stringify(prevLog));
+                            newLog[currentExerciseIndex][setIndex].reps = reps;
+                            return newLog;
+                          });
+                        }}
+                      />
+                      <button
+                        onClick={() =>
+                          handleSetComplete(currentExerciseIndex, setIndex)
+                        }
+                        className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-lg">
+                      {sessionLog[currentExerciseIndex]?.[setIndex]?.reps} reps
+                    </p>
+                  )}
+                </div>
+                {isTimerActive && lastCompletedSetIndex === setIndex && (
+                  <div className="flex justify-center my-2">
+                    <Timer
+                      duration={userProfile.restTimer || 120}
+                      onComplete={handleTimerComplete}
+                    />
+                  </div>
                 )}
-              </div>
+              </React.Fragment>
             ))}
           </div>
 
@@ -324,6 +346,7 @@ export const WorkoutPlanner = ({
           </button>
         </div>
       </div>
+      
     </div>
   );
 };

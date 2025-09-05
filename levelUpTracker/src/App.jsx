@@ -263,6 +263,7 @@ export default function App() {
             onUpdateLibrary={handleUpdateLibrary}
             availablePlates={userProfile.availablePlates}
             onNavigate={handleNavigate}
+            userProfile={userProfile}
           />
         );
       case "calculator":

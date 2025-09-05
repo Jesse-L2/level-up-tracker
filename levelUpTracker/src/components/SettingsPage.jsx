@@ -16,7 +16,10 @@ export const SettingsPage = ({
 
   useEffect(() => {
     if (userProfile) {
-      setProfile(userProfile);
+      setProfile({
+        ...userProfile,
+        restTimer: userProfile.restTimer || 120, // Set default rest timer
+      });
     }
   }, [userProfile]);
 
@@ -188,6 +191,15 @@ export const SettingsPage = ({
               <option value="intermediate">Intermediate</option>
               <option value="advanced">Advanced</option>
             </FormField>
+            <FormField
+              label="Default Rest Timer (seconds)"
+              id="restTimer"
+              type="number"
+              value={profile.restTimer}
+              onChange={(e) =>
+                setProfile({ ...profile, restTimer: parseInt(e.target.value) })
+              }
+            />
           </div>
         </div>
 
