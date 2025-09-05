@@ -23,7 +23,6 @@ export const WorkoutPlanner = ({
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [lastCompletedSetIndex, setLastCompletedSetIndex] = useState(null);
 
-
   const currentExercise = workoutDay.exercises[currentExerciseIndex];
 
   useEffect(() => {
@@ -128,8 +127,7 @@ export const WorkoutPlanner = ({
 
   const handleTimerComplete = () => {
     setIsTimerActive(false);
-    // Optional: play a sound or show a notification
-    alert("Rest period is over!");
+    // Optional TODO: play a sound or show a notification
   };
 
   const handleSelectExercise = (index) => {
@@ -346,7 +344,6 @@ export const WorkoutPlanner = ({
           </button>
         </div>
       </div>
-      
     </div>
   );
 };
