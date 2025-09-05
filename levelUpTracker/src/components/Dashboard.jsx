@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -42,7 +42,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
     [expandedDay]
   );
 
-  const sortedWorkoutPlan = useMemo(() => {
+  const getSortedWorkoutPlan = () => {
     if (
       !userProfile.workoutPlan ||
       typeof userProfile.workoutPlan !== "object"
@@ -54,11 +54,13 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
       const dayNumB = parseInt(dayB.split('_')[1]);
       return dayNumA - dayNumB;
     });
-  }, [userProfile.workoutPlan]);
+  };
+
+  const sortedWorkoutPlan = getSortedWorkoutPlan();
 
   const [selectedExercise, setSelectedExercise] = useState(null);
 
-  const uniqueExercises = useMemo(() => {
+  const getUniqueExercises = () => {
     const exercises = new Set();
     if (userProfile.workoutPlan) {
       Object.values(userProfile.workoutPlan).forEach((day) => {
@@ -66,7 +68,9 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
       });
     }
     return Array.from(exercises);
-  }, [userProfile.workoutPlan]);
+  };
+
+  const uniqueExercises = getUniqueExercises();
 
   // Set default selected exercise
   useEffect(() => {
@@ -75,7 +79,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
     }
   }, [uniqueExercises, selectedExercise]);
 
-  const chartData = useMemo(() => {
+  const getChartData = () => {
     if (
       !userProfile.workoutHistory ||
       userProfile.workoutHistory.length === 0 ||
@@ -110,7 +114,9 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
     return exerciseData
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(-10);
-  }, [userProfile.workoutHistory, selectedExercise]);
+  };
+
+  const chartData = getChartData();
 
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
