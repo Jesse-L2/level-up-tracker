@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -289,7 +289,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
               {chartData.length > 0 ? (
                 <div style={{ width: "100%", height: 300 }}>
                   <ResponsiveContainer>
-                    <BarChart
+                    <LineChart
                       data={chartData}
                       margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
                     >
@@ -307,8 +307,8 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                         ]}
                       />
                       <Legend />
-                      <Bar dataKey="oneRepMax" fill="#4299E1" name="Est. 1RM" />
-                    </BarChart>
+                      <Line type="monotone" dataKey="oneRepMax" stroke="#4299E1" name="Est. 1RM" dot={{ r: 4 }} activeDot={{ r: 8 }} />
+                    </LineChart>
                   </ResponsiveContainer>
                 </div>
               ) : (

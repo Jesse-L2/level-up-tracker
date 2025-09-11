@@ -29,7 +29,7 @@ export const MiniPlateDisplay = ({
   }, [targetWeight, availablePlates, barbellWeight]);
 
   if (platesPerSide.length === 0) {
-    return null; // Don't render anything if no plates are needed
+    return null;
   }
 
   return (
@@ -37,15 +37,18 @@ export const MiniPlateDisplay = ({
       className="flex items-center gap-1 mt-2"
       aria-label={`Plates for ${targetWeight} lbs`}
     >
-      <div className="h-1 bg-gray-500 rounded-l-sm" style={{ width: '1rem' }}></div>
+      <div
+        className="h-1 bg-gray-500 rounded-l-sm"
+        style={{ width: "1rem" }}
+      ></div>
       <div className="h-4 w-0.5 bg-gray-500"></div>
       {platesPerSide.map((plate, index) => (
         <div
           key={index}
           className="bg-blue-500 text-white text-xs font-bold rounded-sm flex items-center justify-center"
-          style={{ 
+          style={{
             height: `${24 + plate * 0.6}px`,
-            width: '1.5rem'
+            width: "1.5rem",
           }}
           title={`${plate} lbs`}
         >
