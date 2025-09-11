@@ -34,6 +34,14 @@ const daysOrder = [
 export const Dashboard = ({ userProfile, onNavigate }) => {
   const [expandedDay, setExpandedDay] = useState(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [expandedHistory, setExpandedHistory] = useState(null);
+
+  const toggleHistory = useCallback(
+    (index) => {
+      setExpandedHistory(expandedHistory === index ? null : index);
+    },
+    [expandedHistory]
+  );
 
   const toggleDay = useCallback(
     (dayName) => {
@@ -359,13 +367,45 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                     .slice()
                     .reverse()
                     .map((session, index) => (
-                      <div key={index} className="bg-gray-700 p-3 rounded-lg">
-                        <p className="font-semibold text-white">
-                          {session.dayName}
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          {new Date(session.date).toLocaleDateString()}
-                        </p>
+                      <div key={index} className="bg-gray-700 rounded-lg overflow-hidden">
+                        <div
+                          onClick={() => toggleHistory(index)}
+                          className="w-full flex justify-between items-center p-3 cursor-pointer"
+                        >
+                          <div>
+                            <p className="font-semibold text-white">
+                              {session.dayName}
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              {new Date(session.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          {expandedHistory === index ? (
+                            <ChevronUp className="text-white" />
+                          ) : (
+                            <ChevronDown className="text-white" />
+                          )}
+                        </div>
+                        {expandedHistory === index && (
+                          <div className="p-4 bg-gray-900/50 border-t border-gray-600">
+                            <ul className="space-y-2">
+                              {session.exercises.map((ex, exIndex) => (
+                                <li key={exIndex} className="text-white">
+                                  <div className="flex justify-between items-center">
+                                    <span>{ex.name}</span>
+                                  </div>
+                                  <ul className="pl-4 mt-1 border-l-2 border-gray-600">
+                                    {ex.sets.map((s, i) => (
+                                      <li key={i} className="text-sm text-gray-300">
+                                        Set {i + 1}: {s.reps} reps @ {s.weight} lbs
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     ))
                 ) : (
