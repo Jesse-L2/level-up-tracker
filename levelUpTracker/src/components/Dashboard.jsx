@@ -126,6 +126,43 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
 
   const chartData = getChartData();
 
+  const getChartDomain = () => {
+    if (chartData.length === 0) {
+      return [0, 100]; // Default domain
+    }
+
+    const oneRepMaxValues = chartData.map(d => d.oneRepMax);
+    let min = Math.min(...oneRepMaxValues);
+    let max = Math.max(...oneRepMaxValues);
+
+    if (min === max) {
+      const padding = min * 0.1;
+      min -= padding;
+      max += padding;
+    } else {
+      const padding = (max - min) * 0.1; // 10% padding
+      min -= padding;
+      max += padding;
+    }
+
+    return [Math.max(0, min), max];
+  };
+
+  const chartDomain = getChartDomain();
+
+  const getTicks = (domain) => {
+    if (!domain) return [];
+    const [min, max] = domain;
+    const ticks = [];
+    const start = Math.ceil(min / 5) * 5;
+    for (let i = start; i <= max; i += 5) {
+      ticks.push(i);
+    }
+    return ticks;
+  };
+
+  const chartTicks = getTicks(chartDomain);
+
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-6xl mx-auto">
@@ -302,8 +339,8 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                       margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-                      <XAxis dataKey="date" stroke="#A0AEC0" />
-                      <YAxis stroke="#A0AEC0" />
+                      <XAxis dataKey="date" stroke="#A0AEC0" padding={{ left: 20, right: 20 }} />
+                      <YAxis stroke="#A0AEC0" domain={chartDomain} ticks={chartTicks} />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "#1A202C",
