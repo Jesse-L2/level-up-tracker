@@ -32,6 +32,27 @@ export const useFirebaseUser = (userId) => {
         if (docSnap.exists()) {
           const userProfileData = docSnap.data();
           let needsUpdate = false;
+
+          if (userProfileData.partner && !userProfileData.partner.workoutPlan) {
+            fetch("/partner_default_maxes.json")
+              .then((response) => response.json())
+              .then((defaultMaxes) => {
+                const partnerWorkoutPlan = JSON.parse(JSON.stringify(userProfileData.workoutPlan));
+                for (const day in partnerWorkoutPlan) {
+                  for (const exercise of partnerWorkoutPlan[day].exercises) {
+                    const newOneRepMax = defaultMaxes[exercise.id] || 50;
+                    exercise.sets.forEach(set => {
+                      set.weight = Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5;
+                    });
+                  }
+                }
+                updateDoc(userDocRef, {
+                  "partner.workoutPlan": partnerWorkoutPlan,
+                  "partner.maxes": defaultMaxes,
+                });
+              });
+          }
+
           if (userProfileData.workoutPlan) {
             for (const day in userProfileData.workoutPlan) {
               const exercises = userProfileData.workoutPlan[day].exercises;
@@ -61,7 +82,7 @@ export const useFirebaseUser = (userId) => {
           } else if (needsUpdate) {
             updateDoc(doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile"), { workoutPlan: userProfileData.workoutPlan });
           }
-          setUserProfile(userProfileData);
+          setUserProfile({ ...userProfileData, uid: userId });
         } else {
           const createDefaultProfile = (defaultMaxes, plateData) => {
             const custom531Program = programTemplates.programs.custom_531;
@@ -133,8 +154,8 @@ export const useFirebaseUser = (userId) => {
               workoutPlan,
               workoutHistory: [],
             };
-            setDoc(userDocRef, defaultProfile)
-              .then(() => setUserProfile(defaultProfile))
+                        setDoc(userDocRef, defaultProfile)
+              .then(() => setUserProfile({ ...defaultProfile, uid: userId }))
               .catch((err) => {
                 console.error("Error setting default profile:", err);
                 setError(err.message);

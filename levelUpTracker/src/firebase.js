@@ -5,7 +5,7 @@ import {
   setPersistence,
   indexedDBLocalPersistence,
 } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { getDatabase, connectDatabaseEmulator } from "firebase/database";
@@ -33,6 +33,7 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 export const rtdb = getDatabase(app);
+const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
 
 // --- SET PERSISTENCE ---
 if (typeof window !== "undefined") {
@@ -54,3 +55,37 @@ if (typeof window !== "undefined") {
   }
 }
 */
+
+// --- Partner Functions ---
+
+export const addPartner = async (userId, partnerName) => {
+  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  await updateDoc(userDocRef, {
+    partner: {
+      name: partnerName,
+      workoutHistory: [],
+      maxes: {},
+    },
+  });
+};
+
+export const updatePartnerName = async (userId, newPartnerName) => {
+  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  await updateDoc(userDocRef, {
+    "partner.name": newPartnerName,
+  });
+};
+
+export const removePartner = async (userId) => {
+  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  await updateDoc(userDocRef, {
+    partner: null,
+  });
+};
+
+export const savePartnerWorkout = async (userId, workout) => {
+  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  await updateDoc(userDocRef, {
+    "partner.workoutHistory": arrayUnion(workout),
+  });
+};

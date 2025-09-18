@@ -35,6 +35,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
   const [expandedDay, setExpandedDay] = useState(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(null);
+  const [isPartnerView, setIsPartnerView] = useState(false);
 
   const toggleHistory = useCallback(
     (index) => {
@@ -51,13 +52,11 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
   );
 
   const getSortedWorkoutPlan = () => {
-    if (
-      !userProfile.workoutPlan ||
-      typeof userProfile.workoutPlan !== "object"
-    ) {
+    const plan = isPartnerView ? userProfile.partner.workoutPlan : userProfile.workoutPlan;
+    if (!plan || typeof plan !== "object") {
       return [];
     }
-    return Object.entries(userProfile.workoutPlan).sort(([dayA], [dayB]) => {
+    return Object.entries(plan).sort(([dayA], [dayB]) => {
       const dayNumA = parseInt(dayA.split('_')[1]);
       const dayNumB = parseInt(dayB.split('_')[1]);
       return dayNumA - dayNumB;
@@ -88,14 +87,15 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
   }, [uniqueExercises, selectedExercise]);
 
   const getChartData = () => {
+    const workoutHistory = isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory;
     if (
-      !userProfile.workoutHistory ||
-      userProfile.workoutHistory.length === 0 ||
+      !workoutHistory ||
+      workoutHistory.length === 0 ||
       !selectedExercise
     )
       return [];
 
-    const exerciseData = userProfile.workoutHistory
+    const exerciseData = workoutHistory
       .map((session) => {
         const exercise = session.exercises.find(
           (ex) => ex.name === selectedExercise
@@ -163,6 +163,12 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
 
   const chartTicks = getTicks(chartDomain);
 
+  const handleToggle = () => {
+    if (userProfile.partner) {
+      setIsPartnerView(!isPartnerView);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-6xl mx-auto">
@@ -170,10 +176,20 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
           <div>
             <h1 className="text-4xl font-bold text-white">LevelUp Tracker</h1>
             <p className="text-gray-300">
-              Your personalized workout dashboard.
+              {isPartnerView ? `${userProfile.partner.name}'s personalized workout dashboard.` : 'Your personalized workout dashboard.'}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {userProfile.partner && (
+              <div className="flex items-center gap-2">
+                <div className="text-white">{userProfile.displayName}</div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" value="" className="sr-only peer" checked={isPartnerView} onChange={handleToggle} />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+                <div className="text-white">{userProfile.partner.name}</div>
+              </div>
+            )}
             <button
               onClick={() => onNavigate("settings")}
               className="bg-gray-700 hover:bg-gray-600 p-3 rounded-full transition-colors"
@@ -398,9 +414,9 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                 Workout History
               </h2>
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                {userProfile.workoutHistory &&
-                userProfile.workoutHistory.length > 0 ? (
-                  userProfile.workoutHistory
+                {(isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory) &&
+                (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory).length > 0 ? (
+                  (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory)
                     .slice()
                     .reverse()
                     .map((session, index) => (
@@ -466,9 +482,9 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
         title="Full Workout History"
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-          {userProfile.workoutHistory &&
-          userProfile.workoutHistory.length > 0 ? (
-            userProfile.workoutHistory
+          {(isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory) &&
+          (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory).length > 0 ? (
+            (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory)
               .slice()
               .reverse()
               .map((session, index) => (

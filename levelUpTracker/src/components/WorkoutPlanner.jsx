@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { savePartnerWorkout } from "../firebase";
 import { FormField } from "./ui/FormField";
 import { Edit, Save, X } from "lucide-react";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
@@ -14,7 +15,7 @@ export const WorkoutPlanner = ({
   userProfile,
 }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  const [sessionLog, setSessionLog] = useState({});
+  const [sessionLog, setSessionLog] = useState({ user: {}, partner: {} });
   const [suggested1RM, setSuggested1RM] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState({ oneRepMax: "" });
@@ -22,24 +23,32 @@ export const WorkoutPlanner = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [lastCompletedSetIndex, setLastCompletedSetIndex] = useState(null);
+  const [isPartnerView, setIsPartnerView] = useState(false);
 
   const currentExercise = workoutDay.exercises[currentExerciseIndex];
+  const sets = Array.isArray(currentExercise?.sets) ? currentExercise.sets : [];
+
+  const handleToggle = () => {
+    setIsPartnerView((prev) => userProfile.partner && !prev);
+  };
 
   useEffect(() => {
-    const initialLog = {};
+    const initialLog = { user: {}, partner: {} };
     workoutDay.exercises.forEach((ex, exIndex) => {
-      initialLog[exIndex] = (Array.isArray(ex.sets) ? ex.sets : []).map(
-        (set) => ({
-          reps: "",
-          weight: "",
-          completed: false,
-          targetReps: set.reps,
-          targetWeight: set.weight,
-        })
-      );
+      const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
+        reps: "",
+        weight: "",
+        completed: false,
+        targetReps: set.reps,
+        targetWeight: set.weight,
+      }));
+      initialLog.user[exIndex] = JSON.parse(JSON.stringify(setsData));
+      if (userProfile.partner) {
+        initialLog.partner[exIndex] = JSON.parse(JSON.stringify(setsData));
+      }
     });
     setSessionLog(initialLog);
-  }, [workoutDay]);
+  }, [workoutDay, userProfile.partner]);
 
   const handleStartEditOneRepMax = () => {
     setIsEditing(true);
@@ -51,7 +60,6 @@ export const WorkoutPlanner = ({
     if (newOneRepMax > 0) {
       onUpdateLibrary(currentExercise.name, newOneRepMax);
       setIsEditing(false);
-      // Optimistically update the UI
       currentExercise.oneRepMax = newOneRepMax;
     } else {
       setMessage("Please enter a valid 1 Rep Max.");
@@ -59,12 +67,12 @@ export const WorkoutPlanner = ({
   };
 
   const handleFinishWorkout = useCallback(() => {
-    const completedWorkout = {
+    const userWorkout = {
       date: new Date().toISOString(),
       dayName: workoutDay.name,
       exercises: workoutDay.exercises.map((ex, exIndex) => ({
         name: ex.name,
-        sets: (sessionLog[exIndex] || [])
+        sets: (sessionLog.user[exIndex] || [])
           .filter((s) => s.completed)
           .map((s) => ({
             reps: s.reps || s.targetReps,
@@ -72,27 +80,37 @@ export const WorkoutPlanner = ({
           })),
       })),
     };
-    onFinish(completedWorkout);
-  }, [workoutDay, sessionLog, onFinish]);
+    onFinish(userWorkout);
+
+    if (userProfile.partner) {
+      const partnerWorkout = {
+        date: new Date().toISOString(),
+        dayName: workoutDay.name,
+        exercises: workoutDay.exercises.map((ex, exIndex) => ({
+          name: ex.name,
+          sets: (sessionLog.partner[exIndex] || [])
+            .filter((s) => s.completed)
+            .map((s) => ({
+              reps: s.reps || s.targetReps,
+              weight: s.weight || s.targetWeight,
+            })),
+        })),
+      };
+      savePartnerWorkout(userProfile.uid, partnerWorkout);
+    }
+  }, [workoutDay, sessionLog, onFinish, userProfile]);
 
   const handleFeedback = useCallback(
     (feedback) => {
       const originalMax = currentExercise.oneRepMax;
-      let newMax = originalMax;
-
       if (feedback === "easy") {
-        newMax = Math.round((originalMax * 1.025) / 2.5) * 2.5; // Suggest ~2.5% increase
+        currentExercise.oneRepMax =
+          Math.round((originalMax * 1.025) / 2.5) * 2.5;
       } else if (feedback === "hard") {
-        newMax = Math.round((originalMax * 0.975) / 2.5) * 2.5; // Suggest ~2.5% decrease
+        currentExercise.oneRepMax =
+          Math.round((originalMax * 0.975) / 2.5) * 2.5;
       }
 
-      if (newMax !== originalMax) {
-        // Instead of window.confirm, set state to show inline update form
-        // For now, we'll just progress and let the user manually update if they wish
-        // This will be handled by the new UI for 1RM update
-      }
-
-      // Always progress to the next exercise after feedback
       if (currentExerciseIndex < workoutDay.exercises.length - 1) {
         setCurrentExerciseIndex(currentExerciseIndex + 1);
       } else {
@@ -103,17 +121,15 @@ export const WorkoutPlanner = ({
       currentExercise,
       currentExerciseIndex,
       workoutDay.exercises.length,
-      onUpdateLibrary,
       handleFinishWorkout,
     ]
   );
 
-  const handleSetComplete = useCallback((exIndex, setIndex) => {
+  const handleSetComplete = useCallback((exIndex, setIndex, userType) => {
     setSessionLog((prevLog) => {
       const newLog = JSON.parse(JSON.stringify(prevLog));
-      const currentSetLog = newLog[exIndex][setIndex];
-
-      newLog[exIndex][setIndex] = {
+      const currentSetLog = newLog[userType][exIndex][setIndex];
+      newLog[userType][exIndex][setIndex] = {
         ...currentSetLog,
         reps: currentSetLog.reps || currentSetLog.targetReps,
         weight: currentSetLog.weight || currentSetLog.targetWeight,
@@ -125,10 +141,7 @@ export const WorkoutPlanner = ({
     setIsTimerActive(true);
   }, []);
 
-  const handleTimerComplete = () => {
-    setIsTimerActive(false);
-    // Optional TODO: play a sound or show a notification
-  };
+  const handleTimerComplete = () => setIsTimerActive(false);
 
   const handleSelectExercise = (index) => {
     setCurrentExerciseIndex(index);
@@ -151,7 +164,22 @@ export const WorkoutPlanner = ({
           <h1 className="text-3xl font-bold text-center mb-1 flex-1">
             {workoutDay.name}
           </h1>
-          <div className="flex-1 flex justify-end">
+          <div className="flex-1 flex justify-end items-center gap-4">
+            {userProfile.partner && (
+              <div className="flex items-center gap-2">
+                <span className="text-white">{userProfile.displayName}</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={isPartnerView}
+                    onChange={handleToggle}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+                <span className="text-white">{userProfile.partner.name}</span>
+              </div>
+            )}
             <button
               onClick={() => onNavigate("dashboard")}
               className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
@@ -229,83 +257,54 @@ export const WorkoutPlanner = ({
               </button>
             )}
           </div>
+          <div
+            className={`mt-6 grid ${
+              isPartnerView ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+            } gap-4`}
+          >
+            {/* Column Headers */}
+            <div className="text-xl font-semibold text-center mb-2 h-14 flex items-center justify-center">
+              {userProfile.displayName}
+            </div>
+            {isPartnerView && (
+              <div className="text-xl font-semibold text-center mb-2 h-14 flex items-center justify-center">
+                {userProfile.partner.name}
+              </div>
+            )}
 
-          <div className="space-y-3 mt-6">
-            {(Array.isArray(currentExercise.sets)
-              ? currentExercise.sets
-              : []
-            ).map((set, setIndex) => (
-              <React.Fragment key={setIndex}>
-                <div
-                  className={`flex items-center justify-between p-4 rounded-lg ${
-                    sessionLog[currentExerciseIndex]?.[setIndex]?.completed
-                      ? "bg-green-800/50"
-                      : "bg-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                        sessionLog[currentExerciseIndex]?.[setIndex]?.completed
-                          ? "bg-green-500"
-                          : "bg-gray-600"
-                      }`}
-                    >
-                      {setIndex + 1}
-                    </div>
-                    <div>
-                      <p className="font-semibold">
-                        Target: {set.reps} reps @ {set.weight} lbs
-                      </p>
-                      {currentExercise.type === "barbell" && set.weight > 0 && (
-                        <MiniPlateDisplay
-                          targetWeight={set.weight}
-                          availablePlates={availablePlates}
-                        />
-                      )}
-                    </div>
-                  </div>
-                  {!sessionLog[currentExerciseIndex]?.[setIndex]?.completed ? (
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        id={`reps-${setIndex}`}
-                        type="number"
-                        placeholder="Reps"
-                        className="w-20 bg-gray-800"
-                        onChange={(e) => {
-                          const reps = e.target.value;
-                          setSessionLog((prevLog) => {
-                            const newLog = JSON.parse(JSON.stringify(prevLog));
-                            newLog[currentExerciseIndex][setIndex].reps = reps;
-                            return newLog;
-                          });
-                        }}
-                      />
-                      <button
-                        onClick={() =>
-                          handleSetComplete(currentExerciseIndex, setIndex)
-                        }
-                        className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-lg">
-                      {sessionLog[currentExerciseIndex]?.[setIndex]?.reps} reps
-                    </p>
-                  )}
-                </div>
-                {isTimerActive && lastCompletedSetIndex === setIndex && (
-                  <div className="flex justify-center my-2">
-                    <Timer
-                      duration={userProfile.restTimer || 120}
-                      onComplete={handleTimerComplete}
+            {/* Sets rendered in sequence to fill the grid */}
+            {sets.map((set, setIndex) => {
+              const partnerSet = isPartnerView
+                ? userProfile.partner.workoutPlan[workoutDay.dayIdentifier]
+                    ?.exercises[currentExerciseIndex]?.sets[setIndex]
+                : null;
+              return (
+                <React.Fragment key={setIndex}>
+                  <SetCard
+                    set={set}
+                    setIndex={setIndex}
+                    exIndex={currentExerciseIndex}
+                    userType="user"
+                    sessionLog={sessionLog}
+                    handleSetComplete={handleSetComplete}
+                    availablePlates={availablePlates}
+                    setSessionLog={setSessionLog}
+                  />
+                  {isPartnerView && (
+                    <SetCard
+                      set={partnerSet || set}
+                      setIndex={setIndex}
+                      exIndex={currentExerciseIndex}
+                      userType="partner"
+                      sessionLog={sessionLog}
+                      handleSetComplete={handleSetComplete}
+                      availablePlates={availablePlates}
+                      setSessionLog={setSessionLog}
                     />
-                  </div>
-                )}
-              </React.Fragment>
-            ))}
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-700">
@@ -344,6 +343,75 @@ export const WorkoutPlanner = ({
           </button>
         </div>
       </div>
+    </div>
+  );
+};
+
+const SetCard = ({
+  set,
+  setIndex,
+  exIndex,
+  userType,
+  sessionLog,
+  handleSetComplete,
+  availablePlates,
+  setSessionLog,
+}) => {
+  const log = sessionLog[userType]?.[exIndex]?.[setIndex];
+  if (!log) return null;
+
+  return (
+    <div
+      className={`flex items-center justify-between p-4 rounded-lg ${
+        log.completed ? "bg-green-800/50" : "bg-gray-700"
+      }`}
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+            log.completed ? "bg-green-500" : "bg-gray-600"
+          }`}
+        >
+          {setIndex + 1}
+        </div>
+        <div>
+          <p className="font-semibold">
+            Target: {set.reps} reps @ {set.weight} lbs
+          </p>
+          {set.weight > 0 && (
+            <MiniPlateDisplay
+              targetWeight={set.weight}
+              availablePlates={availablePlates}
+            />
+          )}
+        </div>
+      </div>
+      {!log.completed ? (
+        <div className="flex items-center gap-2">
+          <FormField
+            id={`reps-${userType}-${setIndex}`}
+            type="number"
+            placeholder="Reps"
+            className="w-20 bg-gray-800"
+            onChange={(e) => {
+              const reps = e.target.value;
+              setSessionLog((prevLog) => {
+                const newLog = JSON.parse(JSON.stringify(prevLog));
+                newLog[userType][exIndex][setIndex].reps = reps;
+                return newLog;
+              });
+            }}
+          />
+          <button
+            onClick={() => handleSetComplete(exIndex, setIndex, userType)}
+            className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
+          >
+            Save
+          </button>
+        </div>
+      ) : (
+        <p className="text-lg">{log.reps} reps</p>
+      )}
     </div>
   );
 };

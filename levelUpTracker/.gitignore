@@ -28,3 +28,5 @@ node_modules/
 *.tgz
 .env
 .dataconnect
+partner_workout.md
+partner_workout

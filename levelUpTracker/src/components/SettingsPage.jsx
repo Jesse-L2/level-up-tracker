@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ALL_EQUIPMENT } from "../lib/constants";
+import { addPartner, removePartner, updatePartnerName } from "../firebase";
 import { FormField } from "./ui/FormField";
 import { Save, Plus, Trash2, Loader2 } from "lucide-react";
 
@@ -13,6 +14,8 @@ export const SettingsPage = ({
   const [newWeight, setNewWeight] = useState({ value: "", quantity: 2 });
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  const [partnerName, setPartnerName] = useState("");
+  const [partnerMessage, setPartnerMessage] = useState(null);
 
   useEffect(() => {
     if (userProfile) {
@@ -20,6 +23,13 @@ export const SettingsPage = ({
         ...userProfile,
         restTimer: userProfile.restTimer || 120, // Set default rest timer
       });
+      if (userProfile.partner) {
+        setPartnerName(userProfile.partner.name);
+        setPartnerMessage(null);
+      } else {
+        setPartnerName("");
+        setPartnerMessage(null);
+      }
     }
   }, [userProfile]);
 
@@ -44,6 +54,38 @@ export const SettingsPage = ({
       fetchPlateData();
     }
   }, [profile]);
+
+  const handleAddPartner = async () => {
+    if (partnerName.trim() === "") {
+      setPartnerMessage("Please enter a partner name.");
+      return;
+    }
+    try {
+      if (userProfile.partner) {
+        await updatePartnerName(userProfile.uid, partnerName);
+        setPartnerMessage("Partner name updated successfully.");
+      } else {
+        await addPartner(userProfile.uid, partnerName);
+        setPartnerMessage("Partner added successfully.");
+      }
+    } catch (error) {
+      console.error("Failed to add partner:", error);
+      setPartnerMessage("Failed to add partner. Please try again.");
+    }
+  };
+
+  const handleRemovePartner = async () => {
+    if (window.confirm("Are you sure you want to remove your partner? This action cannot be undone.")) {
+      try {
+        await removePartner(userProfile.uid);
+        setPartnerName("");
+        setPartnerMessage("Partner removed successfully.");
+      } catch (error) {
+        console.error("Failed to remove partner:", error);
+        setPartnerMessage("Failed to remove partner. Please try again.");
+      }
+    }
+  };
 
 
   const handleEquipmentChange = useCallback((equipmentId) => {
@@ -160,6 +202,43 @@ export const SettingsPage = ({
           >
             Back to Dashboard
           </button>
+        </div>
+
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+          <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
+            Partner Settings
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Partner's Name"
+              id="partnerName"
+              type="text"
+              value={partnerName}
+              onChange={(e) => {
+                setPartnerName(e.target.value);
+                setPartnerMessage(null);
+              }}
+            />
+            <div className="flex items-end gap-4">
+              <button
+                onClick={handleAddPartner}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Plus size={20} className="text-white" /> {userProfile.partner ? "Update" : "Add"} Partner
+              </button>
+              {userProfile.partner && (
+                <button
+                  onClick={handleRemovePartner}
+                  className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Trash2 size={20} className="text-white" /> Remove Partner
+                </button>
+              )}
+            </div>
+          </div>
+          {partnerMessage && (
+            <p className="text-red-400 text-center mt-4">{partnerMessage}</p>
+          )}
         </div>
 
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
