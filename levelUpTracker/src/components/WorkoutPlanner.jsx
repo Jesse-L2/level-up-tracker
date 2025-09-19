@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { savePartnerWorkout } from "../firebase";
 import { FormField } from "./ui/FormField";
-import { Edit, Save, X } from "lucide-react";
+import { Edit, Save, X, Plus, Minus } from "lucide-react";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 import { Timer } from "./ui/Timer";
 
@@ -52,18 +52,33 @@ export const WorkoutPlanner = ({
 
   const handleStartEditOneRepMax = () => {
     setIsEditing(true);
-    setEditValue({ oneRepMax: currentExercise.oneRepMax });
+    setEditValue({ oneRepMax: String(currentExercise.oneRepMax || '') });
   };
 
   const handleSaveOneRepMax = () => {
     const newOneRepMax = parseFloat(editValue.oneRepMax);
     if (newOneRepMax > 0) {
       onUpdateLibrary(currentExercise.name, newOneRepMax);
+
+      const updatedExercise = { ...currentExercise };
+      updatedExercise.oneRepMax = newOneRepMax;
+      updatedExercise.sets = updatedExercise.sets.map(set => ({
+          ...set,
+          weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5
+      }));
+
+      onUpdateExercise(currentExerciseIndex, updatedExercise);
+
       setIsEditing(false);
-      currentExercise.oneRepMax = newOneRepMax;
     } else {
       setMessage("Please enter a valid 1 Rep Max.");
     }
+  };
+
+  const handleOneRepMaxChange = (delta) => {
+    const currentValue = parseFloat(editValue.oneRepMax) || 0;
+    const newValue = Math.max(0, currentValue + delta);
+    setEditValue({ oneRepMax: newValue.toString() });
   };
 
   const handleFinishWorkout = useCallback(() => {
@@ -197,6 +212,9 @@ export const WorkoutPlanner = ({
             >
               {currentExercise.name}
             </h2>
+            <p className="text-2xl font-bold text-white mb-2">
+                {currentExercise.oneRepMax} lbs
+            </p>
             <p className="text-gray-400 mb-4">
               Exercise {currentExerciseIndex + 1} of{" "}
               {workoutDay.exercises.length}
@@ -220,40 +238,29 @@ export const WorkoutPlanner = ({
 
           <div className="text-center mb-4">
             {isEditing ? (
-              <div className="flex flex-col items-center justify-center gap-2 mt-2">
-                <p className="text-gray-400">
-                  Old 1RM: {currentExercise.oneRepMax} lbs
-                </p>
+              <div className="flex flex-col items-center gap-2 p-4 bg-gray-700 rounded-lg">
+                <h4 className="font-semibold">Update 1 Rep Max</h4>
                 <div className="flex items-center gap-2">
-                  <FormField
-                    id="newOneRepMax"
-                    type="number"
-                    value={editValue.oneRepMax}
-                    onChange={(e) =>
-                      setEditValue({ ...editValue, oneRepMax: e.target.value })
-                    }
-                    className="w-24"
-                  />
-                  <button
-                    onClick={handleSaveOneRepMax}
-                    className="bg-green-600 hover:bg-green-500 text-white font-bold py-1 px-3 rounded-lg"
-                  >
-                    <Save size={18} />
-                  </button>
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-lg"
-                  >
-                    <X size={18} />
-                  </button>
+                    <input 
+                        type="number" 
+                        value={editValue.oneRepMax}
+                        onChange={(e) => setEditValue({ oneRepMax: e.target.value })}
+                        className="w-24 text-center bg-gray-800 border border-gray-600 rounded-md p-2"
+                    />
+                    <button onClick={() => handleOneRepMaxChange(-2.5)} className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"><Minus size={16} /></button>
+                    <button onClick={() => handleOneRepMaxChange(2.5)} className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"><Plus size={16} /></button>
+                </div>
+                <div className="flex gap-2 mt-2">
+                    <button onClick={handleSaveOneRepMax} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><Save size={18} /> Save</button>
+                    <button onClick={() => setIsEditing(false)} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><X size={18} /> Cancel</button>
                 </div>
               </div>
             ) : (
               <button
                 onClick={handleStartEditOneRepMax}
-                className="text-blue-400 hover:text-blue-300 mt-1"
+                className="text-blue-400 hover:text-blue-300 mt-1 flex items-center gap-1 mx-auto"
               >
-                Edit 1RM
+                <Edit size={16} /> Edit 1RM
               </button>
             )}
           </div>

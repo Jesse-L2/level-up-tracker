@@ -4,12 +4,7 @@ import { addPartner, removePartner, updatePartnerName } from "../firebase";
 import { FormField } from "./ui/FormField";
 import { Save, Plus, Trash2, Loader2 } from "lucide-react";
 
-export const SettingsPage = ({
-  userProfile,
-  onSave,
-  onBack,
-  updateUserProfile,
-}) => {
+export const SettingsPage = ({ userProfile, onSave, onBack }) => {
   const [profile, setProfile] = useState(userProfile);
   const [newWeight, setNewWeight] = useState({ value: "", quantity: 2 });
   const [isSaving, setIsSaving] = useState(false);
@@ -160,7 +155,7 @@ export const SettingsPage = ({
   const handleResetProgress = async () => {
     if (window.confirm("Are you sure you want to reset all your progress? This action cannot be undone.")) {
       try {
-        await updateUserProfile({ workoutHistory: [] });
+        await onSave({ ...profile, workoutHistory: [] });
         setMessage("Your progress has been successfully reset.");
       } catch (error) {
         console.error("Failed to reset progress:", error);
@@ -173,8 +168,8 @@ export const SettingsPage = ({
     setIsSaving(true);
     setMessage(null);
     try {
-      await updateUserProfile(profile);
-      onSave();
+      await onSave(profile);
+      onBack();
     } catch (error) {
       console.error("Failed to save profile:", error);
       setMessage("Failed to save settings. Please try again.");

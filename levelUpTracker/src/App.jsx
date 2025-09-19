@@ -230,12 +230,8 @@ export default function App() {
         return (
           <SettingsPage
             userProfile={userProfile}
-            onSave={() => {
-              handleUpdateProfile(userProfile);
-              setCurrentPage("dashboard");
-            }}
+            onSave={handleUpdateProfile}
             onBack={() => setCurrentPage("dashboard")}
-            updateUserProfile={handleUpdateProfile}
           />
         );
       case "create_workout":
