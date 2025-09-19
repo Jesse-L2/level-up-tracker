@@ -19,6 +19,8 @@ export const WorkoutPlanner = ({
   const [suggested1RM, setSuggested1RM] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState({ oneRepMax: "" });
+  const [isEditingPartner, setIsEditingPartner] = useState(false);
+  const [partnerEditValue, setPartnerEditValue] = useState({ oneRepMax: "" });
   const [message, setMessage] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
@@ -52,7 +54,7 @@ export const WorkoutPlanner = ({
 
   const handleStartEditOneRepMax = () => {
     setIsEditing(true);
-    setEditValue({ oneRepMax: String(currentExercise.oneRepMax || '') });
+    setEditValue({ oneRepMax: String(currentExercise.oneRepMax || "") });
   };
 
   const handleSaveOneRepMax = () => {
@@ -62,9 +64,9 @@ export const WorkoutPlanner = ({
 
       const updatedExercise = { ...currentExercise };
       updatedExercise.oneRepMax = newOneRepMax;
-      updatedExercise.sets = updatedExercise.sets.map(set => ({
-          ...set,
-          weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5
+      updatedExercise.sets = updatedExercise.sets.map((set) => ({
+        ...set,
+        weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
       }));
 
       onUpdateExercise(currentExerciseIndex, updatedExercise);
@@ -79,6 +81,27 @@ export const WorkoutPlanner = ({
     const currentValue = parseFloat(editValue.oneRepMax) || 0;
     const newValue = Math.max(0, currentValue + delta);
     setEditValue({ oneRepMax: newValue.toString() });
+  };
+
+  const handleStartEditPartnerOneRepMax = () => {
+    setIsEditingPartner(true);
+    setPartnerEditValue({
+      oneRepMax: String(userProfile.partner.maxes[currentExercise.id] || ""),
+    });
+  };
+
+  const handlePartnerOneRepMaxChange = (delta) => {
+    const currentValue = parseFloat(partnerEditValue.oneRepMax) || 0;
+    const newValue = Math.max(0, currentValue + delta);
+    setPartnerEditValue({ oneRepMax: newValue.toString() });
+  };
+
+  const handleSavePartnerOneRepMax = () => {
+    const newOneRepMax = parseFloat(partnerEditValue.oneRepMax);
+    if (newOneRepMax > 0) {
+      onUpdatePartnerWorkoutData(currentExercise.id, newOneRepMax);
+      setIsEditingPartner(false);
+    }
   };
 
   const handleFinishWorkout = useCallback(() => {
@@ -213,8 +236,14 @@ export const WorkoutPlanner = ({
               {currentExercise.name}
             </h2>
             <p className="text-2xl font-bold text-white mb-2">
-                {currentExercise.oneRepMax} lbs
+              {currentExercise.oneRepMax} lbs
             </p>
+            {isPartnerView && userProfile.partner && (
+              <p className="text-xl font-bold text-white mb-2">
+                {userProfile.partner.name}'s 1RM:{" "}
+                {userProfile.partner.maxes[currentExercise.id] || "N/A"} lbs
+              </p>
+            )}
             <p className="text-gray-400 mb-4">
               Exercise {currentExerciseIndex + 1} of{" "}
               {workoutDay.exercises.length}
@@ -241,18 +270,40 @@ export const WorkoutPlanner = ({
               <div className="flex flex-col items-center gap-2 p-4 bg-gray-700 rounded-lg">
                 <h4 className="font-semibold">Update 1 Rep Max</h4>
                 <div className="flex items-center gap-2">
-                    <input 
-                        type="number" 
-                        value={editValue.oneRepMax}
-                        onChange={(e) => setEditValue({ oneRepMax: e.target.value })}
-                        className="w-24 text-center bg-gray-800 border border-gray-600 rounded-md p-2"
-                    />
-                    <button onClick={() => handleOneRepMaxChange(-2.5)} className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"><Minus size={16} /></button>
-                    <button onClick={() => handleOneRepMaxChange(2.5)} className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"><Plus size={16} /></button>
+                  <input
+                    type="number"
+                    value={editValue.oneRepMax}
+                    onChange={(e) =>
+                      setEditValue({ oneRepMax: e.target.value })
+                    }
+                    className="w-24 text-center bg-gray-800 border border-gray-600 rounded-md p-2"
+                  />
+                  <button
+                    onClick={() => handleOneRepMaxChange(-2.5)}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleOneRepMaxChange(2.5)}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"
+                  >
+                    <Plus size={16} />
+                  </button>
                 </div>
                 <div className="flex gap-2 mt-2">
-                    <button onClick={handleSaveOneRepMax} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><Save size={18} /> Save</button>
-                    <button onClick={() => setIsEditing(false)} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><X size={18} /> Cancel</button>
+                  <button
+                    onClick={handleSaveOneRepMax}
+                    className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+                  >
+                    <Save size={18} /> Save
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+                  >
+                    <X size={18} /> Cancel
+                  </button>
                 </div>
               </div>
             ) : (
@@ -262,6 +313,59 @@ export const WorkoutPlanner = ({
               >
                 <Edit size={16} /> Edit 1RM
               </button>
+            )}
+
+            {isPartnerView && isEditingPartner ? (
+              <div className="flex flex-col items-center gap-2 p-4 bg-gray-700 rounded-lg mt-4">
+                <h4 className="font-semibold">
+                  Update {userProfile.partner.name}'s 1 Rep Max
+                </h4>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={partnerEditValue.oneRepMax}
+                    onChange={(e) =>
+                      setPartnerEditValue({ oneRepMax: e.target.value })
+                    }
+                    className="w-24 text-center bg-gray-800 border border-gray-600 rounded-md p-2"
+                  />
+                  <button
+                    onClick={() => handlePartnerOneRepMaxChange(-2.5)}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <button
+                    onClick={() => handlePartnerOneRepMaxChange(2.5)}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={handleSavePartnerOneRepMax}
+                    className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+                  >
+                    <Save size={18} /> Save
+                  </button>
+                  <button
+                    onClick={() => setIsEditingPartner(false)}
+                    className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+                  >
+                    <X size={18} /> Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              isPartnerView && (
+                <button
+                  onClick={handleStartEditPartnerOneRepMax}
+                  className="text-blue-400 hover:text-blue-300 mt-1 flex items-center gap-1 mx-auto"
+                >
+                  <Edit size={16} /> Edit {userProfile.partner.name}'s 1RM
+                </button>
+              )
             )}
           </div>
           <div

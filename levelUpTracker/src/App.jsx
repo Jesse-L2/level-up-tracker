@@ -190,6 +190,33 @@ export default function App() {
     [userProfile, workoutData, handleUpdateProfile]
   );
 
+  const handleUpdatePartnerWorkoutData = (exerciseId, newOneRepMax) => {
+    if (!userProfile || !userProfile.partner) return;
+
+    const newPartnerMaxes = {
+        ...userProfile.partner.maxes,
+        [exerciseId]: newOneRepMax,
+    };
+
+    const newPartnerWorkoutPlan = JSON.parse(JSON.stringify(userProfile.partner.workoutPlan));
+    for (const day in newPartnerWorkoutPlan) {
+        const dayExercises = newPartnerWorkoutPlan[day].exercises;
+        const exerciseIndex = dayExercises.findIndex(ex => ex.id === exerciseId);
+        if (exerciseIndex > -1) {
+            const exercise = dayExercises[exerciseIndex];
+            exercise.sets = exercise.sets.map(set => ({
+                ...set,
+                weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
+            }));
+        }
+    }
+
+    handleUpdateProfile({
+        "partner.maxes": newPartnerMaxes,
+        "partner.workoutPlan": newPartnerWorkoutPlan,
+    });
+  };
+
   const renderPage = () => {
     if (authLoading || isLoading) {
       return (
@@ -256,10 +283,12 @@ export default function App() {
             workoutDay={workoutData}
             onFinish={handleFinishWorkout}
             onUpdateExercise={handleUpdateExercise}
+            onUpdatePartnerWorkoutData={handleUpdatePartnerWorkoutData}
             onUpdateLibrary={handleUpdateLibrary}
             availablePlates={userProfile.availablePlates}
             onNavigate={handleNavigate}
             userProfile={userProfile}
+            partner={userProfile.partner}
           />
         );
       case "calculator":
