@@ -15,24 +15,15 @@ import { Signup } from "./components/Signup";
 import { Loader2 } from "lucide-react";
 import { EXERCISE_DATABASE } from "./lib/constants";
 
-export default function App() {
+import { WorkoutProvider, useWorkout } from "./context/WorkoutContext";
+
+function AppContent() {
   const [currentPage, setCurrentPage] = useState("dashboard");
-  const [workoutData, setWorkoutData] = useState(null);
   const [programTemplateId, setProgramTemplateId] = useState(null);
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [isLoginView, setIsLoginView] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   const { userProfile, isLoading, error, updateUserProfileInFirestore } =
-    useFirebaseUser(user ? user.uid : null);
+    useFirebaseUser(auth.currentUser ? auth.currentUser.uid : null);
+  const { workoutPlan, recalculateWorkout } = useWorkout();
+  const [workoutData, setWorkoutData] = useState(null);
 
   const handleNavigate = useCallback((page, data = null, id = null) => {
     if (page === "planner") {
@@ -86,6 +77,7 @@ export default function App() {
           });
 
           exercises.push({
+            id: exerciseName,
             name: exerciseName,
             type: exerciseType,
             oneRepMax: oneRepMax,
@@ -124,42 +116,15 @@ export default function App() {
 
       const newLibrary = userProfile.exerciseLibrary.map((ex) => {
         if (ex.name === exerciseName) {
-          const oldOneRepMax = ex.oneRepMax;
-          const lastUpdated = ex.lastUpdated
-            ? new Date(ex.lastUpdated)
-            : new Date(0); // Default to epoch if not set
-          const now = new Date();
-          const daysSinceLastUpdate = Math.floor(
-            (now - lastUpdated) / (1000 * 60 * 60 * 24)
-          );
-          const weeksSinceLastUpdate = daysSinceLastUpdate / 7;
-
-          let cappedNewOneRepMax = newOneRepMax;
-
-          // Only apply cap if 1RM is increasing and it's a weighted exercise
-          if (newOneRepMax > oldOneRepMax && ex.type === "weighted") {
-            const maxIncreaseAllowed = weeksSinceLastUpdate * 5; // 5 lbs per week
-            const actualIncrease = newOneRepMax - oldOneRepMax;
-
-            if (actualIncrease > maxIncreaseAllowed) {
-              cappedNewOneRepMax = oldOneRepMax + maxIncreaseAllowed;
-              console.warn(
-                `1RM increase for ${exerciseName} capped to ${cappedNewOneRepMax} (max ${maxIncreaseAllowed} lbs increase allowed).`
-              );
-            }
-          }
-
-          return {
-            ...ex,
-            oneRepMax: cappedNewOneRepMax,
-            lastUpdated: now.toISOString(),
-          };
+          return { ...ex, oneRepMax: newOneRepMax };
         }
         return ex;
       });
+
       handleUpdateProfile({ exerciseLibrary: newLibrary });
+      recalculateWorkout();
     },
-    [userProfile, handleUpdateProfile]
+    [userProfile, handleUpdateProfile, recalculateWorkout]
   );
 
   const handleFinishWorkout = useCallback(
@@ -175,47 +140,146 @@ export default function App() {
     [userProfile, handleUpdateProfile]
   );
 
-  const handleUpdateExercise = useCallback(
-    (exerciseIndex, updatedExercise) => {
-      if (!userProfile || !workoutData || !workoutData.dayIdentifier) return;
+  const handleUpdatePartnerWorkoutData = useCallback(
+    (exerciseId, newOneRepMax) => {
+      if (!userProfile || !userProfile.partner) return;
 
-      const newPlan = JSON.parse(JSON.stringify(userProfile.workoutPlan));
-      const dayToUpdate = workoutData.dayIdentifier;
-
-      if (newPlan[dayToUpdate]) {
-        newPlan[dayToUpdate].exercises[exerciseIndex] = updatedExercise;
-        handleUpdateProfile({ workoutPlan: newPlan });
-      }
-    },
-    [userProfile, workoutData, handleUpdateProfile]
-  );
-
-  const handleUpdatePartnerWorkoutData = (exerciseId, newOneRepMax) => {
-    if (!userProfile || !userProfile.partner) return;
-
-    const newPartnerMaxes = {
+      const newPartnerMaxes = {
         ...userProfile.partner.maxes,
         [exerciseId]: newOneRepMax,
-    };
+      };
 
-    const newPartnerWorkoutPlan = JSON.parse(JSON.stringify(userProfile.partner.workoutPlan));
-    for (const day in newPartnerWorkoutPlan) {
+      const newPartnerWorkoutPlan = JSON.parse(
+        JSON.stringify(userProfile.partner.workoutPlan)
+      );
+      for (const day in newPartnerWorkoutPlan) {
         const dayExercises = newPartnerWorkoutPlan[day].exercises;
-        const exerciseIndex = dayExercises.findIndex(ex => ex.id === exerciseId);
+        const exerciseIndex = dayExercises.findIndex(
+          (ex) => ex.id === exerciseId
+        );
         if (exerciseIndex > -1) {
-            const exercise = dayExercises[exerciseIndex];
-            exercise.sets = exercise.sets.map(set => ({
-                ...set,
-                weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
-            }));
+          const exercise = dayExercises[exerciseIndex];
+          exercise.sets = exercise.sets.map((set) => ({
+            ...set,
+            weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
+          }));
         }
-    }
+      }
 
-    handleUpdateProfile({
+      handleUpdateProfile({
         "partner.maxes": newPartnerMaxes,
         "partner.workoutPlan": newPartnerWorkoutPlan,
+      });
+    },
+    [userProfile, handleUpdateProfile]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen text-white">
+        <Loader2 size={64} className="animate-spin text-blue-500" />
+        <p className="mt-4 text-xl">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-400">
+        <p>Error: {error}</p>
+      </div>
+    );
+  }
+
+  switch (currentPage) {
+    case "settings":
+      return (
+        <SettingsPage
+          userProfile={userProfile}
+          onSave={handleUpdateProfile}
+          onBack={() => setCurrentPage("dashboard")}
+        />
+      );
+    case "create_workout":
+      return (
+        <CreateWorkout
+          userProfile={userProfile}
+          onSave={handleSaveCustomWorkout}
+          onBack={() => setCurrentPage("dashboard")}
+        />
+      );
+    case "exercise_library":
+      return (
+        <ExerciseLibrary
+          userProfile={userProfile}
+          onSave={handleUpdateProfile}
+          onBack={() => setCurrentPage("dashboard")}
+        />
+      );
+    case "planner":
+      return (
+        <WorkoutPlanner
+          workoutDay={workoutData}
+          onFinish={handleFinishWorkout}
+          onUpdatePartnerWorkoutData={handleUpdatePartnerWorkoutData}
+          onUpdateLibrary={handleUpdateLibrary}
+          availablePlates={userProfile.availablePlates}
+          onNavigate={handleNavigate}
+          userProfile={userProfile}
+          partner={userProfile.partner}
+        />
+      );
+    case "calculator":
+      return (
+        <PlateCalculator
+          availablePlates={userProfile.availablePlates}
+          onBack={() => setCurrentPage("dashboard")}
+        />
+      );
+    case "program_templates":
+      return <ProgramTemplates onNavigate={handleNavigate} />;
+    case "program_template_details":
+      return (
+        <ProgramTemplateDetails
+          id={programTemplateId}
+          onBack={() => setCurrentPage("program_templates")}
+          onNavigate={handleNavigate}
+          onSelectProgram={handleSelectProgramTemplate}
+        />
+      );
+    case "dashboard":
+    default:
+      return (
+        <Dashboard
+          userProfile={{ ...userProfile, workoutPlan }}
+          onNavigate={handleNavigate}
+        />
+      );
+  }
+}
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isLoginView, setIsLoginView] = useState(true);
+  const { userProfile, isLoading, error, updateUserProfileInFirestore } =
+    useFirebaseUser(user ? user.uid : null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setAuthLoading(false);
     });
-  };
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleUpdateProfile = useCallback(
+    async (updatedData) => {
+      await updateUserProfileInFirestore(updatedData);
+    },
+    [updateUserProfileInFirestore]
+  );
 
   const renderPage = () => {
     if (authLoading || isLoading) {
@@ -252,69 +316,14 @@ export default function App() {
       );
     }
 
-    switch (currentPage) {
-      case "settings":
-        return (
-          <SettingsPage
-            userProfile={userProfile}
-            onSave={handleUpdateProfile}
-            onBack={() => setCurrentPage("dashboard")}
-          />
-        );
-      case "create_workout":
-        return (
-          <CreateWorkout
-            userProfile={userProfile}
-            onSave={handleSaveCustomWorkout}
-            onBack={() => setCurrentPage("dashboard")}
-          />
-        );
-      case "exercise_library":
-        return (
-          <ExerciseLibrary
-            userProfile={userProfile}
-            onSave={handleUpdateProfile}
-            onBack={() => setCurrentPage("dashboard")}
-          />
-        );
-      case "planner":
-        return (
-          <WorkoutPlanner
-            workoutDay={workoutData}
-            onFinish={handleFinishWorkout}
-            onUpdateExercise={handleUpdateExercise}
-            onUpdatePartnerWorkoutData={handleUpdatePartnerWorkoutData}
-            onUpdateLibrary={handleUpdateLibrary}
-            availablePlates={userProfile.availablePlates}
-            onNavigate={handleNavigate}
-            userProfile={userProfile}
-            partner={userProfile.partner}
-          />
-        );
-      case "calculator":
-        return (
-          <PlateCalculator
-            availablePlates={userProfile.availablePlates}
-            onBack={() => setCurrentPage("dashboard")}
-          />
-        );
-      case "program_templates":
-        return <ProgramTemplates onNavigate={handleNavigate} />;
-      case "program_template_details":
-        return (
-          <ProgramTemplateDetails
-            id={programTemplateId}
-            onBack={() => setCurrentPage("program_templates")}
-            onNavigate={handleNavigate}
-            onSelectProgram={handleSelectProgramTemplate}
-          />
-        );
-      case "dashboard":
-      default:
-        return (
-          <Dashboard userProfile={userProfile} onNavigate={handleNavigate} />
-        );
-    }
+    return (
+      <WorkoutProvider
+        userProfile={userProfile}
+        handleUpdateProfile={handleUpdateProfile}
+      >
+        <AppContent />
+      </WorkoutProvider>
+    );
   };
 
   return (

@@ -8,14 +8,15 @@ import { Timer } from "./ui/Timer";
 export const WorkoutPlanner = ({
   workoutDay,
   onFinish,
-  onUpdateExercise,
   onUpdateLibrary,
   availablePlates,
   onNavigate,
   userProfile,
+  onUpdatePartnerWorkoutData,
 }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [sessionLog, setSessionLog] = useState({ user: {}, partner: {} });
+  const [isRecalculating, setIsRecalculating] = useState(false);
   const [suggested1RM, setSuggested1RM] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState({ oneRepMax: "" });
@@ -33,6 +34,8 @@ export const WorkoutPlanner = ({
   const handleToggle = () => {
     setIsPartnerView((prev) => userProfile.partner && !prev);
   };
+
+
 
   useEffect(() => {
     const initialLog = { user: {}, partner: {} };
@@ -61,17 +64,8 @@ export const WorkoutPlanner = ({
     const newOneRepMax = parseFloat(editValue.oneRepMax);
     if (newOneRepMax > 0) {
       onUpdateLibrary(currentExercise.name, newOneRepMax);
-
-      const updatedExercise = { ...currentExercise };
-      updatedExercise.oneRepMax = newOneRepMax;
-      updatedExercise.sets = updatedExercise.sets.map((set) => ({
-        ...set,
-        weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
-      }));
-
-      onUpdateExercise(currentExerciseIndex, updatedExercise);
-
       setIsEditing(false);
+
     } else {
       setMessage("Please enter a valid 1 Rep Max.");
     }

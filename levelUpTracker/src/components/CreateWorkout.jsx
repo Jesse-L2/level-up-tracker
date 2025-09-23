@@ -90,7 +90,7 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
     }
 
     const newExercise = {
-      id: Date.now(),
+      id: selectedExercise.name,
       name: selectedExercise.name,
       type: selectedExercise.type,
       oneRepMax: selectedExercise.oneRepMax, // Keep for reference
@@ -115,7 +115,7 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
     const workoutToSave = {
       day: dayOfWeek,
       name: workoutName,
-      exercises: exercises.map(({ id, ...rest }) => rest),
+      exercises: exercises,
       isCustom: true,
     };
     onSave(workoutToSave);
