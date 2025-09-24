@@ -237,18 +237,19 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
                       <FormField
                         label=""
                         id={`reps-${index}`}
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         value={set.reps}
                         onChange={(e) =>
                           handleSetChange(index, "reps", e.target.value)
                         }
                         className="w-20"
                       />
-                      <span className="text-gray-400">reps @</span>
                       <FormField
                         label=""
                         id={`perc-${index}`}
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         step="0.01"
                         value={set.percentage}
                         onChange={(e) =>

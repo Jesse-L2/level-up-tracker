@@ -35,8 +35,6 @@ export const WorkoutPlanner = ({
     setIsPartnerView((prev) => userProfile.partner && !prev);
   };
 
-
-
   useEffect(() => {
     const initialLog = { user: {}, partner: {} };
     workoutDay.exercises.forEach((ex, exIndex) => {
@@ -65,7 +63,6 @@ export const WorkoutPlanner = ({
     if (newOneRepMax > 0) {
       onUpdateLibrary(currentExercise.name, newOneRepMax);
       setIsEditing(false);
-
     } else {
       setMessage("Please enter a valid 1 Rep Max.");
     }
@@ -497,7 +494,7 @@ const SetCard = ({
             id={`reps-${userType}-${setIndex}`}
             type="number"
             placeholder="Reps"
-            className="w-20 bg-gray-800"
+            className="w-16 bg-gray-800"
             onChange={(e) => {
               const reps = e.target.value;
               setSessionLog((prevLog) => {

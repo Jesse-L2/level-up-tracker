@@ -152,6 +152,19 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
     }));
   }, []);
 
+  const handlePartnerOneRepMaxChange = useCallback((exerciseId, newOneRepMax) => {
+    setProfile((prevProfile) => ({
+      ...prevProfile,
+      partner: {
+        ...prevProfile.partner,
+        maxes: {
+          ...prevProfile.partner.maxes,
+          [exerciseId]: newOneRepMax,
+        },
+      },
+    }));
+  }, []);
+
   const handleResetProgress = async () => {
     if (window.confirm("Are you sure you want to reset all your progress? This action cannot be undone.")) {
       try {
@@ -315,6 +328,26 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
             ))}
           </div>
         </div>
+
+        {profile.partner && (
+          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+            <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
+              {profile.partner.name}'s Max Lifts (1RM)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {profile.exerciseLibrary.map((ex) => (
+                <FormField
+                  key={ex.id}
+                  label={ex.name}
+                  id={`partner-1rm-${ex.id}`}
+                  type="number"
+                  value={profile.partner.maxes?.[ex.id] || ''}
+                  onChange={(e) => handlePartnerOneRepMaxChange(ex.id, parseFloat(e.target.value) || 0)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
