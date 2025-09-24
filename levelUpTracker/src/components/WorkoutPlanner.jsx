@@ -136,11 +136,11 @@ export const WorkoutPlanner = ({
     (feedback) => {
       const originalMax = currentExercise.oneRepMax;
       if (feedback === "easy") {
-        currentExercise.oneRepMax =
-          Math.round((originalMax * 1.025) / 2.5) * 2.5;
+        currentExercise.oneRepMax = originalMax + 5;
+      } else if (feedback === "just_right") {
+        currentExercise.oneRepMax = originalMax + 2.5;
       } else if (feedback === "hard") {
-        currentExercise.oneRepMax =
-          Math.round((originalMax * 0.975) / 2.5) * 2.5;
+        currentExercise.oneRepMax = originalMax - 5;
       }
 
       if (currentExerciseIndex < workoutDay.exercises.length - 1) {
