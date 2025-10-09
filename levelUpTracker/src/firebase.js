@@ -5,7 +5,13 @@ import {
   setPersistence,
   indexedDBLocalPersistence,
 } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  doc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { getDatabase, connectDatabaseEmulator } from "firebase/database";
@@ -40,26 +46,12 @@ if (typeof window !== "undefined") {
   setPersistence(auth, indexedDBLocalPersistence);
 }
 
-/*
-// --- CONNECT TO EMULATORS ---
-// This block is commented out to connect to the live Firebase services.
-// Uncomment this block to connect to the local emulators.
-if (typeof window !== "undefined") {
-  if (window.location.hostname === "localhost") {
-    console.log("Connecting to Firebase Emulators...");
-    connectAuthEmulator(auth, "http://localhost:9099");
-    connectFirestoreEmulator(db, "localhost", 8080);
-    connectStorageEmulator(storage, "localhost", 9199);
-    connectFunctionsEmulator(functions, "localhost", 5001);
-    connectDatabaseEmulator(rtdb, "localhost", 9000);
-  }
-}
-*/
-
-// --- Partner Functions ---
-
 export const addPartner = async (userId, partnerName) => {
-  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  const userDocRef = doc(
+    db,
+    `artifacts/${appId}/users/${userId}/profile`,
+    "userProfile"
+  );
   await updateDoc(userDocRef, {
     partner: {
       name: partnerName,
@@ -70,21 +62,33 @@ export const addPartner = async (userId, partnerName) => {
 };
 
 export const updatePartnerName = async (userId, newPartnerName) => {
-  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  const userDocRef = doc(
+    db,
+    `artifacts/${appId}/users/${userId}/profile`,
+    "userProfile"
+  );
   await updateDoc(userDocRef, {
     "partner.name": newPartnerName,
   });
 };
 
 export const removePartner = async (userId) => {
-  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  const userDocRef = doc(
+    db,
+    `artifacts/${appId}/users/${userId}/profile`,
+    "userProfile"
+  );
   await updateDoc(userDocRef, {
     partner: null,
   });
 };
 
 export const savePartnerWorkout = async (userId, workout) => {
-  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile");
+  const userDocRef = doc(
+    db,
+    `artifacts/${appId}/users/${userId}/profile`,
+    "userProfile"
+  );
   await updateDoc(userDocRef, {
     "partner.workoutHistory": arrayUnion(workout),
   });

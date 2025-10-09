@@ -4,6 +4,7 @@ import { FormField } from "./ui/FormField";
 import { Edit, Save, X, Plus, Minus } from "lucide-react";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 import { Timer } from "./ui/Timer";
+import { useWorkout } from "../context/WorkoutContext";
 
 export const WorkoutPlanner = ({
   workoutDay,
@@ -14,6 +15,13 @@ export const WorkoutPlanner = ({
   userProfile,
   onUpdatePartnerWorkoutData,
 }) => {
+  const {
+    isTimerActive,
+    timerDuration,
+    startTimer,
+    stopTimer,
+    lastCompletedSet,
+  } = useWorkout();
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [sessionLog, setSessionLog] = useState({ user: {}, partner: {} });
   const [isRecalculating, setIsRecalculating] = useState(false);
@@ -24,8 +32,6 @@ export const WorkoutPlanner = ({
   const [partnerEditValue, setPartnerEditValue] = useState({ oneRepMax: "" });
   const [message, setMessage] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isTimerActive, setIsTimerActive] = useState(false);
-  const [lastCompletedSetIndex, setLastCompletedSetIndex] = useState(null);
   const [isPartnerView, setIsPartnerView] = useState(false);
 
   const currentExercise = workoutDay.exercises[currentExerciseIndex];
@@ -154,23 +160,23 @@ export const WorkoutPlanner = ({
     ]
   );
 
-  const handleSetComplete = useCallback((exIndex, setIndex, userType) => {
-    setSessionLog((prevLog) => {
-      const newLog = JSON.parse(JSON.stringify(prevLog));
-      const currentSetLog = newLog[userType][exIndex][setIndex];
-      newLog[userType][exIndex][setIndex] = {
-        ...currentSetLog,
-        reps: currentSetLog.reps || currentSetLog.targetReps,
-        weight: currentSetLog.weight || currentSetLog.targetWeight,
-        completed: true,
-      };
-      return newLog;
-    });
-    setLastCompletedSetIndex(setIndex);
-    setIsTimerActive(true);
-  }, []);
-
-  const handleTimerComplete = () => setIsTimerActive(false);
+  const handleSetComplete = useCallback(
+    (exIndex, setIndex, userType) => {
+      setSessionLog((prevLog) => {
+        const newLog = JSON.parse(JSON.stringify(prevLog));
+        const currentSetLog = newLog[userType][exIndex][setIndex];
+        newLog[userType][exIndex][setIndex] = {
+          ...currentSetLog,
+          reps: currentSetLog.reps || currentSetLog.targetReps,
+          weight: currentSetLog.weight || currentSetLog.targetWeight,
+          completed: true,
+        };
+        return newLog;
+      });
+      startTimer(userProfile.restTimer || 120, userType, setIndex);
+    },
+    [startTimer, userProfile.restTimer]
+  );
 
   const handleSelectExercise = (index) => {
     setCurrentExerciseIndex(index);
@@ -364,7 +370,7 @@ export const WorkoutPlanner = ({
               isPartnerView ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
             } gap-4`}
           >
-            {/* Column Headers */}
+            {/* Column Headers TODO: userProfile.displayName does not currently exist (create it)*/}
             <div className="text-xl font-semibold text-center mb-2 h-14 flex items-center justify-center">
               {userProfile.displayName}
             </div>
@@ -391,10 +397,7 @@ export const WorkoutPlanner = ({
                     handleSetComplete={handleSetComplete}
                     availablePlates={availablePlates}
                     setSessionLog={setSessionLog}
-                    isTimerActive={isTimerActive}
-                    handleTimerComplete={handleTimerComplete}
-                    restTimer={userProfile.restTimer || 120}
-                    lastCompletedSetIndex={lastCompletedSetIndex}
+                    lastCompletedSet={lastCompletedSet}
                   />
                   {isPartnerView && (
                     <SetCard
@@ -406,10 +409,7 @@ export const WorkoutPlanner = ({
                       handleSetComplete={handleSetComplete}
                       availablePlates={availablePlates}
                       setSessionLog={setSessionLog}
-                      isTimerActive={isTimerActive}
-                      handleTimerComplete={handleTimerComplete}
-                      restTimer={userProfile.restTimer || 120}
-                      lastCompletedSetIndex={lastCompletedSetIndex}
+                      lastCompletedSet={lastCompletedSet}
                     />
                   )}
                 </React.Fragment>
@@ -453,27 +453,43 @@ export const WorkoutPlanner = ({
           </button>
         </div>
       </div>
-
     </div>
   );
 };
 
-const SetCard = ({ set, setIndex, exIndex, userType, sessionLog, handleSetComplete, availablePlates, setSessionLog, isTimerActive, handleTimerComplete, restTimer, lastCompletedSetIndex }) => {
+const SetCard = ({
+  set,
+  setIndex,
+  exIndex,
+  userType,
+  sessionLog,
+  handleSetComplete,
+  availablePlates,
+  setSessionLog,
+  lastCompletedSet,
+}) => {
+  const { isTimerActive, timerDuration, stopTimer } = useWorkout();
   const log = sessionLog[userType]?.[exIndex]?.[setIndex];
   if (!log) return null;
 
-  const isCurrentCompletedSet = lastCompletedSetIndex === setIndex;
+  const isCurrentCompletedSet =
+    lastCompletedSet &&
+    lastCompletedSet.userType === userType &&
+    lastCompletedSet.setIndex === setIndex;
 
   return (
     <div>
       <div
-        className={`flex items-center justify-between p-4 rounded-lg ${
+        className={`flex items-center justify-between p-4 rounded-lg h-32 ${
           log.completed ? "bg-green-800/50" : "bg-gray-700"
-        }`}>
+        }`}
+      >
         <div className="flex items-center gap-4">
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-              log.completed ? "bg-green-500" : "bg-gray-600"}`}>
+              log.completed ? "bg-green-500" : "bg-gray-600"
+            }`}
+          >
             {setIndex + 1}
           </div>
           <div>
@@ -481,7 +497,10 @@ const SetCard = ({ set, setIndex, exIndex, userType, sessionLog, handleSetComple
               Target: {set.reps} reps @ {set.weight} lbs
             </p>
             {set.weight > 0 && (
-              <MiniPlateDisplay targetWeight={set.weight} availablePlates={availablePlates} />
+              <MiniPlateDisplay
+                targetWeight={set.weight}
+                availablePlates={availablePlates}
+              />
             )}
           </div>
         </div>
@@ -503,7 +522,8 @@ const SetCard = ({ set, setIndex, exIndex, userType, sessionLog, handleSetComple
             />
             <button
               onClick={() => handleSetComplete(exIndex, setIndex, userType)}
-              className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg">
+              className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
+            >
               Save
             </button>
           </div>
@@ -513,7 +533,7 @@ const SetCard = ({ set, setIndex, exIndex, userType, sessionLog, handleSetComple
       </div>
       {isTimerActive && isCurrentCompletedSet && (
         <div className="flex justify-center py-2">
-          <Timer duration={restTimer} onComplete={handleTimerComplete} />
+          <Timer duration={timerDuration} onComplete={stopTimer} />
         </div>
       )}
     </div>

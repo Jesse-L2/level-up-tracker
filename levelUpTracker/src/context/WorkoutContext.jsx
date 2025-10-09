@@ -10,6 +10,9 @@ export const WorkoutProvider = ({
   handleUpdateProfile,
 }) => {
   const [workoutPlan, setWorkoutPlan] = useState(userProfile.workoutPlan);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [timerDuration, setTimerDuration] = useState(0);
+  const [lastCompletedSet, setLastCompletedSet] = useState(null);
 
   const handleRecalculateWorkout = useCallback(() => {
     if (!userProfile || !workoutPlan) return;
@@ -48,9 +51,25 @@ export const WorkoutProvider = ({
     handleUpdateProfile({ workoutPlan: newWorkoutPlan });
   }, [userProfile, workoutPlan, handleUpdateProfile]);
 
+  const startTimer = (duration, userType, setIndex) => {
+    setTimerDuration(duration);
+    setIsTimerActive(true);
+    setLastCompletedSet({ userType, setIndex });
+  };
+
+  const stopTimer = () => {
+    setIsTimerActive(false);
+    setLastCompletedSet(null);
+  };
+
   const value = {
     workoutPlan,
     recalculateWorkout: handleRecalculateWorkout,
+    isTimerActive,
+    timerDuration,
+    startTimer,
+    stopTimer,
+    lastCompletedSet,
   };
 
   return (

@@ -1,5 +1,5 @@
 // This table maps the number of reps to a corresponding percentage of 1 Rep Max.
-// It's based on common strength training principles (e.g., Prilepin's Chart).
+// It's based on common strength training principles
 export const REP_SCHEME_TABLE = {
   1: 1.0,
   2: 0.95,
