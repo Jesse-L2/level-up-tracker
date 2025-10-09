@@ -391,6 +391,10 @@ export const WorkoutPlanner = ({
                     handleSetComplete={handleSetComplete}
                     availablePlates={availablePlates}
                     setSessionLog={setSessionLog}
+                    isTimerActive={isTimerActive}
+                    handleTimerComplete={handleTimerComplete}
+                    restTimer={userProfile.restTimer || 120}
+                    lastCompletedSetIndex={lastCompletedSetIndex}
                   />
                   {isPartnerView && (
                     <SetCard
@@ -402,6 +406,10 @@ export const WorkoutPlanner = ({
                       handleSetComplete={handleSetComplete}
                       availablePlates={availablePlates}
                       setSessionLog={setSessionLog}
+                      isTimerActive={isTimerActive}
+                      handleTimerComplete={handleTimerComplete}
+                      restTimer={userProfile.restTimer || 120}
+                      lastCompletedSetIndex={lastCompletedSetIndex}
                     />
                   )}
                 </React.Fragment>
@@ -445,74 +453,68 @@ export const WorkoutPlanner = ({
           </button>
         </div>
       </div>
+
     </div>
   );
 };
 
-const SetCard = ({
-  set,
-  setIndex,
-  exIndex,
-  userType,
-  sessionLog,
-  handleSetComplete,
-  availablePlates,
-  setSessionLog,
-}) => {
+const SetCard = ({ set, setIndex, exIndex, userType, sessionLog, handleSetComplete, availablePlates, setSessionLog, isTimerActive, handleTimerComplete, restTimer, lastCompletedSetIndex }) => {
   const log = sessionLog[userType]?.[exIndex]?.[setIndex];
   if (!log) return null;
 
+  const isCurrentCompletedSet = lastCompletedSetIndex === setIndex;
+
   return (
-    <div
-      className={`flex items-center justify-between p-4 rounded-lg ${
-        log.completed ? "bg-green-800/50" : "bg-gray-700"
-      }`}
-    >
-      <div className="flex items-center gap-4">
-        <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-            log.completed ? "bg-green-500" : "bg-gray-600"
-          }`}
-        >
-          {setIndex + 1}
+    <div>
+      <div
+        className={`flex items-center justify-between p-4 rounded-lg ${
+          log.completed ? "bg-green-800/50" : "bg-gray-700"
+        }`}>
+        <div className="flex items-center gap-4">
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+              log.completed ? "bg-green-500" : "bg-gray-600"}`}>
+            {setIndex + 1}
+          </div>
+          <div>
+            <p className="font-semibold">
+              Target: {set.reps} reps @ {set.weight} lbs
+            </p>
+            {set.weight > 0 && (
+              <MiniPlateDisplay targetWeight={set.weight} availablePlates={availablePlates} />
+            )}
+          </div>
         </div>
-        <div>
-          <p className="font-semibold">
-            Target: {set.reps} reps @ {set.weight} lbs
-          </p>
-          {set.weight > 0 && (
-            <MiniPlateDisplay
-              targetWeight={set.weight}
-              availablePlates={availablePlates}
+        {!log.completed ? (
+          <div className="flex items-center gap-2">
+            <FormField
+              id={`reps-${userType}-${setIndex}`}
+              type="number"
+              placeholder="Reps"
+              className="w-16 bg-gray-800"
+              onChange={(e) => {
+                const reps = e.target.value;
+                setSessionLog((prevLog) => {
+                  const newLog = JSON.parse(JSON.stringify(prevLog));
+                  newLog[userType][exIndex][setIndex].reps = reps;
+                  return newLog;
+                });
+              }}
             />
-          )}
-        </div>
+            <button
+              onClick={() => handleSetComplete(exIndex, setIndex, userType)}
+              className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg">
+              Save
+            </button>
+          </div>
+        ) : (
+          <p className="text-lg">{log.reps} reps</p>
+        )}
       </div>
-      {!log.completed ? (
-        <div className="flex items-center gap-2">
-          <FormField
-            id={`reps-${userType}-${setIndex}`}
-            type="number"
-            placeholder="Reps"
-            className="w-16 bg-gray-800"
-            onChange={(e) => {
-              const reps = e.target.value;
-              setSessionLog((prevLog) => {
-                const newLog = JSON.parse(JSON.stringify(prevLog));
-                newLog[userType][exIndex][setIndex].reps = reps;
-                return newLog;
-              });
-            }}
-          />
-          <button
-            onClick={() => handleSetComplete(exIndex, setIndex, userType)}
-            className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
-          >
-            Save
-          </button>
+      {isTimerActive && isCurrentCompletedSet && (
+        <div className="flex justify-center py-2">
+          <Timer duration={restTimer} onComplete={handleTimerComplete} />
         </div>
-      ) : (
-        <p className="text-lg">{log.reps} reps</p>
       )}
     </div>
   );
