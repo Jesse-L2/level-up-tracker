@@ -25,6 +25,37 @@ function AppContent() {
   const { workoutPlan, recalculateWorkout } = useWorkout();
   const [workoutData, setWorkoutData] = useState(null);
 
+  useEffect(() => {
+    switch (currentPage) {
+      case "dashboard":
+        document.title = "Dashboard";
+        break;
+      case "settings":
+        document.title = "Settings";
+        break;
+      case "create_workout":
+        document.title = "Create Workout";
+        break;
+      case "exercise_library":
+        document.title = "Exercise Library";
+        break;
+      case "planner":
+        document.title = "Workout Planner";
+        break;
+      case "calculator":
+        document.title = "Plate Calculator";
+        break;
+      case "program_templates":
+        document.title = "Program Templates";
+        break;
+      case "program_template_details":
+        document.title = "Program Template Details";
+        break;
+      default:
+        document.title = "LevelUp Workout Tracker";
+    }
+  }, [currentPage]);
+
   const handleNavigate = useCallback((page, data = null, id = null) => {
     if (page === "planner") {
       setWorkoutData(data);
@@ -273,6 +304,12 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      document.title = isLoginView ? "Login" : "Signup";
+    }
+  }, [isLoginView, user]);
 
   const handleUpdateProfile = useCallback(
     async (updatedData) => {
