@@ -14,6 +14,7 @@ export const WorkoutPlanner = ({
   onNavigate,
   userProfile,
   onUpdatePartnerWorkoutData,
+  onUpdateWorkoutDay,
 }) => {
   const {
     isTimerActive,
@@ -138,13 +139,28 @@ export const WorkoutPlanner = ({
   const handleFeedback = useCallback(
     (feedback) => {
       const originalMax = currentExercise.oneRepMax;
+      let newOneRepMax;
       if (feedback === "easy") {
-        currentExercise.oneRepMax = originalMax + 5;
+        newOneRepMax = originalMax + 5;
       } else if (feedback === "just_right") {
-        currentExercise.oneRepMax = originalMax + 2.5;
+        newOneRepMax = originalMax + 2.5;
       } else if (feedback === "hard") {
-        currentExercise.oneRepMax = originalMax - 5;
+        newOneRepMax = originalMax - 5;
       }
+
+      const updatedExercises = workoutDay.exercises.map((ex, index) => {
+        if (index === currentExerciseIndex) {
+          return { ...ex, oneRepMax: newOneRepMax };
+        }
+        return ex;
+      });
+
+      const updatedWorkoutDay = {
+        ...workoutDay,
+        exercises: updatedExercises,
+      };
+
+      onUpdateWorkoutDay(updatedWorkoutDay);
 
       if (currentExerciseIndex < workoutDay.exercises.length - 1) {
         setCurrentExerciseIndex(currentExerciseIndex + 1);
@@ -155,8 +171,9 @@ export const WorkoutPlanner = ({
     [
       currentExercise,
       currentExerciseIndex,
-      workoutDay.exercises.length,
+      workoutDay,
       handleFinishWorkout,
+      onUpdateWorkoutDay,
     ]
   );
 
@@ -171,11 +188,36 @@ export const WorkoutPlanner = ({
           weight: currentSetLog.weight || currentSetLog.targetWeight,
           completed: true,
         };
+
+        const updatedWorkoutDay = {
+          ...workoutDay,
+          dayIdentifier: workoutDay.dayIdentifier,
+          exercises: workoutDay.exercises.map((ex, i) => {
+            if (i === exIndex) {
+              const newSets = ex.sets.map((set, j) => {
+                if (j === setIndex) {
+                  return {
+                    ...set,
+                    completed: true,
+                    completedReps:
+                      newLog[userType][exIndex][setIndex].reps ||
+                      newLog[userType][exIndex][setIndex].targetReps,
+                  };
+                }
+                return set;
+              });
+              return { ...ex, sets: newSets };
+            }
+            return ex;
+          }),
+        };
+        onUpdateWorkoutDay(updatedWorkoutDay);
+        console.log("updatedWorkoutDay", updatedWorkoutDay);
         return newLog;
       });
       startTimer(userProfile.restTimer || 120, userType, setIndex);
     },
-    [startTimer, userProfile.restTimer]
+    [startTimer, userProfile.restTimer, workoutDay, onUpdateWorkoutDay]
   );
 
   const handleSelectExercise = (index) => {

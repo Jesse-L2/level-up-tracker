@@ -3,8 +3,10 @@ import { ALL_EQUIPMENT } from "../lib/constants";
 import { addPartner, removePartner, updatePartnerName } from "../firebase";
 import { FormField } from "./ui/FormField";
 import { Save, Plus, Trash2, Loader2 } from "lucide-react";
+import { useWorkout } from "../context/WorkoutContext";
 
-export const SettingsPage = ({ userProfile, onSave, onBack }) => {
+export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore, onUpdateWorkoutPlan }) => {
+  const { updateUserProfileInFirestore: updateUserProfileInFirestoreFromHook } = useWorkout();
   const [profile, setProfile] = useState(userProfile);
   const [newWeight, setNewWeight] = useState({ value: "", quantity: 2 });
   const [isSaving, setIsSaving] = useState(false);
@@ -30,12 +32,18 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
 
   useEffect(() => {
     const fetchPlateData = async () => {
-      if (profile && (!profile.availablePlates || profile.availablePlates.length === 0)) {
+      if (
+        profile &&
+        (!profile.availablePlates || profile.availablePlates.length === 0)
+      ) {
         try {
-          const response = await fetch('/plate-data.json');
+          const response = await fetch("/plate-data.json");
           const data = await response.json();
-          const plates = data.map(p => ({ weight: p.weight, count: p.quantity }));
-          setProfile(prevProfile => ({
+          const plates = data.map((p) => ({
+            weight: p.weight,
+            count: p.quantity,
+          }));
+          setProfile((prevProfile) => ({
             ...prevProfile,
             availablePlates: plates.sort((a, b) => b.weight - a.weight),
           }));
@@ -70,7 +78,11 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
   };
 
   const handleRemovePartner = async () => {
-    if (window.confirm("Are you sure you want to remove your partner? This action cannot be undone.")) {
+    if (
+      window.confirm(
+        "Are you sure you want to remove your partner? This action cannot be undone."
+      )
+    ) {
       try {
         await removePartner(userProfile.uid);
         setPartnerName("");
@@ -81,7 +93,6 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
       }
     }
   };
-
 
   const handleEquipmentChange = useCallback((equipmentId) => {
     setProfile((prevProfile) => {
@@ -144,31 +155,57 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
   }, []);
 
   const handleOneRepMaxChange = useCallback((exerciseId, newOneRepMax) => {
-    setProfile((prevProfile) => ({
-      ...prevProfile,
-      exerciseLibrary: prevProfile.exerciseLibrary.map((ex) =>
-        ex.id === exerciseId ? { ...ex, oneRepMax: newOneRepMax } : ex
-      ),
-    }));
+    setProfile((prevProfile) => {
+      const newWorkoutPlan = JSON.parse(JSON.stringify(prevProfile.workoutPlan));
+      for (const day in newWorkoutPlan) {
+        const dayExercises = newWorkoutPlan[day].exercises;
+        const exerciseIndex = dayExercises.findIndex(
+          (ex) => ex.id === exerciseId
+        );
+        if (exerciseIndex > -1) {
+          const exercise = dayExercises[exerciseIndex];
+          exercise.oneRepMax = newOneRepMax;
+          exercise.sets = exercise.sets.map((set) => ({
+            ...set,
+            weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
+          }));
+        }
+      }
+
+      return {
+        ...prevProfile,
+        exerciseLibrary: prevProfile.exerciseLibrary.map((ex) =>
+          ex.id === exerciseId ? { ...ex, oneRepMax: newOneRepMax } : ex
+        ),
+        workoutPlan: newWorkoutPlan,
+      };
+    });
   }, []);
 
-  const handlePartnerOneRepMaxChange = useCallback((exerciseId, newOneRepMax) => {
-    setProfile((prevProfile) => ({
-      ...prevProfile,
-      partner: {
-        ...prevProfile.partner,
-        maxes: {
-          ...prevProfile.partner.maxes,
-          [exerciseId]: newOneRepMax,
+  const handlePartnerOneRepMaxChange = useCallback(
+    (exerciseId, newOneRepMax) => {
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        partner: {
+          ...prevProfile.partner,
+          maxes: {
+            ...prevProfile.partner.maxes,
+            [exerciseId]: newOneRepMax,
+          },
         },
-      },
-    }));
-  }, []);
+      }));
+    },
+    []
+  );
 
   const handleResetProgress = async () => {
-    if (window.confirm("Are you sure you want to reset all your progress? This action cannot be undone.")) {
+    if (
+      window.confirm(
+        "Are you sure you want to reset all your progress? This action cannot be undone."
+      )
+    ) {
       try {
-        await onSave({ ...profile, workoutHistory: [] });
+        await updateUserProfileInFirestore({ ...profile, workoutHistory: [] });
         setMessage("Your progress has been successfully reset.");
       } catch (error) {
         console.error("Failed to reset progress:", error);
@@ -181,7 +218,8 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
     setIsSaving(true);
     setMessage(null);
     try {
-      await onSave(profile);
+      await onUpdateWorkoutPlan(profile.workoutPlan);
+      await updateUserProfileInFirestore(profile);
       onBack();
     } catch (error) {
       console.error("Failed to save profile:", error);
@@ -190,6 +228,7 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
       setIsSaving(false);
     }
   };
+
 
   if (!profile) {
     return (
@@ -232,7 +271,8 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
                 onClick={handleAddPartner}
                 className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
-                <Plus size={20} className="text-white" /> {userProfile.partner ? "Update" : "Add"} Partner
+                <Plus size={20} className="text-white" />{" "}
+                {userProfile.partner ? "Update" : "Add"} Partner
               </button>
               {userProfile.partner && (
                 <button
@@ -323,7 +363,9 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
                 id={`1rm-${ex.id}`}
                 type="number"
                 value={ex.oneRepMax}
-                onChange={(e) => handleOneRepMaxChange(ex.id, parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  handleOneRepMaxChange(ex.id, parseFloat(e.target.value) || 0)
+                }
               />
             ))}
           </div>
@@ -341,8 +383,13 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
                   label={ex.name}
                   id={`partner-1rm-${ex.id}`}
                   type="number"
-                  value={profile.partner.maxes?.[ex.id] || ''}
-                  onChange={(e) => handlePartnerOneRepMaxChange(ex.id, parseFloat(e.target.value) || 0)}
+                  value={profile.partner.maxes?.[ex.id] || ""}
+                  onChange={(e) =>
+                    handlePartnerOneRepMaxChange(
+                      ex.id,
+                      parseFloat(e.target.value) || 0
+                    )
+                  }
                 />
               ))}
             </div>
@@ -430,7 +477,8 @@ export const SettingsPage = ({ userProfile, onSave, onBack }) => {
             <div>
               <h3 className="font-semibold text-lg">Clear Workout History</h3>
               <p className="text-gray-400">
-                This will permanently delete all of your workout history. This action cannot be undone.
+                This will permanently delete all of your workout history. This
+                action cannot be undone.
               </p>
             </div>
             <button

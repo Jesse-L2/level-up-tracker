@@ -65,145 +65,186 @@ function AppContent() {
     setCurrentPage(page);
   }, []);
 
-  const handleUpdateProfile = useCallback(
-    async (updatedData) => {
-      await updateUserProfileInFirestore(updatedData);
-    },
-    [updateUserProfileInFirestore]
-  );
 
-  const handleSelectProgramTemplate = useCallback(
-    (program) => {
-      if (!userProfile) return;
 
-      const newWorkoutPlan = {};
-      const workoutDays = Object.keys(program).filter(
-        (k) =>
-          k.startsWith("workout_") || k.startsWith("day_") || k.endsWith("_day")
-      );
-
-      workoutDays.forEach((dayKey) => {
-        const workoutDay = program[dayKey];
-        const exercises = [];
-
-        for (const exerciseName in workoutDay) {
-          const exerciseDetails = workoutDay[exerciseName];
-          const libraryExercise = userProfile.exerciseLibrary.find(
-            (e) => e.name === exerciseName
-          );
-          const oneRepMax = libraryExercise ? libraryExercise.oneRepMax : 100;
-
-          const exerciseInfo = Object.values(EXERCISE_DATABASE)
-            .flat()
-            .find((ex) => ex.name === exerciseName);
-          const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
-
-          const sets = exerciseDetails.reps.map((rep, index) => {
-            const percentage = exerciseDetails.percentages[index] / 100;
-            return {
-              reps: rep,
-              percentage: percentage,
-              weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
-            };
-          });
-
-          exercises.push({
-            id: exerciseName,
-            name: exerciseName,
-            type: exerciseType,
-            oneRepMax: oneRepMax,
-            sets: sets,
-          });
-        }
-
-        newWorkoutPlan[dayKey] = { exercises };
-      });
-
-      handleUpdateProfile({ workoutPlan: newWorkoutPlan });
-      setCurrentPage("dashboard");
-    },
-    [userProfile, handleUpdateProfile]
-  );
-
-  const handleSaveCustomWorkout = useCallback(
-    (customWorkout) => {
-      if (!userProfile) return;
-      const { day, ...workoutDetails } = customWorkout;
-
-      const newPlan = {
-        ...(userProfile.workoutPlan || {}),
-        [day]: workoutDetails,
-      };
-
-      handleUpdateProfile({ workoutPlan: newPlan });
-      setCurrentPage("dashboard");
-    },
-    [userProfile, handleUpdateProfile]
-  );
-
-  const handleUpdateLibrary = useCallback(
-    (exerciseName, newOneRepMax) => {
-      if (!userProfile) return;
-
-      const newLibrary = userProfile.exerciseLibrary.map((ex) => {
-        if (ex.name === exerciseName) {
-          return { ...ex, oneRepMax: newOneRepMax };
-        }
-        return ex;
-      });
-
-      handleUpdateProfile({ exerciseLibrary: newLibrary });
-      recalculateWorkout();
-    },
-    [userProfile, handleUpdateProfile, recalculateWorkout]
-  );
-
-  const handleFinishWorkout = useCallback(
-    (completedWorkout) => {
-      if (!userProfile) return;
-      const updatedHistory = [
-        ...(userProfile.workoutHistory || []),
-        completedWorkout,
-      ];
-      handleUpdateProfile({ workoutHistory: updatedHistory });
-      setCurrentPage("dashboard");
-    },
-    [userProfile, handleUpdateProfile]
-  );
-
-  const handleUpdatePartnerWorkoutData = useCallback(
-    (exerciseId, newOneRepMax) => {
-      if (!userProfile || !userProfile.partner) return;
-
-      const newPartnerMaxes = {
-        ...userProfile.partner.maxes,
-        [exerciseId]: newOneRepMax,
-      };
-
-      const newPartnerWorkoutPlan = JSON.parse(
-        JSON.stringify(userProfile.partner.workoutPlan)
-      );
-      for (const day in newPartnerWorkoutPlan) {
-        const dayExercises = newPartnerWorkoutPlan[day].exercises;
-        const exerciseIndex = dayExercises.findIndex(
-          (ex) => ex.id === exerciseId
+    const handleSelectProgramTemplate = useCallback(
+      (program) => {
+        if (!userProfile) return;
+  
+        const newWorkoutPlan = {};
+        const workoutDays = Object.keys(program).filter(
+          (k) =>
+            k.startsWith("workout_") || k.startsWith("day_") || k.endsWith("_day")
         );
-        if (exerciseIndex > -1) {
-          const exercise = dayExercises[exerciseIndex];
-          exercise.sets = exercise.sets.map((set) => ({
-            ...set,
-            weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
-          }));
-        }
-      }
+  
+        workoutDays.forEach((dayKey) => {
+          const workoutDay = program[dayKey];
+          const exercises = [];
+  
+          for (const exerciseName in workoutDay) {
+            const exerciseDetails = workoutDay[exerciseName];
+            const libraryExercise = userProfile.exerciseLibrary.find(
+              (e) => e.name === exerciseName
+            );
+            const oneRepMax = libraryExercise ? libraryExercise.oneRepMax : 100;
+  
+            const exerciseInfo = Object.values(EXERCISE_DATABASE)
+              .flat()
+              .find((ex) => ex.name === exerciseName);
+            const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
+  
+            const sets = exerciseDetails.reps.map((rep, index) => {
+              const percentage = exerciseDetails.percentages[index] / 100;
+              return {
+                reps: rep,
+                percentage: percentage,
+                weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
+              };
+            });
+  
+            exercises.push({
+              id: exerciseName,
+              name: exerciseName,
+              type: exerciseType,
+              oneRepMax: oneRepMax,
+              sets: sets,
+            });
+          }
+  
+          newWorkoutPlan[dayKey] = { exercises };
+        });
+  
+        updateUserProfileInFirestore({ workoutPlan: newWorkoutPlan });
+        setCurrentPage("dashboard");
+      },
+      [userProfile, updateUserProfileInFirestore]
+    );
+  
+    const handleSaveCustomWorkout = useCallback(
+      (customWorkout) => {
+        if (!userProfile) return;
+        const { day, ...workoutDetails } = customWorkout;
+  
+        const newPlan = {
+          ...(userProfile.workoutPlan || {}),
+          [day]: workoutDetails,
+        };
+  
+        updateUserProfileInFirestore({ workoutPlan: newPlan });
+        setCurrentPage("dashboard");
+      },
+      [userProfile, updateUserProfileInFirestore]
+    );
+  
+    const handleFinishWorkout = useCallback(
+      (completedWorkout) => {
+        if (!userProfile) return;
+        const updatedHistory = [
+          ...(userProfile.workoutHistory || []),
+          completedWorkout,
+        ];
+        updateUserProfileInFirestore({ workoutHistory: updatedHistory });
+        setCurrentPage("dashboard");
+      },
+      [userProfile, updateUserProfileInFirestore]
+    );
+  
+      const handleUpdatePartnerWorkoutData = useCallback(
+        (exerciseId, newOneRepMax) => {
+          if (!userProfile || !userProfile.partner) return;
+    
+          const newPartnerMaxes = {
+            ...userProfile.partner.maxes,
+            [exerciseId]: newOneRepMax,
+          };
+    
+          const newPartnerWorkoutPlan = JSON.parse(
+            JSON.stringify(userProfile.partner.workoutPlan)
+          );
+          for (const day in newPartnerWorkoutPlan) {
+            const dayExercises = newPartnerWorkoutPlan[day].exercises;
+            const exerciseIndex = dayExercises.findIndex(
+              (ex) => ex.id === exerciseId
+            );
+            if (exerciseIndex > -1) {
+              const exercise = dayExercises[exerciseIndex];
+              exercise.sets = exercise.sets.map((set) => ({
+                ...set,
+                weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
+              }));
+            }
+          }
+    
+          updateUserProfileInFirestore({
+            "partner.maxes": newPartnerMaxes,
+            "partner.workoutPlan": newPartnerWorkoutPlan,
+          });
+        },
+        [userProfile, updateUserProfileInFirestore]
+      );
+    
+      const handleUpdateWorkoutDay = useCallback(
+        (updatedWorkoutDay) => {
+          console.log("handleUpdateWorkoutDay", updatedWorkoutDay);
+          if (!userProfile) return;
+    
+          const newWorkoutPlan = {
+            ...userProfile.workoutPlan,
+            [updatedWorkoutDay.dayIdentifier]: updatedWorkoutDay,
+          };
+    
+          updateUserProfileInFirestore({ workoutPlan: newWorkoutPlan });
+        },
+        [userProfile, updateUserProfileInFirestore]
+      );
 
-      handleUpdateProfile({
-        "partner.maxes": newPartnerMaxes,
-        "partner.workoutPlan": newPartnerWorkoutPlan,
-      });
-    },
-    [userProfile, handleUpdateProfile]
-  );
+      const handleUpdateLibrary = useCallback(
+        (exerciseName, newOneRepMax) => {
+          if (!userProfile) return;
+
+          const newExerciseLibrary = userProfile.exerciseLibrary.map((ex) => {
+            if (ex.name === exerciseName) {
+              return { ...ex, oneRepMax: newOneRepMax };
+            }
+            return ex;
+          });
+
+          const newWorkoutPlan = JSON.parse(JSON.stringify(userProfile.workoutPlan));
+          for (const day in newWorkoutPlan) {
+            const dayExercises = newWorkoutPlan[day].exercises;
+            const exerciseIndex = dayExercises.findIndex(
+              (ex) => ex.name === exerciseName
+            );
+            if (exerciseIndex > -1) {
+              const exercise = dayExercises[exerciseIndex];
+              exercise.oneRepMax = newOneRepMax;
+              exercise.sets = exercise.sets.map((set) => ({
+                ...set,
+                weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
+              }));
+            }
+          }
+
+          updateUserProfileInFirestore({
+            exerciseLibrary: newExerciseLibrary,
+            workoutPlan: newWorkoutPlan,
+          }).then(() => {
+            const dayIdentifier = workoutData.dayIdentifier;
+            const updatedWorkoutDay = newWorkoutPlan[dayIdentifier];
+            setWorkoutData({ ...updatedWorkoutDay, dayIdentifier });
+          });
+        },
+        [userProfile, updateUserProfileInFirestore, workoutData]
+      );
+
+      const handleUpdateWorkoutPlan = useCallback(
+        (newWorkoutPlan) => {
+          if (!userProfile) return;
+
+          updateUserProfileInFirestore({ workoutPlan: newWorkoutPlan });
+        },
+        [userProfile, updateUserProfileInFirestore]
+      );
 
   if (isLoading) {
     return (
@@ -227,8 +268,9 @@ function AppContent() {
       return (
         <SettingsPage
           userProfile={userProfile}
-          onSave={handleUpdateProfile}
           onBack={() => setCurrentPage("dashboard")}
+          updateUserProfileInFirestore={updateUserProfileInFirestore}
+          onUpdateWorkoutPlan={handleUpdateWorkoutPlan}
         />
       );
     case "create_workout":
@@ -243,7 +285,6 @@ function AppContent() {
       return (
         <ExerciseLibrary
           userProfile={userProfile}
-          onSave={handleUpdateProfile}
           onBack={() => setCurrentPage("dashboard")}
         />
       );
@@ -253,6 +294,7 @@ function AppContent() {
           workoutDay={workoutData}
           onFinish={handleFinishWorkout}
           onUpdatePartnerWorkoutData={handleUpdatePartnerWorkoutData}
+          onUpdateWorkoutDay={handleUpdateWorkoutDay}
           onUpdateLibrary={handleUpdateLibrary}
           availablePlates={userProfile.availablePlates}
           onNavigate={handleNavigate}

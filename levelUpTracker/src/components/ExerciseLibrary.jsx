@@ -1,41 +1,53 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { FormField } from "./ui/FormField";
 import { Plus, Trash2, Save, Edit, X } from "lucide-react";
+import { useWorkout } from "../context/WorkoutContext";
 
 const initialExerciseState = { name: "", oneRepMax: "", type: "weighted" };
 
-export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
+export const ExerciseLibrary = ({ userProfile, onBack }) => {
+  const { updateUserProfileInFirestore } = useWorkout();
   const [templateExercises, setTemplateExercises] = useState([]);
   const [library, setLibrary] = useState(userProfile.exerciseLibrary || []);
   useEffect(() => {
-    fetch('/program-templates.json')
-      .then(response => response.json())
-      .then(data => {
+    fetch("/program-templates.json")
+      .then((response) => response.json())
+      .then((data) => {
         const allTemplateLifts = new Set();
-        Object.values(data.programs).forEach(template => {
-          Object.keys(template).filter(key => key.startsWith('day_') || key.startsWith('workout_')).forEach(dayKey => {
-            const day = template[dayKey];
-            Object.keys(day).forEach(liftId => {
-              if(data.lifts[liftId]){
-                allTemplateLifts.add(data.lifts[liftId].name);
-              }
+        Object.values(data.programs).forEach((template) => {
+          Object.keys(template)
+            .filter(
+              (key) => key.startsWith("day_") || key.startsWith("workout_")
+            )
+            .forEach((dayKey) => {
+              const day = template[dayKey];
+              Object.keys(day).forEach((liftId) => {
+                if (data.lifts[liftId]) {
+                  allTemplateLifts.add(data.lifts[liftId].name);
+                }
+              });
             });
-          });
         });
-        const formattedTemplateExercises = Array.from(allTemplateLifts).map(liftName => ({
-          name: liftName,
-          oneRepMax: 0, // Default for template exercises
-          type: "weighted", // Assuming most template lifts are weighted
-          isTemplate: true // Mark as template exercise
-        }));
+        const formattedTemplateExercises = Array.from(allTemplateLifts).map(
+          (liftName) => ({
+            name: liftName,
+            oneRepMax: 0, // Default for template exercises
+            type: "weighted", // Assuming most template lifts are weighted
+            isTemplate: true, // Mark as template exercise
+          })
+        );
         setTemplateExercises(formattedTemplateExercises);
         // Filter out template exercises from the user's library to avoid duplicates
-        setLibrary(prevLibrary => {
-          const templateNames = new Set(formattedTemplateExercises.map(ex => ex.name));
-          return prevLibrary.filter(ex => !templateNames.has(ex.name));
+        setLibrary((prevLibrary) => {
+          const templateNames = new Set(
+            formattedTemplateExercises.map((ex) => ex.name)
+          );
+          return prevLibrary.filter((ex) => !templateNames.has(ex.name));
         });
       })
-      .catch(error => console.error("Error fetching program templates for library:", error));
+      .catch((error) =>
+        console.error("Error fetching program templates for library:", error)
+      );
   }, []); // Empty dependency array means this runs once on mount
   const [newExercise, setNewExercise] = useState(initialExerciseState);
   const [message, setMessage] = useState("");
@@ -65,7 +77,9 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
       (newExercise.type === "weighted" || newExercise.type === "barbell") &&
       (!newExercise.oneRepMax || parseFloat(newExercise.oneRepMax) <= 0)
     ) {
-      setMessage("Weighted and barbell lifts must have a 1 Rep Max greater than 0.");
+      setMessage(
+        "Weighted and barbell lifts must have a 1 Rep Max greater than 0."
+      );
       return;
     }
 
@@ -73,7 +87,9 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
       name: newExercise.name,
       type: newExercise.type,
       oneRepMax:
-        newExercise.type === "weighted" || newExercise.type === "barbell" ? parseFloat(newExercise.oneRepMax) : 0,
+        newExercise.type === "weighted" || newExercise.type === "barbell"
+          ? parseFloat(newExercise.oneRepMax)
+          : 0,
       lastUpdated: new Date().toISOString(), // Add lastUpdated timestamp
     };
 
@@ -105,7 +121,7 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
   }, []);
 
   const handleSaveLibrary = () => {
-    onSave({ exerciseLibrary: library });
+    updateUserProfileInFirestore({ exerciseLibrary: library });
     onBack(); // Go back to dashboard after saving
   };
 
@@ -215,7 +231,8 @@ export const ExerciseLibrary = ({ userProfile, onSave, onBack }) => {
               <option value="barbell">Barbell</option>
             </FormField>
           </div>
-          {(newExercise.type === "weighted" || newExercise.type === "barbell") && (
+          {(newExercise.type === "weighted" ||
+            newExercise.type === "barbell") && (
             <div className="mt-4">
               <FormField
                 label="Theoretical 1 Rep Max (lbs)"
