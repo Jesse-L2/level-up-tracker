@@ -5,6 +5,14 @@ function ProgramTemplateDetails({ id, onBack, onNavigate, onSelectProgram }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Level Up Tracker - Program Details";
+    return () => {
+      document.title = "Level Up Tracker";
+    };
+  }, []);
+
   useEffect(() => {
     fetch('/program-templates.json')
       .then(response => {

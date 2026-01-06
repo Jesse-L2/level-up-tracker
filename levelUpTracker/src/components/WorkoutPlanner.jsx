@@ -35,6 +35,14 @@ export const WorkoutPlanner = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPartnerView, setIsPartnerView] = useState(false);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Level Up Tracker - Workout";
+    return () => {
+      document.title = "Level Up Tracker";
+    };
+  }, []);
+
   const currentExercise = workoutDay.exercises[currentExerciseIndex];
   const sets = Array.isArray(currentExercise?.sets) ? currentExercise.sets : [];
 
@@ -68,7 +76,30 @@ export const WorkoutPlanner = ({
   const handleSaveOneRepMax = () => {
     const newOneRepMax = parseFloat(editValue.oneRepMax);
     if (newOneRepMax > 0) {
+      // Update the exercise library in Firebase
       onUpdateLibrary(currentExercise.name, newOneRepMax);
+
+      // Immediately update the local workout day state so the UI reflects the change
+      const updatedExercises = workoutDay.exercises.map((ex, index) => {
+        if (index === currentExerciseIndex) {
+          return {
+            ...ex,
+            oneRepMax: newOneRepMax,
+            sets: ex.sets.map((set) => ({
+              ...set,
+              weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
+            })),
+          };
+        }
+        return ex;
+      });
+
+      const updatedWorkoutDay = {
+        ...workoutDay,
+        exercises: updatedExercises,
+      };
+
+      onUpdateWorkoutDay(updatedWorkoutDay);
       setIsEditing(false);
     } else {
       setMessage("Please enter a valid 1 Rep Max.");
@@ -408,9 +439,8 @@ export const WorkoutPlanner = ({
             )}
           </div>
           <div
-            className={`mt-6 grid ${
-              isPartnerView ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
-            } gap-4`}
+            className={`mt-6 grid ${isPartnerView ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+              } gap-4`}
           >
             {/* Column Headers TODO: userProfile.displayName does not currently exist (create it)*/}
             <div className="text-xl font-semibold text-center mb-2 h-14 flex items-center justify-center">
@@ -426,7 +456,7 @@ export const WorkoutPlanner = ({
             {sets.map((set, setIndex) => {
               const partnerSet = isPartnerView
                 ? userProfile.partner.workoutPlan[workoutDay.dayIdentifier]
-                    ?.exercises[currentExerciseIndex]?.sets[setIndex]
+                  ?.exercises[currentExerciseIndex]?.sets[setIndex]
                 : null;
               return (
                 <React.Fragment key={setIndex}>
@@ -522,15 +552,13 @@ const SetCard = ({
   return (
     <div>
       <div
-        className={`flex items-center justify-between p-4 rounded-lg h-32 ${
-          log.completed ? "bg-green-800/50" : "bg-gray-700"
-        }`}
+        className={`flex items-center justify-between p-4 rounded-lg h-32 ${log.completed ? "bg-green-800/50" : "bg-gray-700"
+          }`}
       >
         <div className="flex items-center gap-4">
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-              log.completed ? "bg-green-500" : "bg-gray-600"
-            }`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${log.completed ? "bg-green-500" : "bg-gray-600"
+              }`}
           >
             {setIndex + 1}
           </div>

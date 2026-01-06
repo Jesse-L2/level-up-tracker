@@ -13,6 +13,16 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   const [message, setMessage] = useState(null);
   const [partnerName, setPartnerName] = useState("");
   const [partnerMessage, setPartnerMessage] = useState(null);
+  const [isSavingMaxes, setIsSavingMaxes] = useState(false);
+  const [maxesMessage, setMaxesMessage] = useState(null);
+
+  // Set page title for Settings
+  useEffect(() => {
+    document.title = "Level Up Tracker - Settings";
+    return () => {
+      document.title = "Level Up Tracker";
+    };
+  }, []);
 
   useEffect(() => {
     if (userProfile) {
@@ -229,6 +239,30 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
     }
   };
 
+  const handleUpdateMaxes = async () => {
+    // Save current scroll position
+    const scrollY = window.scrollY;
+
+    setIsSavingMaxes(true);
+    setMaxesMessage(null);
+    try {
+      await onUpdateWorkoutPlan(profile.workoutPlan);
+      await updateUserProfileInFirestore(profile);
+      setMaxesMessage("Max lifts updated successfully!");
+      // Clear message after 3 seconds
+      setTimeout(() => setMaxesMessage(null), 3000);
+    } catch (error) {
+      console.error("Failed to update maxes:", error);
+      setMaxesMessage("Failed to update max lifts. Please try again.");
+    } finally {
+      setIsSavingMaxes(false);
+      // Restore scroll position after a brief delay to allow re-render
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollY);
+      });
+    }
+  };
+
 
   if (!profile) {
     return (
@@ -339,11 +373,10 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
               <button
                 key={equip.id}
                 onClick={() => handleEquipmentChange(equip.id)}
-                className={`p-4 rounded-lg text-center transition-all duration-200 ${
-                  profile.availableEquipment.includes(equip.id)
-                    ? "bg-blue-600 text-white ring-2 ring-blue-400"
-                    : "bg-gray-700 hover:bg-gray-600"
-                }`}
+                className={`p-4 rounded-lg text-center transition-all duration-200 ${profile.availableEquipment.includes(equip.id)
+                  ? "bg-blue-600 text-white ring-2 ring-blue-400"
+                  : "bg-gray-700 hover:bg-gray-600"
+                  }`}
               >
                 {equip.name}
               </button>
@@ -368,6 +401,28 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
                 }
               />
             ))}
+          </div>
+          <div className="mt-4 flex items-center gap-4">
+            <button
+              onClick={handleUpdateMaxes}
+              disabled={isSavingMaxes}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingMaxes ? (
+                <>
+                  <Loader2 size={20} className="animate-spin text-white" /> Updating...
+                </>
+              ) : (
+                <>
+                  <Save size={20} className="text-white" /> Update Maxes
+                </>
+              )}
+            </button>
+            {maxesMessage && (
+              <span className={`text-sm ${maxesMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+                {maxesMessage}
+              </span>
+            )}
           </div>
         </div>
 

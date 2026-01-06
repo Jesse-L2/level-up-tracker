@@ -25,6 +25,14 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
   const [sets, setSets] = useState([]);
   const [message, setMessage] = useState("");
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Level Up Tracker - Create Workout";
+    return () => {
+      document.title = "Level Up Tracker";
+    };
+  }, []);
+
   const library = useMemo(
     () => userProfile.exerciseLibrary || [],
     [userProfile.exerciseLibrary]

@@ -5,12 +5,171 @@ import { doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import programTemplates from "../../public/program-templates.json";
 import { EXERCISE_DATABASE } from "../lib/constants";
 
+const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+
+/**
+ * Creates a default user profile when a new user signs up.
+ * This is separated from the main hook for clarity.
+ */
+async function initializeUserProfile(userId, userDocRef) {
+  const [defaultMaxes, plateData] = await Promise.all([
+    fetch("/default-maxes.json").then(res => res.json()).catch(() => ({})),
+    fetch("/plate-data.json").then(res => res.json()).catch(() => []),
+  ]);
+
+  const custom531Program = programTemplates.programs.custom_531;
+  const lifts = programTemplates.lifts;
+
+  const exerciseLibrary = Object.keys(custom531Program)
+    .filter((key) => key.startsWith("day_"))
+    .flatMap((day) => Object.keys(custom531Program[day]))
+    .reduce((acc, exerciseId) => {
+      if (!acc.find((ex) => ex.id === exerciseId)) {
+        const lift = lifts[exerciseId];
+        const exerciseInfo = Object.values(EXERCISE_DATABASE)
+          .flat()
+          .find((ex) => ex.name === (lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())));
+        const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
+        acc.push({
+          id: exerciseId,
+          name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+          oneRepMax: defaultMaxes[exerciseId] || 100,
+          lastUpdated: new Date().toISOString(),
+          type: exerciseType,
+        });
+      }
+      return acc;
+    }, []);
+
+  const workoutPlan = Object.keys(custom531Program)
+    .filter((key) => key.startsWith("day_"))
+    .reduce((acc, day) => {
+      const dayExercises = custom531Program[day];
+      acc[day] = {
+        name: day.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+        exercises: Object.keys(dayExercises).map((exerciseId) => {
+          const exercise = dayExercises[exerciseId];
+          const lift = lifts[exerciseId];
+          const oneRepMax = (exerciseLibrary.find(e => e.id === exerciseId) || {}).oneRepMax || 100;
+
+          const exerciseInfo = Object.values(EXERCISE_DATABASE)
+            .flat()
+            .find((ex) => ex.name === (lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())));
+          const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
+
+          const sets = exercise.reps.map((rep, index) => {
+            const percentage = exercise.percentages[index] / 100;
+            return {
+              reps: rep,
+              percentage: percentage,
+              weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
+            };
+          });
+
+          return {
+            id: exerciseId,
+            name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+            type: exerciseType,
+            sets: sets,
+          };
+        }),
+      };
+      return acc;
+    }, {});
+
+  const defaultProfile = {
+    goal: "strength",
+    level: "intermediate",
+    availableEquipment: [],
+    availablePlates: plateData.map((p) => ({ weight: p.weight, count: p.quantity })),
+    exerciseLibrary,
+    workoutPlan,
+    workoutHistory: [],
+    xp: 0,
+    level: 1,
+  };
+
+  await setDoc(userDocRef, defaultProfile);
+  return { ...defaultProfile, uid: userId };
+}
+
+/**
+ * Migrates missing fields on existing user profiles.
+ * Called when we detect the profile exists but has missing data.
+ */
+async function migrateUserProfile(userId, userProfileData, userDocRef) {
+  const updates = {};
+  let needsUpdate = false;
+
+  // Add exercise types if missing
+  if (userProfileData.workoutPlan) {
+    const newWorkoutPlan = JSON.parse(JSON.stringify(userProfileData.workoutPlan));
+    for (const day in newWorkoutPlan) {
+      const exercises = newWorkoutPlan[day].exercises;
+      for (const exercise of exercises) {
+        if (!exercise.type) {
+          const exerciseInfo = Object.values(EXERCISE_DATABASE)
+            .flat()
+            .find((ex) => ex.name === exercise.name);
+          if (exerciseInfo) {
+            exercise.type = exerciseInfo.type;
+            needsUpdate = true;
+          }
+        }
+      }
+    }
+    if (needsUpdate) {
+      updates.workoutPlan = newWorkoutPlan;
+    }
+  }
+
+  // Add default plates if missing
+  if (!userProfileData.availablePlates || userProfileData.availablePlates.length === 0) {
+    try {
+      const plateData = await fetch("/plate-data.json").then(res => res.json());
+      updates.availablePlates = plateData.map((p) => ({ weight: p.weight, count: p.quantity }));
+      needsUpdate = true;
+    } catch (err) {
+      console.error("Error fetching plate data:", err);
+    }
+  }
+
+  // Initialize partner workout plan if partner exists but plan is missing
+  if (userProfileData.partner && !userProfileData.partner.workoutPlan && userProfileData.workoutPlan) {
+    try {
+      const defaultMaxes = await fetch("/partner_default_maxes.json").then(res => res.json());
+      const partnerWorkoutPlan = JSON.parse(JSON.stringify(userProfileData.workoutPlan));
+      for (const day in partnerWorkoutPlan) {
+        for (const exercise of partnerWorkoutPlan[day].exercises) {
+          const newOneRepMax = defaultMaxes[exercise.id] || 50;
+          exercise.sets.forEach(set => {
+            set.weight = Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5;
+          });
+        }
+      }
+      updates["partner.workoutPlan"] = partnerWorkoutPlan;
+      updates["partner.maxes"] = defaultMaxes;
+      needsUpdate = true;
+    } catch (err) {
+      console.error("Error initializing partner data:", err);
+    }
+  }
+
+  if (needsUpdate) {
+    await updateDoc(userDocRef, updates);
+  }
+
+  return { ...userProfileData, ...updates, uid: userId };
+}
+
+/**
+ * Hook to manage Firebase user profile data.
+ * Handles fetching, real-time updates, and profile initialization.
+ */
 export const useFirebaseUser = (userId) => {
   const [userProfile, setUserProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
 
   useEffect(() => {
     if (!userId) {
@@ -28,159 +187,22 @@ export const useFirebaseUser = (userId) => {
 
     const unsubscribe = onSnapshot(
       userDocRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const userProfileData = docSnap.data();
-          let needsUpdate = false;
-
-          if (userProfileData.partner && !userProfileData.partner.workoutPlan) {
-            fetch("/partner_default_maxes.json")
-              .then((response) => response.json())
-              .then((defaultMaxes) => {
-                const partnerWorkoutPlan = JSON.parse(JSON.stringify(userProfileData.workoutPlan));
-                for (const day in partnerWorkoutPlan) {
-                  for (const exercise of partnerWorkoutPlan[day].exercises) {
-                    const newOneRepMax = defaultMaxes[exercise.id] || 50;
-                    exercise.sets.forEach(set => {
-                      set.weight = Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5;
-                    });
-                  }
-                }
-                updateDoc(userDocRef, {
-                  "partner.workoutPlan": partnerWorkoutPlan,
-                  "partner.maxes": defaultMaxes,
-                });
-              });
+      async (docSnap) => {
+        try {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const profile = await migrateUserProfile(userId, data, userDocRef);
+            setUserProfile(profile);
+          } else {
+            const profile = await initializeUserProfile(userId, userDocRef);
+            setUserProfile(profile);
           }
-
-          if (userProfileData.workoutPlan) {
-            for (const day in userProfileData.workoutPlan) {
-              const exercises = userProfileData.workoutPlan[day].exercises;
-              for (const exercise of exercises) {
-                if (!exercise.type) {
-                  const exerciseInfo = Object.values(EXERCISE_DATABASE)
-                    .flat()
-                    .find((ex) => ex.name === exercise.name);
-                  if (exerciseInfo) {
-                    exercise.type = exerciseInfo.type;
-                    needsUpdate = true;
-                  }
-                }
-              }
-            }
-          }
-          if (!userProfileData.availablePlates || userProfileData.availablePlates.length === 0) {
-            fetch("/plate-data.json")
-              .then(response => response.json())
-              .then(plateData => {
-                userProfileData.availablePlates = plateData.map((p) => ({ weight: p.weight, count: p.quantity }));
-                needsUpdate = true;
-                if (needsUpdate) {
-                  updateDoc(doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile"), { availablePlates: userProfileData.availablePlates, workoutPlan: userProfileData.workoutPlan });
-                }
-              });
-          } else if (needsUpdate) {
-            updateDoc(doc(db, `artifacts/${appId}/users/${userId}/profile`, "userProfile"), { workoutPlan: userProfileData.workoutPlan });
-          }
-          setUserProfile({ ...userProfileData, uid: userId });
-        } else {
-          const createDefaultProfile = (defaultMaxes, plateData) => {
-            const custom531Program = programTemplates.programs.custom_531;
-            const lifts = programTemplates.lifts;
-
-            const exerciseLibrary = Object.keys(custom531Program)
-              .filter((key) => key.startsWith("day_"))
-              .flatMap((day) => Object.keys(custom531Program[day]))
-              .reduce((acc, exerciseId) => {
-                if (!acc.find((ex) => ex.id === exerciseId)) {
-                  const lift = lifts[exerciseId];
-                  const exerciseInfo = Object.values(EXERCISE_DATABASE)
-                    .flat()
-                    .find((ex) => ex.name === (lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())));
-                  const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
-                  acc.push({
-                    id: exerciseId,
-                    name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-                    oneRepMax: defaultMaxes[exerciseId] || 100, // Default 1RM
-                    lastUpdated: new Date().toISOString(),
-                    type: exerciseType,
-                  });
-                }
-                return acc;
-              }, []);
-
-            const workoutPlan = Object.keys(custom531Program)
-              .filter((key) => key.startsWith("day_"))
-              .reduce((acc, day) => {
-                const dayExercises = custom531Program[day];
-                acc[day] = {
-                  name: day.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-                                    exercises: Object.keys(dayExercises).map((exerciseId) => {
-                  const exercise = dayExercises[exerciseId];
-                  const lift = lifts[exerciseId];
-                  const oneRepMax = (exerciseLibrary.find(e => e.id === exerciseId) || {}).oneRepMax || 100;
-
-                  const exerciseInfo = Object.values(EXERCISE_DATABASE)
-                    .flat()
-                    .find((ex) => ex.name === (lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())));
-                  const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
-
-                  const sets = exercise.reps.map((rep, index) => {
-                    const percentage = exercise.percentages[index] / 100;
-                    return {
-                      reps: rep,
-                      percentage: percentage,
-                      weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
-                    };
-                  });
-
-                  return {
-                    id: exerciseId,
-                    name: lift ? lift.name : exerciseId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-                    type: exerciseType,
-                    sets: sets,
-                  };
-                }),
-                };
-                return acc;
-              }, {});
-
-            const defaultProfile = {
-              goal: "strength",
-              level: "intermediate",
-              availableEquipment: [],
-              availablePlates: plateData.map((p) => ({ weight: p.weight, count: p.quantity })), 
-              exerciseLibrary,
-              workoutPlan,
-              workoutHistory: [],
-            };
-                        setDoc(userDocRef, defaultProfile)
-              .then(() => setUserProfile({ ...defaultProfile, uid: userId }))
-              .catch((err) => {
-                console.error("Error setting default profile:", err);
-                setError(err.message);
-              });
-          };
-
-          fetch("/default-maxes.json")
-            .then((response) => response.json())
-            .then((defaultMaxes) => {
-              fetch("/plate-data.json")
-                .then((response) => response.json())
-                .then((plateData) => {
-                  createDefaultProfile(defaultMaxes, plateData);
-                })
-                .catch((err) => {
-                   console.error("Error fetching plate data:", err);
-                   createDefaultProfile(defaultMaxes, []); // Pass empty array to use fallback
-                });
-            })
-            .catch((err) => {
-              console.error("Error fetching default maxes:", err);
-              createDefaultProfile({}, []); // Pass empty object to use fallback
-            });
+        } catch (err) {
+          console.error("Error processing user profile:", err);
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       },
       (err) => {
         console.error("Firestore snapshot error:", err);
@@ -190,7 +212,7 @@ export const useFirebaseUser = (userId) => {
     );
 
     return () => unsubscribe();
-  }, [userId, appId]);
+  }, [userId]);
 
   const updateUserProfileInFirestore = useCallback(
     async (updatedData) => {
@@ -215,7 +237,19 @@ export const useFirebaseUser = (userId) => {
         setIsLoading(false);
       }
     },
-    [userId, appId]
+    [userId]
+  );
+
+  const deleteWorkout = useCallback(
+    async (workoutIndex) => {
+      if (!userProfile) return;
+
+      const newHistory = [...userProfile.workoutHistory];
+      newHistory.splice(workoutIndex, 1);
+
+      await updateUserProfileInFirestore({ workoutHistory: newHistory });
+    },
+    [userProfile, updateUserProfileInFirestore]
   );
 
   return {
@@ -223,5 +257,6 @@ export const useFirebaseUser = (userId) => {
     isLoading,
     error,
     updateUserProfileInFirestore,
+    deleteWorkout,
   };
 };

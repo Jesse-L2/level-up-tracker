@@ -9,6 +9,14 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
   const [message, setMessage] = useState(null);
   const [plates, setPlates] = useState(availablePlates);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Level Up Tracker - Plate Calculator";
+    return () => {
+      document.title = "Level Up Tracker";
+    };
+  }, []);
+
   useEffect(() => {
     const fetchPlateData = async () => {
       try {

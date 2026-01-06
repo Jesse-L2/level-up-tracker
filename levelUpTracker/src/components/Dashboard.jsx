@@ -18,8 +18,9 @@ import {
   BookOpen, // New Icon
   LogOut,
 } from "lucide-react";
-import { Modal } from "./ui/Modal";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
+import { calculateLevel, calculateProgressToNextLevel } from "../lib/gamification";
+import { Trophy } from "lucide-react";
 
 const daysOrder = [
   "Day 1",
@@ -31,9 +32,8 @@ const daysOrder = [
   "Day 7",
 ];
 
-export const Dashboard = ({ userProfile, onNavigate }) => {
+export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
   const [expandedDay, setExpandedDay] = useState(null);
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(null);
   const [isPartnerView, setIsPartnerView] = useState(false);
 
@@ -43,6 +43,23 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
     },
     [expandedHistory]
   );
+
+  // handleDelete helper for the dashboard widget
+  const handleDelete = async (index, e) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this workout?")) {
+      // Dashboard uses sliced reverse array, need to find original index
+      // The display is slice().reverse(), but slice() copies the whole array if userProfile.workoutHistory
+      // Actually the code below uses: userProfile.workoutHistory.slice().reverse()
+      // So index 0 in display is last element in original array.
+      const history = isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory;
+      const originalIndex = history.length - 1 - index;
+
+      if (deleteWorkout) {
+        await deleteWorkout(originalIndex);
+      }
+    }
+  };
 
   const toggleDay = useCallback(
     (dayName) => {
@@ -174,7 +191,19 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
       <div className="max-w-6xl mx-auto">
         <header className="flex flex-wrap justify-between items-center mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-white">LevelUp Tracker</h1>
+            <h1 className="text-4xl font-bold text-white mb-2">LevelUp Tracker</h1>
+            <div className="flex items-center gap-4 mb-2">
+              <div className="flex items-center gap-2 bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full border border-yellow-500/50">
+                <Trophy size={16} />
+                <span className="font-bold">Level {calculateLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}</span>
+              </div>
+              <div className="w-32 md:w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-yellow-500 transition-all duration-1000"
+                  style={{ width: `${calculateProgressToNextLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}%` }}
+                />
+              </div>
+            </div>
             <p className="text-gray-300">
               {isPartnerView ? `${userProfile.partner.name}'s personalized workout dashboard.` : 'Your personalized workout dashboard.'}
             </p>
@@ -415,7 +444,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
               </h2>
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {(isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory) &&
-                (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory).length > 0 ? (
+                  (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory).length > 0 ? (
                   (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory)
                     .slice()
                     .reverse()
@@ -466,7 +495,7 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
                 )}
               </div>
               <button
-                onClick={() => setIsHistoryModalOpen(true)}
+                onClick={() => onNavigate("history")}
                 className="w-full mt-4 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
               >
                 View Full History
@@ -475,47 +504,6 @@ export const Dashboard = ({ userProfile, onNavigate }) => {
           </div>
         </div>
       </div>
-
-      <Modal
-        isOpen={isHistoryModalOpen}
-        onClose={() => setIsHistoryModalOpen(false)}
-        title="Full Workout History"
-      >
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-          {(isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory) &&
-          (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory).length > 0 ? (
-            (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory)
-              .slice()
-              .reverse()
-              .map((session, index) => (
-                <div key={index} className="bg-gray-700 p-4 rounded-lg">
-                  <h4 className="font-bold text-lg text-white">
-                    {session.dayName} -{" "}
-                    {new Date(session.date).toLocaleDateString()}
-                  </h4>
-                  <ul className="list-disc list-inside mt-2 text-gray-300">
-                    {session.exercises.length > 0 ? (
-                      session.exercises.map((ex, exIndex) => (
-                        <li key={exIndex}>
-                          {ex.name}:{" "}
-                          {ex.sets
-                            .map((s) => `${s.reps}x${s.weight}lbs`)
-                            .join(", ")}
-                        </li>
-                      ))
-                    ) : (
-                      <p className="text-gray-400">
-                        No sets logged for this exercise.
-                      </p>
-                    )}
-                  </ul>
-                </div>
-              ))
-          ) : (
-            <p className="text-gray-400">No history to show.</p>
-          )}
-        </div>
-      </Modal>
     </div>
   );
 };

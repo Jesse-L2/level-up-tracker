@@ -9,6 +9,15 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
   const { updateUserProfileInFirestore } = useWorkout();
   const [templateExercises, setTemplateExercises] = useState([]);
   const [library, setLibrary] = useState(userProfile.exerciseLibrary || []);
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Level Up Tracker - Exercise Library";
+    return () => {
+      document.title = "Level Up Tracker";
+    };
+  }, []);
+
   useEffect(() => {
     fetch("/program-templates.json")
       .then((response) => response.json())
@@ -233,17 +242,17 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
           </div>
           {(newExercise.type === "weighted" ||
             newExercise.type === "barbell") && (
-            <div className="mt-4">
-              <FormField
-                label="Theoretical 1 Rep Max (lbs)"
-                id="oneRepMax"
-                name="oneRepMax"
-                type="number"
-                value={newExercise.oneRepMax}
-                onChange={handleInputChange}
-              />
-            </div>
-          )}
+              <div className="mt-4">
+                <FormField
+                  label="Theoretical 1 Rep Max (lbs)"
+                  id="oneRepMax"
+                  name="oneRepMax"
+                  type="number"
+                  value={newExercise.oneRepMax}
+                  onChange={handleInputChange}
+                />
+              </div>
+            )}
           {message && (
             <p className="text-red-400 text-center mt-4">{message}</p>
           )}
