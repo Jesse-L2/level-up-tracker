@@ -14,6 +14,7 @@ import { ExerciseLibrary } from "./components/ExerciseLibrary";
 import { WorkoutHistory } from "./components/WorkoutHistory";
 import ProgramTemplates from "./components/ProgramTemplates";
 import ProgramTemplateDetails from "./components/ProgramTemplateDetails";
+import { OneRepMaxPrompt } from "./components/OneRepMaxPrompt";
 import { Login } from "./components/Login";
 import { Signup } from "./components/Signup";
 import { Loader2 } from "lucide-react";
@@ -193,59 +194,149 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
 function ProgramTemplateDetailsWrapper({ userProfile, updateUserProfileInFirestore }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showOneRepMaxPrompt, setShowOneRepMaxPrompt] = useState(false);
+  const [missingExercises, setMissingExercises] = useState([]);
+  const [pendingProgram, setPendingProgram] = useState(null);
+  const [lifts, setLifts] = useState({});
+  const [program, setProgram] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch all data once
+  useEffect(() => {
+    fetch('/program-templates.json')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        setLifts(data.lifts || {});
+        const foundProgram = data.programs[id];
+        if (foundProgram) {
+          setProgram(foundProgram);
+        } else {
+          setError(new Error("Program not found."));
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching program templates:", err);
+        setError(err);
+        setLoading(false);
+      });
+  }, [id]);
+
+  // Get all exercise IDs from a program
+  const getAllProgramExercises = useCallback((prog) => {
+    const metaKeys = ['id', 'name', 'description', 'structure'];
+    const workoutKeys = Object.keys(prog).filter(k => !metaKeys.includes(k));
+    const exerciseIds = new Set();
+    workoutKeys.forEach(key => {
+      Object.keys(prog[key]).forEach(liftId => exerciseIds.add(liftId));
+    });
+    return Array.from(exerciseIds);
+  }, []);
+
+  // Find exercises not in user's library
+  const findMissingExercises = useCallback((prog) => {
+    if (!userProfile?.exerciseLibrary) return [];
+    const programExercises = getAllProgramExercises(prog);
+    const userLibraryNames = userProfile.exerciseLibrary.map(ex => ex.name.toLowerCase());
+
+    return programExercises.filter(liftId => {
+      const liftInfo = lifts[liftId];
+      const liftName = liftInfo?.name || liftId;
+      return !userLibraryNames.includes(liftName.toLowerCase());
+    });
+  }, [userProfile, lifts, getAllProgramExercises]);
+
+  const applyProgram = useCallback((prog, additionalExercises = []) => {
+    if (!userProfile) return;
+
+    // Merge additional exercises into the library
+    const newExerciseLibrary = [...(userProfile.exerciseLibrary || []), ...additionalExercises];
+
+    const newWorkoutPlan = {};
+    const metaKeys = ['id', 'name', 'description', 'structure'];
+    const workoutDays = Object.keys(prog).filter(k => !metaKeys.includes(k));
+
+    workoutDays.forEach((dayKey) => {
+      const workoutDay = prog[dayKey];
+      const exercises = [];
+
+      for (const liftId in workoutDay) {
+        const exerciseDetails = workoutDay[liftId];
+        const liftInfo = lifts[liftId];
+        const liftName = liftInfo?.name || liftId;
+
+        const libraryExercise = newExerciseLibrary.find(
+          (e) => e.name.toLowerCase() === liftName.toLowerCase()
+        );
+        const oneRepMax = libraryExercise ? libraryExercise.oneRepMax : 100;
+
+        const exerciseInfo = Object.values(EXERCISE_DATABASE)
+          .flat()
+          .find((ex) => ex.name.toLowerCase() === liftName.toLowerCase());
+        const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
+
+        const sets = exerciseDetails.reps.map((rep, index) => {
+          const percentage = exerciseDetails.percentages[index] / 100;
+          return {
+            reps: rep,
+            percentage: percentage,
+            weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
+          };
+        });
+
+        exercises.push({
+          id: liftId,
+          name: liftName,
+          type: exerciseType,
+          oneRepMax: oneRepMax,
+          sets: sets,
+        });
+      }
+
+      newWorkoutPlan[dayKey] = { exercises };
+    });
+
+    updateUserProfileInFirestore({
+      workoutPlan: newWorkoutPlan,
+      exerciseLibrary: newExerciseLibrary,
+    });
+    navigate(ROUTES.DASHBOARD);
+  }, [userProfile, updateUserProfileInFirestore, navigate, lifts]);
 
   const handleSelectProgramTemplate = useCallback(
-    (program) => {
+    (prog) => {
       if (!userProfile) return;
 
-      const newWorkoutPlan = {};
-      const workoutDays = Object.keys(program).filter(
-        (k) =>
-          k.startsWith("workout_") || k.startsWith("day_") || k.endsWith("_day")
-      );
-
-      workoutDays.forEach((dayKey) => {
-        const workoutDay = program[dayKey];
-        const exercises = [];
-
-        for (const exerciseName in workoutDay) {
-          const exerciseDetails = workoutDay[exerciseName];
-          const libraryExercise = userProfile.exerciseLibrary.find(
-            (e) => e.name === exerciseName
-          );
-          const oneRepMax = libraryExercise ? libraryExercise.oneRepMax : 100;
-
-          const exerciseInfo = Object.values(EXERCISE_DATABASE)
-            .flat()
-            .find((ex) => ex.name === exerciseName);
-          const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
-
-          const sets = exerciseDetails.reps.map((rep, index) => {
-            const percentage = exerciseDetails.percentages[index] / 100;
-            return {
-              reps: rep,
-              percentage: percentage,
-              weight: Math.round((oneRepMax * percentage) / 2.5) * 2.5,
-            };
-          });
-
-          exercises.push({
-            id: exerciseName,
-            name: exerciseName,
-            type: exerciseType,
-            oneRepMax: oneRepMax,
-            sets: sets,
-          });
-        }
-
-        newWorkoutPlan[dayKey] = { exercises };
-      });
-
-      updateUserProfileInFirestore({ workoutPlan: newWorkoutPlan });
-      navigate(ROUTES.DASHBOARD);
+      const missing = findMissingExercises(prog);
+      if (missing.length > 0) {
+        setMissingExercises(missing);
+        setPendingProgram(prog);
+        setShowOneRepMaxPrompt(true);
+      } else {
+        applyProgram(prog);
+      }
     },
-    [userProfile, updateUserProfileInFirestore, navigate]
+    [userProfile, findMissingExercises, applyProgram]
   );
+
+  const handleSaveOneRepMaxes = useCallback((newExercises) => {
+    setShowOneRepMaxPrompt(false);
+    if (pendingProgram) {
+      applyProgram(pendingProgram, newExercises);
+    }
+    setPendingProgram(null);
+    setMissingExercises([]);
+  }, [pendingProgram, applyProgram]);
+
+  const handleCancelOneRepMaxPrompt = useCallback(() => {
+    setShowOneRepMaxPrompt(false);
+    setPendingProgram(null);
+    setMissingExercises([]);
+  }, []);
 
   const handleNavigate = useCallback((page, data = null, templateId = null) => {
     if (page === "program_templates") {
@@ -256,14 +347,29 @@ function ProgramTemplateDetailsWrapper({ userProfile, updateUserProfileInFiresto
   }, [navigate]);
 
   return (
-    <ProgramTemplateDetails
-      id={id}
-      onBack={() => navigate(ROUTES.PROGRAM_TEMPLATES)}
-      onNavigate={handleNavigate}
-      onSelectProgram={handleSelectProgramTemplate}
-    />
+    <>
+      <ProgramTemplateDetails
+        id={id}
+        program={program}
+        lifts={lifts}
+        loading={loading}
+        error={error}
+        onBack={() => navigate(ROUTES.PROGRAM_TEMPLATES)}
+        onNavigate={handleNavigate}
+        onSelectProgram={handleSelectProgramTemplate}
+      />
+      {showOneRepMaxPrompt && (
+        <OneRepMaxPrompt
+          missingExercises={missingExercises}
+          lifts={lifts}
+          onSave={handleSaveOneRepMaxes}
+          onCancel={handleCancelOneRepMaxPrompt}
+        />
+      )}
+    </>
   );
 }
+
 
 function AppContent() {
   const navigate = useNavigate();
