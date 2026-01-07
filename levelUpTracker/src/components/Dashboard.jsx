@@ -32,6 +32,15 @@ const daysOrder = [
   "Day 7",
 ];
 
+// Helper to format snake_case exercise names to Title Case
+const formatExerciseName = (name) => {
+  if (!name) return '';
+  return name
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
   const [expandedDay, setExpandedDay] = useState(null);
   const [expandedHistory, setExpandedHistory] = useState(null);
@@ -91,15 +100,22 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
         day.exercises.forEach((ex) => exercises.add(ex.name));
       });
     }
-    return Array.from(exercises);
+    // Sort alphabetically by formatted name
+    return Array.from(exercises).sort((a, b) =>
+      formatExerciseName(a).localeCompare(formatExerciseName(b))
+    );
   };
 
   const uniqueExercises = getUniqueExercises();
 
-  // Set default selected exercise
+  // Set default selected exercise (prefer Bench Press)
   useEffect(() => {
     if (uniqueExercises.length > 0 && !selectedExercise) {
-      setSelectedExercise(uniqueExercises[0]);
+      // Try to find Bench Press (handles both "Bench Press" and "bench_press")
+      const benchPress = uniqueExercises.find(
+        (ex) => formatExerciseName(ex).toLowerCase() === 'bench press'
+      );
+      setSelectedExercise(benchPress || uniqueExercises[0]);
     }
   }, [uniqueExercises, selectedExercise]);
 
@@ -114,20 +130,29 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
 
     const exerciseData = workoutHistory
       .map((session) => {
+        // Normalize names for comparison (handle both snake_case and Title Case)
+        const normalizedSelectedExercise = selectedExercise.toLowerCase().replace(/_/g, ' ');
         const exercise = session.exercises.find(
-          (ex) => ex.name === selectedExercise
+          (ex) => ex.name.toLowerCase().replace(/_/g, ' ') === normalizedSelectedExercise
         );
-        if (!exercise) return null;
+        if (!exercise || !exercise.sets || exercise.sets.length === 0) return null;
 
         const topSet = exercise.sets.reduce(
-          (max, set) => (set.weight > max.weight ? set : max),
+          (max, set) => {
+            const weight = parseFloat(set.weight) || 0;
+            const maxWeight = parseFloat(max.weight) || 0;
+            return weight > maxWeight ? set : max;
+          },
           { weight: 0, reps: 0 }
         );
 
-        if (topSet.weight === 0) return null;
+        const topWeight = parseFloat(topSet.weight) || 0;
+        const topReps = parseFloat(topSet.reps) || 0;
+
+        if (topWeight === 0) return null;
 
         // Epley 1RM Formula
-        const oneRepMax = topSet.weight * (1 + topSet.reps / 30);
+        const oneRepMax = topWeight * (1 + topReps / 30);
 
         return {
           date: new Date(session.date).toISOString().split("T")[0],
@@ -372,7 +397,7 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                   >
                     {uniqueExercises.map((ex) => (
                       <option key={ex} value={ex}>
-                        {ex}
+                        {formatExerciseName(ex)}
                       </option>
                     ))}
                   </select>
@@ -406,7 +431,7 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
               ) : (
                 <p className="text-gray-400 text-center py-8">
                   {selectedExercise
-                    ? `No data for ${selectedExercise}. Complete a workout to track your progress!`
+                    ? `No data for ${formatExerciseName(selectedExercise)}. Complete a workout to track your progress!`
                     : "No exercises found in your plan."}
                 </p>
               )}
