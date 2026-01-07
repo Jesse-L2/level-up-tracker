@@ -268,9 +268,11 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                           <span className="font-bold text-lg text-white">
                             {dayName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                           </span>
-                          <span className="text-sm text-gray-300">
-                            {workoutDetails.name.split('_').slice(2).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                          </span>
+                          {workoutDetails.name && (
+                            <span className="text-sm text-gray-300">
+                              {workoutDetails.name.split('_').slice(2).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-4">
                           <button
