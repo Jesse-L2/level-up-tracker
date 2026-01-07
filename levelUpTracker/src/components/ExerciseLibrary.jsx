@@ -46,13 +46,6 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
           })
         );
         setTemplateExercises(formattedTemplateExercises);
-        // Filter out template exercises from the user's library to avoid duplicates
-        setLibrary((prevLibrary) => {
-          const templateNames = new Set(
-            formattedTemplateExercises.map((ex) => ex.name)
-          );
-          return prevLibrary.filter((ex) => !templateNames.has(ex.name));
-        });
       })
       .catch((error) =>
         console.error("Error fetching program templates for library:", error)
@@ -189,33 +182,6 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
         </div>
 
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Template Exercises</h2>
-          {templateExercises.length > 0 ? (
-            <div className="space-y-3">
-              {templateExercises.map((ex) => (
-                <div
-                  key={ex.name}
-                  className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-bold text-white">{ex.name}</p>
-                    <p className="text-sm text-gray-300">
-                      {ex.type === "weighted" || ex.type === "barbell"
-                        ? `1RM: ${ex.oneRepMax} lbs`
-                        : "Bodyweight"}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">
-              No template exercises found.
-            </p>
-          )}
-        </div>
-
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
           <h2 className="text-2xl font-semibold mb-4">
             {editingExercise ? "Edit Lift" : "Add New Lift"}
           </h2>
@@ -273,6 +239,33 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
               </button>
             )}
           </div>
+        </div>
+
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
+          <h2 className="text-2xl font-semibold mb-4">Template Exercises</h2>
+          {templateExercises.length > 0 ? (
+            <div className="space-y-3">
+              {templateExercises.map((ex) => (
+                <div
+                  key={ex.name}
+                  className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"
+                >
+                  <div>
+                    <p className="font-bold text-white">{ex.name}</p>
+                    <p className="text-sm text-gray-300">
+                      {ex.type === "weighted" || ex.type === "barbell"
+                        ? `1RM: ${ex.oneRepMax} lbs`
+                        : "Bodyweight"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-4">
+              No template exercises found.
+            </p>
+          )}
         </div>
 
         <div className="mt-8 flex justify-end">
