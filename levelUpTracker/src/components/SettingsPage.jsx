@@ -164,7 +164,10 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
     }));
   }, []);
 
-  const handleOneRepMaxChange = useCallback((exerciseId, newOneRepMax) => {
+  const handleOneRepMaxChange = useCallback((exerciseId, rawValue) => {
+    // Validate 1RM: must be between 0 and 2000 lbs
+    const newOneRepMax = Math.max(0, Math.min(2000, rawValue || 0));
+
     setProfile((prevProfile) => {
       const newWorkoutPlan = JSON.parse(JSON.stringify(prevProfile.workoutPlan));
       for (const day in newWorkoutPlan) {
@@ -193,7 +196,10 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   }, []);
 
   const handlePartnerOneRepMaxChange = useCallback(
-    (exerciseId, newOneRepMax) => {
+    (exerciseId, rawValue) => {
+      // Validate partner 1RM: must be between 0 and 2000 lbs
+      const newOneRepMax = Math.max(0, Math.min(2000, rawValue || 0));
+
       setProfile((prevProfile) => ({
         ...prevProfile,
         partner: {

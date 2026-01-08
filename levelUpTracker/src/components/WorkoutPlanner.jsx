@@ -74,36 +74,39 @@ export const WorkoutPlanner = ({
   };
 
   const handleSaveOneRepMax = () => {
-    const newOneRepMax = parseFloat(editValue.oneRepMax);
-    if (newOneRepMax > 0) {
-      // Update the exercise library in Firebase
-      onUpdateLibrary(currentExercise.name, newOneRepMax);
-
-      // Immediately update the local workout day state so the UI reflects the change
-      const updatedExercises = workoutDay.exercises.map((ex, index) => {
-        if (index === currentExerciseIndex) {
-          return {
-            ...ex,
-            oneRepMax: newOneRepMax,
-            sets: ex.sets.map((set) => ({
-              ...set,
-              weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
-            })),
-          };
-        }
-        return ex;
-      });
-
-      const updatedWorkoutDay = {
-        ...workoutDay,
-        exercises: updatedExercises,
-      };
-
-      onUpdateWorkoutDay(updatedWorkoutDay);
-      setIsEditing(false);
-    } else {
-      setMessage("Please enter a valid 1 Rep Max.");
+    const rawValue = parseFloat(editValue.oneRepMax);
+    // Validate 1RM: must be between 1 and 2000 lbs
+    if (isNaN(rawValue) || rawValue <= 0 || rawValue > 2000) {
+      setMessage("Please enter a valid 1 Rep Max (1-2000 lbs).");
+      return;
     }
+    const newOneRepMax = Math.max(1, Math.min(2000, rawValue));
+
+    // Update the exercise library in Firebase
+    onUpdateLibrary(currentExercise.name, newOneRepMax);
+
+    // Immediately update the local workout day state so the UI reflects the change
+    const updatedExercises = workoutDay.exercises.map((ex, index) => {
+      if (index === currentExerciseIndex) {
+        return {
+          ...ex,
+          oneRepMax: newOneRepMax,
+          sets: ex.sets.map((set) => ({
+            ...set,
+            weight: Math.round((newOneRepMax * set.percentage) / 2.5) * 2.5,
+          })),
+        };
+      }
+      return ex;
+    });
+
+    const updatedWorkoutDay = {
+      ...workoutDay,
+      exercises: updatedExercises,
+    };
+
+    onUpdateWorkoutDay(updatedWorkoutDay);
+    setIsEditing(false);
   };
 
   const handleOneRepMaxChange = (delta) => {
@@ -126,11 +129,15 @@ export const WorkoutPlanner = ({
   };
 
   const handleSavePartnerOneRepMax = () => {
-    const newOneRepMax = parseFloat(partnerEditValue.oneRepMax);
-    if (newOneRepMax > 0) {
-      onUpdatePartnerWorkoutData(currentExercise.id, newOneRepMax);
-      setIsEditingPartner(false);
+    const rawValue = parseFloat(partnerEditValue.oneRepMax);
+    // Validate partner 1RM: must be between 1 and 2000 lbs
+    if (isNaN(rawValue) || rawValue <= 0 || rawValue > 2000) {
+      setMessage("Please enter a valid 1 Rep Max (1-2000 lbs).");
+      return;
     }
+    const newOneRepMax = Math.max(1, Math.min(2000, rawValue));
+    onUpdatePartnerWorkoutData(currentExercise.id, newOneRepMax);
+    setIsEditingPartner(false);
   };
 
   const handleFinishWorkout = useCallback(() => {
@@ -243,7 +250,6 @@ export const WorkoutPlanner = ({
           }),
         };
         onUpdateWorkoutDay(updatedWorkoutDay);
-        console.log("updatedWorkoutDay", updatedWorkoutDay);
         return newLog;
       });
       startTimer(userProfile.restTimer || 120, userType, setIndex);
