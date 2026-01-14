@@ -55,8 +55,8 @@ export const WorkoutPlanner = ({
     const initialLog = { user: {}, partner: {} };
     workoutDay.exercises.forEach((ex, exIndex) => {
       const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
-        reps: "",
-        weight: "",
+        reps: set.reps,
+        weight: set.weight,
         completed: false,
         targetReps: set.reps,
         targetWeight: set.weight,
@@ -601,18 +601,22 @@ const SetCard = ({
   return (
     <div>
       <div
-        className={`flex items-center justify-between p-4 rounded-lg h-32 ${log.completed ? "bg-green-800/50" : "bg-gray-700"
+        className={`flex flex-col sm:flex-row sm:items-center p-3 sm:p-4 rounded-lg gap-2 sm:gap-4 ${log.completed ? "bg-green-800/50" : "bg-gray-700"
           }`}
       >
-        <div className="flex items-center gap-4">
+        {/* Main row */}
+        <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          {/* Set number badge */}
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${log.completed ? "bg-green-500" : "bg-gray-600"
+            className={`w-11 h-11 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${log.completed ? "bg-green-500" : "bg-gray-600"
               }`}
           >
             {setIndex + 1}
           </div>
-          <div>
-            <p className="font-semibold">
+
+          {/* Target info - hidden on mobile, shown on sm+ */}
+          <div className="hidden sm:block min-w-0 flex-1">
+            <p className="font-semibold text-base">
               Target: {set.reps} reps @ {set.weight} lbs
             </p>
             {set.weight > 0 && (
@@ -622,32 +626,81 @@ const SetCard = ({
               />
             )}
           </div>
+
+          {/* Input controls - takes remaining space on mobile */}
+          {!log.completed ? (
+            <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+              {/* Unified input group */}
+              <div className="flex items-center bg-gray-800 rounded-xl overflow-hidden border border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/30 transition-colors duration-200 flex-1 sm:flex-initial">
+                {/* Reps input group */}
+                <div className="flex items-center flex-1 sm:flex-initial justify-center sm:justify-start px-1">
+                  <div className="relative">
+                    <input
+                      id={`reps-${userType}-${setIndex}`}
+                      type="number"
+                      value={log.reps}
+                      className="w-14 sm:w-16 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
+                      onChange={(e) => {
+                        const reps = e.target.value;
+                        setSessionLog((prevLog) => {
+                          const newLog = JSON.parse(JSON.stringify(prevLog));
+                          newLog[userType][exIndex][setIndex].reps = reps;
+                          return newLog;
+                        });
+                      }}
+                    />
+                    <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
+                  </div>
+                  <span className="text-gray-400 text-xs sm:text-sm pr-2 sm:pr-3 border-r border-gray-600">reps</span>
+                </div>
+
+                {/* Weight input group */}
+                <div className="flex items-center flex-1 sm:flex-initial justify-center sm:justify-start px-1">
+                  <div className="relative">
+                    <input
+                      id={`weight-${userType}-${setIndex}`}
+                      type="number"
+                      value={log.weight}
+                      className="w-16 sm:w-20 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
+                      onChange={(e) => {
+                        const weight = e.target.value;
+                        setSessionLog((prevLog) => {
+                          const newLog = JSON.parse(JSON.stringify(prevLog));
+                          newLog[userType][exIndex][setIndex].weight = weight;
+                          return newLog;
+                        });
+                      }}
+                    />
+                    <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
+                  </div>
+                  <span className="text-gray-400 text-xs sm:text-sm pr-2 sm:pr-3">lbs</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleSetComplete(exIndex, setIndex, userType)}
+                className="bg-green-600 hover:bg-green-500 text-white font-bold h-12 px-4 sm:px-5 rounded-xl transition-colors text-base shadow-lg hover:shadow-green-500/25 flex-shrink-0"
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-green-700/30 px-4 py-3 rounded-xl border border-green-600/50 flex-1 sm:flex-initial justify-center sm:justify-start">
+              <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps} reps</span>
+              <span className="text-green-500 text-sm">@</span>
+              <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
+            </div>
+          )}
         </div>
-        {!log.completed ? (
-          <div className="flex items-center gap-2">
-            <FormField
-              id={`reps-${userType}-${setIndex}`}
-              type="number"
-              placeholder="Reps"
-              className="w-16 bg-gray-800"
-              onChange={(e) => {
-                const reps = e.target.value;
-                setSessionLog((prevLog) => {
-                  const newLog = JSON.parse(JSON.stringify(prevLog));
-                  newLog[userType][exIndex][setIndex].reps = reps;
-                  return newLog;
-                });
-              }}
+
+        {/* Plate display - shown below on mobile only, centered */}
+        {set.weight > 0 && (
+          <div className="flex sm:hidden justify-center">
+            <MiniPlateDisplay
+              targetWeight={set.weight}
+              availablePlates={availablePlates}
             />
-            <button
-              onClick={() => handleSetComplete(exIndex, setIndex, userType)}
-              className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg"
-            >
-              Save
-            </button>
           </div>
-        ) : (
-          <p className="text-lg">{log.reps} reps</p>
         )}
       </div>
       {isTimerActive && isCurrentCompletedSet && (
