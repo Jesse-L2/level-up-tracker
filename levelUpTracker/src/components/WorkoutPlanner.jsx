@@ -51,6 +51,7 @@ export const WorkoutPlanner = ({
   };
 
   useEffect(() => {
+    // Initialize session log
     const initialLog = { user: {}, partner: {} };
     workoutDay.exercises.forEach((ex, exIndex) => {
       const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
@@ -66,7 +67,49 @@ export const WorkoutPlanner = ({
       }
     });
     setSessionLog(initialLog);
-  }, [workoutDay, userProfile.partner]);
+
+    // Auto-fix: Check for snake_case names and fix them against the library
+    let hasChanges = false;
+    const updatedExercises = workoutDay.exercises.map(ex => {
+      if (ex.name.includes('_')) {
+        // Convert snake_case to Title Case (e.g., bench_press -> Bench Press)
+        const formatName = (n) => n.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        const fixedName = formatName(ex.name);
+
+        // Find existing data in library
+        const libraryEntry = userProfile.exerciseLibrary?.find(
+          libEx => libEx.name.toLowerCase() === fixedName.toLowerCase()
+        );
+
+        if (libraryEntry) {
+          hasChanges = true;
+          const newMax = libraryEntry.oneRepMax;
+          return {
+            ...ex,
+            name: fixedName,
+            oneRepMax: newMax,
+            sets: ex.sets.map(s => ({
+              ...s,
+              weight: Math.round((newMax * s.percentage) / 2.5) * 2.5
+            }))
+          };
+        } else {
+          // Just fix the name format even if not in library
+          hasChanges = true;
+          return { ...ex, name: fixedName };
+        }
+      }
+      return ex;
+    });
+
+    if (hasChanges) {
+      const newWorkoutDay = { ...workoutDay, exercises: updatedExercises };
+      // Delay update slightly to avoid render loop interruption, though direct call is usually safe
+      // Calling onUpdateWorkoutDay will propagate changes back to parent/Firestore
+      onUpdateWorkoutDay(newWorkoutDay);
+    }
+
+  }, [workoutDay, userProfile.partner, userProfile.exerciseLibrary, onUpdateWorkoutDay]);
 
   const handleStartEditOneRepMax = () => {
     setIsEditing(true);

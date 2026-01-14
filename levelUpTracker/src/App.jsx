@@ -267,7 +267,10 @@ function ProgramTemplateDetailsWrapper({ userProfile, updateUserProfileInFiresto
       for (const liftId in workoutDay) {
         const exerciseDetails = workoutDay[liftId];
         const liftInfo = lifts[liftId];
-        const liftName = liftInfo?.name || liftId;
+
+        // Helper to format snake_case to Title Case (fallback if liftInfo is missing)
+        const formatIdToName = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        const liftName = liftInfo?.name || formatIdToName(liftId);
 
         const libraryExercise = newExerciseLibrary.find(
           (e) => e.name.toLowerCase() === liftName.toLowerCase()
@@ -280,7 +283,9 @@ function ProgramTemplateDetailsWrapper({ userProfile, updateUserProfileInFiresto
         const exerciseType = exerciseInfo ? exerciseInfo.type : "weighted";
 
         const sets = exerciseDetails.reps.map((rep, index) => {
-          const percentage = exerciseDetails.percentages[index] / 100;
+          // Use specific percentage or fallback to the last defined percentage
+          const rawPercentage = exerciseDetails.percentages[index] ?? exerciseDetails.percentages[exerciseDetails.percentages.length - 1];
+          const percentage = rawPercentage / 100;
           return {
             reps: rep,
             percentage: percentage,
