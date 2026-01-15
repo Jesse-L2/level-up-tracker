@@ -277,8 +277,10 @@ export const WorkoutPlanner = ({
         };
         return newLog;
       });
+      // Stop the timer if it's running
+      stopTimer();
     },
-    [setSessionLog]
+    [setSessionLog, stopTimer]
   );
 
   const handleSelectExercise = (index) => {
