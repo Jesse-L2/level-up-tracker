@@ -15,6 +15,8 @@ export const WorkoutPlanner = ({
   userProfile,
   onUpdatePartnerWorkoutData,
   onUpdateWorkoutDay,
+  sessionLog,
+  setSessionLog,
 }) => {
   const {
     isTimerActive,
@@ -24,7 +26,6 @@ export const WorkoutPlanner = ({
     lastCompletedSet,
   } = useWorkout();
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  const [sessionLog, setSessionLog] = useState({ user: {}, partner: {} });
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [suggested1RM, setSuggested1RM] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -50,23 +51,12 @@ export const WorkoutPlanner = ({
     setIsPartnerView((prev) => userProfile.partner && !prev);
   };
 
+  // Ref to track if snake_case names have been fixed
+  const hasFixedNamesRef = React.useRef(false);
+
+  // Handle snake_case name fix - only run once on mount
   useEffect(() => {
-    // Initialize session log
-    const initialLog = { user: {}, partner: {} };
-    workoutDay.exercises.forEach((ex, exIndex) => {
-      const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
-        reps: set.reps,
-        weight: set.weight,
-        completed: false,
-        targetReps: set.reps,
-        targetWeight: set.weight,
-      }));
-      initialLog.user[exIndex] = JSON.parse(JSON.stringify(setsData));
-      if (userProfile.partner) {
-        initialLog.partner[exIndex] = JSON.parse(JSON.stringify(setsData));
-      }
-    });
-    setSessionLog(initialLog);
+    if (hasFixedNamesRef.current) return;
 
     // Auto-fix: Check for snake_case names and fix them against the library
     let hasChanges = false;
@@ -103,13 +93,12 @@ export const WorkoutPlanner = ({
     });
 
     if (hasChanges) {
+      hasFixedNamesRef.current = true;
       const newWorkoutDay = { ...workoutDay, exercises: updatedExercises };
-      // Delay update slightly to avoid render loop interruption, though direct call is usually safe
-      // Calling onUpdateWorkoutDay will propagate changes back to parent/Firestore
       onUpdateWorkoutDay(newWorkoutDay);
     }
-
-  }, [workoutDay, userProfile.partner, userProfile.exerciseLibrary, onUpdateWorkoutDay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleStartEditOneRepMax = () => {
     setIsEditing(true);
@@ -260,6 +249,7 @@ export const WorkoutPlanner = ({
 
   const handleSetComplete = useCallback(
     (exIndex, setIndex, userType) => {
+      // Update the session log only - no Firebase update to avoid page refresh
       setSessionLog((prevLog) => {
         const newLog = JSON.parse(JSON.stringify(prevLog));
         const currentSetLog = newLog[userType][exIndex][setIndex];
@@ -269,35 +259,26 @@ export const WorkoutPlanner = ({
           weight: currentSetLog.weight || currentSetLog.targetWeight,
           completed: true,
         };
-
-        const updatedWorkoutDay = {
-          ...workoutDay,
-          dayIdentifier: workoutDay.dayIdentifier,
-          exercises: workoutDay.exercises.map((ex, i) => {
-            if (i === exIndex) {
-              const newSets = ex.sets.map((set, j) => {
-                if (j === setIndex) {
-                  return {
-                    ...set,
-                    completed: true,
-                    completedReps:
-                      newLog[userType][exIndex][setIndex].reps ||
-                      newLog[userType][exIndex][setIndex].targetReps,
-                  };
-                }
-                return set;
-              });
-              return { ...ex, sets: newSets };
-            }
-            return ex;
-          }),
-        };
-        onUpdateWorkoutDay(updatedWorkoutDay);
         return newLog;
       });
       startTimer(userProfile.restTimer || 120, userType, setIndex);
     },
-    [startTimer, userProfile.restTimer, workoutDay, onUpdateWorkoutDay]
+    [startTimer, userProfile.restTimer, setSessionLog]
+  );
+
+  // Function to mark a set as not complete (undo completion)
+  const handleSetUncomplete = useCallback(
+    (exIndex, setIndex, userType) => {
+      setSessionLog((prevLog) => {
+        const newLog = JSON.parse(JSON.stringify(prevLog));
+        newLog[userType][exIndex][setIndex] = {
+          ...newLog[userType][exIndex][setIndex],
+          completed: false,
+        };
+        return newLog;
+      });
+    },
+    [setSessionLog]
   );
 
   const handleSelectExercise = (index) => {
@@ -516,6 +497,7 @@ export const WorkoutPlanner = ({
                     userType="user"
                     sessionLog={sessionLog}
                     handleSetComplete={handleSetComplete}
+                    handleSetUncomplete={handleSetUncomplete}
                     availablePlates={availablePlates}
                     setSessionLog={setSessionLog}
                     lastCompletedSet={lastCompletedSet}
@@ -528,6 +510,7 @@ export const WorkoutPlanner = ({
                       userType="partner"
                       sessionLog={sessionLog}
                       handleSetComplete={handleSetComplete}
+                      handleSetUncomplete={handleSetUncomplete}
                       availablePlates={availablePlates}
                       setSessionLog={setSessionLog}
                       lastCompletedSet={lastCompletedSet}
@@ -585,6 +568,7 @@ const SetCard = ({
   userType,
   sessionLog,
   handleSetComplete,
+  handleSetUncomplete,
   availablePlates,
   setSessionLog,
   lastCompletedSet,
@@ -605,7 +589,7 @@ const SetCard = ({
           }`}
       >
         {/* Main row */}
-        <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+        <div className="flex items-center gap-3 sm:gap-4 w-full">
           {/* Set number badge */}
           <div
             className={`w-11 h-11 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${log.completed ? "bg-green-500" : "bg-gray-600"
@@ -685,10 +669,19 @@ const SetCard = ({
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 bg-green-700/30 px-4 py-3 rounded-xl border border-green-600/50 flex-1 sm:flex-initial justify-center sm:justify-start">
-              <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps} reps</span>
-              <span className="text-green-500 text-sm">@</span>
-              <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
+            <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-center gap-2 bg-green-700/30 px-5 py-3 rounded-xl border border-green-600/50 flex-1 justify-center">
+                <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps} reps</span>
+                <span className="text-green-500 text-sm">@</span>
+                <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
+              </div>
+              <button
+                onClick={() => handleSetUncomplete(exIndex, setIndex, userType)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 transition-all shadow-md flex-shrink-0"
+                title="Mark as not complete"
+              >
+                <X size={16} />
+              </button>
             </div>
           )}
         </div>

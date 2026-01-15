@@ -29,16 +29,44 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
   const navigate = useNavigate();
   const { workoutPlan, recalculateWorkout } = useWorkout();
   const [workoutData, setWorkoutData] = useState(null);
+  // Session log is managed here to persist across WorkoutPlanner re-renders/re-mounts
+  const [sessionLog, setSessionLog] = useState({ user: {}, partner: {} });
 
   useEffect(() => {
     // Get workout data from sessionStorage (set before navigating here)
     const storedData = sessionStorage.getItem('currentWorkoutDay');
-    if (storedData) {
-      setWorkoutData(JSON.parse(storedData));
-    } else {
+    if (!storedData) {
       navigate(ROUTES.DASHBOARD);
+      return;
     }
-  }, [navigate]);
+
+    const parsedWorkoutData = JSON.parse(storedData);
+    setWorkoutData(parsedWorkoutData);
+
+    // Try to restore sessionLog if it exists, otherwise initialize it
+    const storedSessionLog = sessionStorage.getItem('currentSessionLog');
+    if (storedSessionLog) {
+      setSessionLog(JSON.parse(storedSessionLog));
+    } else {
+      // Initialize sessionLog from workout data
+      const initialLog = { user: {}, partner: {} };
+      parsedWorkoutData.exercises.forEach((ex, exIndex) => {
+        const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
+          reps: set.reps,
+          weight: set.weight,
+          completed: false,
+          targetReps: set.reps,
+          targetWeight: set.weight,
+        }));
+        initialLog.user[exIndex] = setsData;
+        if (userProfile.partner) {
+          initialLog.partner[exIndex] = JSON.parse(JSON.stringify(setsData));
+        }
+      });
+      setSessionLog(initialLog);
+      sessionStorage.setItem('currentSessionLog', JSON.stringify(initialLog));
+    }
+  }, [navigate, userProfile.partner]);
 
   const handleFinishWorkout = useCallback(
     (completedWorkout) => {
@@ -61,6 +89,7 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
       toast.success(`Workout Complete! +${xpGained} XP`);
 
       sessionStorage.removeItem('currentWorkoutDay');
+      sessionStorage.removeItem('currentSessionLog'); // Clear session log for next workout
       navigate(ROUTES.DASHBOARD);
     },
     [userProfile, updateUserProfileInFirestore, navigate]
@@ -166,6 +195,22 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
     }
   }, [navigate]);
 
+  // Ref to track current sessionLog for synchronous access
+  const sessionLogRef = React.useRef(sessionLog);
+  React.useEffect(() => {
+    sessionLogRef.current = sessionLog;
+  }, [sessionLog]);
+
+  // Wrapped setSessionLog that also persists to sessionStorage synchronously
+  const handleSetSessionLog = useCallback((update) => {
+    // Compute the new value synchronously
+    const newValue = typeof update === 'function' ? update(sessionLogRef.current) : update;
+    // Save to sessionStorage BEFORE any async operation that might cause remount
+    sessionStorage.setItem('currentSessionLog', JSON.stringify(newValue));
+    // Then update React state
+    setSessionLog(newValue);
+  }, []);
+
   if (!workoutData) {
     return (
       <div className="flex flex-col justify-center items-center h-screen text-white">
@@ -186,6 +231,8 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
       onNavigate={handleNavigate}
       userProfile={userProfile}
       partner={userProfile.partner}
+      sessionLog={sessionLog}
+      setSessionLog={handleSetSessionLog}
     />
   );
 }
