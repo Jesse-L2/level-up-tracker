@@ -620,7 +620,15 @@ const SetCard = ({
                     });
                   }}
                 />
-                <span className="text-xs text-gray-400">reps</span>
+                {log.isAMRAP && (
+                  <span
+                    className="w-3 h-3 rounded-full bg-gray-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 -ml-4 -mt-3"
+                    title="As Many Reps As Possible"
+                  >
+                    +
+                  </span>
+                )}
+                <span className="text-xs text-gray-400 ml-3">reps</span>
               </div>
               {/* Centered divider */}
               <div className="w-px h-6 bg-gray-600"></div>
@@ -704,7 +712,15 @@ const SetCard = ({
                         />
                         <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
                       </div>
-                      <span className="text-gray-400 text-xs sm:text-sm">reps</span>
+                      {log.isAMRAP && (
+                        <span
+                          className="w-4 h-4 rounded-full bg-gray-600 text-white text-base font-bold flex items-center justify-center flex-shrink-0 shadow-md -ml-5 -mt-5"
+                          title="As Many Reps As Possible"
+                        >
+                          +
+                        </span>
+                      )}
+                      <span className="text-gray-400 text-xs sm:text-sm ml-4">reps</span>
                     </div>
 
                     {/* Centered divider */}
@@ -743,7 +759,16 @@ const SetCard = ({
               ) : (
                 <div className="flex items-center gap-4 flex-1">
                   <div className="flex items-center gap-2 bg-green-700/30 px-5 py-3 rounded-xl border border-green-600/50 flex-1 justify-center">
-                    <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps} reps</span>
+                    <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps}</span>
+                    {log.isAMRAP && (
+                      <span
+                        className="w-4 h-4 rounded-full bg-gray-600 text-white text-base font-bold flex items-center justify-center flex-shrink-0 shadow-md -ml-2 -mt-5"
+                        title="As Many Reps As Possible"
+                      >
+                        +
+                      </span>
+                    )}
+                    <span className="text-sm sm:text-lg font-semibold text-green-300 ml-3">reps</span>
                     <span className="text-green-500 text-sm">@</span>
                     <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
                   </div>

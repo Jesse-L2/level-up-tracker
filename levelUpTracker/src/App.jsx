@@ -21,6 +21,7 @@ import { Loader2 } from "lucide-react";
 import { EXERCISE_DATABASE } from "./lib/constants";
 import { ROUTES, getTemplateDetailsRoute } from "./lib/routes";
 import { XP_REWARDS } from "./lib/gamification";
+import { parseReps } from "./lib/parseReps";
 
 import { WorkoutProvider, useWorkout } from "./context/WorkoutContext";
 
@@ -51,13 +52,17 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
       // Initialize sessionLog from workout data
       const initialLog = { user: {}, partner: {} };
       parsedWorkoutData.exercises.forEach((ex, exIndex) => {
-        const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
-          reps: set.reps,
-          weight: set.weight,
-          completed: false,
-          targetReps: set.reps,
-          targetWeight: set.weight,
-        }));
+        const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => {
+          const parsedReps = parseReps(set.reps);
+          return {
+            reps: parsedReps.value,
+            weight: set.weight,
+            completed: false,
+            targetReps: parsedReps.value,
+            targetWeight: set.weight,
+            isAMRAP: parsedReps.isAMRAP,
+          };
+        });
         initialLog.user[exIndex] = setsData;
 
         // Initialize partner with their own weights from partner's workout plan
@@ -65,13 +70,17 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
           const partnerDayData = userProfile.partner.workoutPlan[parsedWorkoutData.dayIdentifier];
           const partnerExercise = partnerDayData?.exercises?.[exIndex];
           if (partnerExercise && Array.isArray(partnerExercise.sets)) {
-            initialLog.partner[exIndex] = partnerExercise.sets.map((set) => ({
-              reps: set.reps,
-              weight: set.weight,
-              completed: false,
-              targetReps: set.reps,
-              targetWeight: set.weight,
-            }));
+            initialLog.partner[exIndex] = partnerExercise.sets.map((set) => {
+              const parsedReps = parseReps(set.reps);
+              return {
+                reps: parsedReps.value,
+                weight: set.weight,
+                completed: false,
+                targetReps: parsedReps.value,
+                targetWeight: set.weight,
+                isAMRAP: parsedReps.isAMRAP,
+              };
+            });
           } else {
             // Fallback to user's data if partner doesn't have this exercise
             initialLog.partner[exIndex] = JSON.parse(JSON.stringify(setsData));
@@ -100,22 +109,30 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
         if (!newLog.partner[exIndex]) {
           const partnerExercise = partnerDayData?.exercises?.[exIndex];
           if (partnerExercise && Array.isArray(partnerExercise.sets)) {
-            newLog.partner[exIndex] = partnerExercise.sets.map((set) => ({
-              reps: set.reps,
-              weight: set.weight,
-              completed: false,
-              targetReps: set.reps,
-              targetWeight: set.weight,
-            }));
+            newLog.partner[exIndex] = partnerExercise.sets.map((set) => {
+              const parsedReps = parseReps(set.reps);
+              return {
+                reps: parsedReps.value,
+                weight: set.weight,
+                completed: false,
+                targetReps: parsedReps.value,
+                targetWeight: set.weight,
+                isAMRAP: parsedReps.isAMRAP,
+              };
+            });
           } else {
             // Fallback to user's data
-            newLog.partner[exIndex] = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
-              reps: set.reps,
-              weight: set.weight,
-              completed: false,
-              targetReps: set.reps,
-              targetWeight: set.weight,
-            }));
+            newLog.partner[exIndex] = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => {
+              const parsedReps = parseReps(set.reps);
+              return {
+                reps: parsedReps.value,
+                weight: set.weight,
+                completed: false,
+                targetReps: parsedReps.value,
+                targetWeight: set.weight,
+                isAMRAP: parsedReps.isAMRAP,
+              };
+            });
           }
         }
       });
