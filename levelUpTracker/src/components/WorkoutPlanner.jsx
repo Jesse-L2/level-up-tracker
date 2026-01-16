@@ -471,15 +471,15 @@ export const WorkoutPlanner = ({
             )}
           </div>
           <div
-            className={`mt-6 grid ${isPartnerView ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
-              } gap-4`}
+            className={`mt-6 grid ${isPartnerView ? "grid-cols-2" : "grid-cols-1"
+              } gap-2 sm:gap-4`}
           >
-            {/* Column Headers TODO: userProfile.displayName does not currently exist (create it)*/}
-            <div className="text-xl font-semibold text-center mb-2 h-14 flex items-center justify-center">
+            {/* Column Headers */}
+            <div className={`font-semibold text-center mb-2 flex items-center justify-center ${isPartnerView ? "text-sm sm:text-xl h-10 sm:h-14" : "text-xl h-14"}`}>
               {userProfile.displayName}
             </div>
             {isPartnerView && (
-              <div className="text-xl font-semibold text-center mb-2 h-14 flex items-center justify-center">
+              <div className="text-sm sm:text-xl font-semibold text-center mb-2 h-10 sm:h-14 flex items-center justify-center">
                 {userProfile.partner.name}
               </div>
             )}
@@ -503,6 +503,7 @@ export const WorkoutPlanner = ({
                     availablePlates={availablePlates}
                     setSessionLog={setSessionLog}
                     lastCompletedSet={lastCompletedSet}
+                    isPartnerView={isPartnerView}
                   />
                   {isPartnerView && (
                     <SetCard
@@ -516,6 +517,7 @@ export const WorkoutPlanner = ({
                       availablePlates={availablePlates}
                       setSessionLog={setSessionLog}
                       lastCompletedSet={lastCompletedSet}
+                      isPartnerView={isPartnerView}
                     />
                   )}
                 </React.Fragment>
@@ -574,6 +576,7 @@ const SetCard = ({
   availablePlates,
   setSessionLog,
   lastCompletedSet,
+  isPartnerView = false,
 }) => {
   const { isTimerActive, timerDuration, stopTimer } = useWorkout();
   const log = sessionLog[userType]?.[exIndex]?.[setIndex];
@@ -587,115 +590,184 @@ const SetCard = ({
   return (
     <div>
       <div
-        className={`flex flex-col sm:flex-row sm:items-center p-3 sm:p-4 rounded-lg gap-2 sm:gap-4 ${log.completed ? "bg-green-800/50" : "bg-gray-700"
-          }`}
+        className={`flex flex-col rounded-lg ${isPartnerView ? "p-2 gap-1" : "p-3 sm:p-4 gap-2"} ${log.completed ? "bg-green-800/50" : "bg-gray-700"}`}
       >
-        {/* Main row */}
-        <div className="flex items-center gap-3 sm:gap-4 w-full">
-          {/* Set number badge */}
-          <div
-            className={`w-11 h-11 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${log.completed ? "bg-green-500" : "bg-gray-600"
-              }`}
-          >
-            {setIndex + 1}
-          </div>
+        {/* Partner View - Compact layout */}
+        {isPartnerView ? (
+          <div className="flex flex-col gap-2">
+            {/* Badge */}
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 mx-auto ${log.completed ? "bg-green-500" : "bg-gray-600"}`}
+            >
+              {setIndex + 1}
+            </div>
 
-          {/* Target info - hidden on mobile, shown on sm+ */}
-          <div className="hidden sm:block min-w-0 flex-1">
-            <p className="font-semibold text-base">
-              Target: {set.reps} reps @ {set.weight} lbs
-            </p>
+            {/* Compact inputs - stays same dark color when completed */}
+            <div className={`flex items-center rounded-lg overflow-hidden border transition-colors bg-gray-800 ${log.completed ? "border-gray-600" : "border-gray-600 focus-within:border-blue-500"}`}>
+              <div className="flex items-center flex-1 justify-center px-1">
+                <input
+                  id={`reps-${userType}-${setIndex}`}
+                  type="number"
+                  value={log.reps ?? ''}
+                  disabled={log.completed}
+                  className={`w-10 h-9 bg-transparent text-center text-sm font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-white`}
+                  onChange={(e) => {
+                    const reps = e.target.value;
+                    setSessionLog((prevLog) => {
+                      const newLog = JSON.parse(JSON.stringify(prevLog));
+                      newLog[userType][exIndex][setIndex].reps = reps;
+                      return newLog;
+                    });
+                  }}
+                />
+                <span className="text-xs text-gray-400">reps</span>
+              </div>
+              {/* Centered divider */}
+              <div className="w-px h-6 bg-gray-600"></div>
+              <div className="flex items-center flex-1 justify-center px-1">
+                <input
+                  id={`weight-${userType}-${setIndex}`}
+                  type="number"
+                  value={log.weight ?? ''}
+                  disabled={log.completed}
+                  className={`w-12 h-9 bg-transparent text-center text-sm font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-white`}
+                  onChange={(e) => {
+                    const weight = e.target.value;
+                    setSessionLog((prevLog) => {
+                      const newLog = JSON.parse(JSON.stringify(prevLog));
+                      newLog[userType][exIndex][setIndex].weight = weight;
+                      return newLog;
+                    });
+                  }}
+                />
+                <span className="text-xs text-gray-400">lbs</span>
+              </div>
+            </div>
+
+            {/* Toggle button */}
+            <button
+              onClick={() => log.completed
+                ? handleSetUncomplete(exIndex, setIndex, userType)
+                : handleSetComplete(exIndex, setIndex, userType)
+              }
+              className={`font-bold h-8 rounded-lg transition-colors text-sm shadow-md w-full flex items-center justify-center ${log.completed
+                ? "bg-gray-700 hover:bg-gray-600 text-white"
+                : "bg-green-600 hover:bg-green-500 text-white"
+                }`}
+            >
+              {log.completed ? <X size={16} /> : "✓"}
+            </button>
+
+            {/* Plate display for partner view - fixed height for consistent card size */}
+            <div className="flex justify-center items-end h-14">
+              {set.weight > 0 && (
+                <MiniPlateDisplay
+                  targetWeight={set.weight}
+                  availablePlates={availablePlates}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Non-Partner View - Clean horizontal layout */
+          <>
+            {/* Main row with badge and inputs */}
+            <div className="flex items-center gap-3 sm:gap-4 w-full">
+              {/* Set number badge */}
+              <div
+                className={`w-11 h-11 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${log.completed ? "bg-green-500" : "bg-gray-600"}`}
+              >
+                {setIndex + 1}
+              </div>
+
+              {/* Input controls */}
+              {!log.completed ? (
+                <div className="flex items-center gap-2 flex-1">
+                  {/* Unified input group */}
+                  <div className="flex items-center bg-gray-800 rounded-xl overflow-hidden border border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/30 transition-colors duration-200 flex-1">
+                    {/* Reps input group */}
+                    <div className="flex items-center flex-1 justify-center px-1">
+                      <div className="relative">
+                        <input
+                          id={`reps-${userType}-${setIndex}`}
+                          type="number"
+                          value={log.reps ?? ''}
+                          className="w-14 sm:w-16 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
+                          onChange={(e) => {
+                            const reps = e.target.value;
+                            setSessionLog((prevLog) => {
+                              const newLog = JSON.parse(JSON.stringify(prevLog));
+                              newLog[userType][exIndex][setIndex].reps = reps;
+                              return newLog;
+                            });
+                          }}
+                        />
+                        <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
+                      </div>
+                      <span className="text-gray-400 text-xs sm:text-sm">reps</span>
+                    </div>
+
+                    {/* Centered divider */}
+                    <div className="w-px h-8 bg-gray-600"></div>
+
+                    {/* Weight input group */}
+                    <div className="flex items-center flex-1 justify-center px-1">
+                      <div className="relative">
+                        <input
+                          id={`weight-${userType}-${setIndex}`}
+                          type="number"
+                          value={log.weight ?? ''}
+                          className="w-16 sm:w-20 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
+                          onChange={(e) => {
+                            const weight = e.target.value;
+                            setSessionLog((prevLog) => {
+                              const newLog = JSON.parse(JSON.stringify(prevLog));
+                              newLog[userType][exIndex][setIndex].weight = weight;
+                              return newLog;
+                            });
+                          }}
+                        />
+                        <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
+                      </div>
+                      <span className="text-gray-400 text-xs sm:text-sm">lbs</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleSetComplete(exIndex, setIndex, userType)}
+                    className="bg-green-600 hover:bg-green-500 text-white font-bold h-12 px-4 sm:px-5 rounded-xl transition-colors text-base shadow-lg hover:shadow-green-500/25 flex-shrink-0"
+                  >
+                    Save
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="flex items-center gap-2 bg-green-700/30 px-5 py-3 rounded-xl border border-green-600/50 flex-1 justify-center">
+                    <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps} reps</span>
+                    <span className="text-green-500 text-sm">@</span>
+                    <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
+                  </div>
+                  <button
+                    onClick={() => handleSetUncomplete(exIndex, setIndex, userType)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 transition-all shadow-md flex-shrink-0"
+                    title="Mark as not complete"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Plate display - below inputs */}
             {set.weight > 0 && (
-              <MiniPlateDisplay
-                targetWeight={set.weight}
-                availablePlates={availablePlates}
-              />
+              <div className="flex justify-center mt-1">
+                <MiniPlateDisplay
+                  targetWeight={set.weight}
+                  availablePlates={availablePlates}
+                />
+              </div>
             )}
-          </div>
-
-          {/* Input controls - takes remaining space on mobile */}
-          {!log.completed ? (
-            <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-              {/* Unified input group */}
-              <div className="flex items-center bg-gray-800 rounded-xl overflow-hidden border border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/30 transition-colors duration-200 flex-1 sm:flex-initial">
-                {/* Reps input group */}
-                <div className="flex items-center flex-1 sm:flex-initial justify-center sm:justify-start px-1">
-                  <div className="relative">
-                    <input
-                      id={`reps-${userType}-${setIndex}`}
-                      type="number"
-                      value={log.reps}
-                      className="w-14 sm:w-16 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
-                      onChange={(e) => {
-                        const reps = e.target.value;
-                        setSessionLog((prevLog) => {
-                          const newLog = JSON.parse(JSON.stringify(prevLog));
-                          newLog[userType][exIndex][setIndex].reps = reps;
-                          return newLog;
-                        });
-                      }}
-                    />
-                    <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
-                  </div>
-                  <span className="text-gray-400 text-xs sm:text-sm pr-2 sm:pr-3 border-r border-gray-600">reps</span>
-                </div>
-
-                {/* Weight input group */}
-                <div className="flex items-center flex-1 sm:flex-initial justify-center sm:justify-start px-1">
-                  <div className="relative">
-                    <input
-                      id={`weight-${userType}-${setIndex}`}
-                      type="number"
-                      value={log.weight}
-                      className="w-16 sm:w-20 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
-                      onChange={(e) => {
-                        const weight = e.target.value;
-                        setSessionLog((prevLog) => {
-                          const newLog = JSON.parse(JSON.stringify(prevLog));
-                          newLog[userType][exIndex][setIndex].weight = weight;
-                          return newLog;
-                        });
-                      }}
-                    />
-                    <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
-                  </div>
-                  <span className="text-gray-400 text-xs sm:text-sm pr-2 sm:pr-3">lbs</span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleSetComplete(exIndex, setIndex, userType)}
-                className="bg-green-600 hover:bg-green-500 text-white font-bold h-12 px-4 sm:px-5 rounded-xl transition-colors text-base shadow-lg hover:shadow-green-500/25 flex-shrink-0"
-              >
-                Save
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4 flex-1">
-              <div className="flex items-center gap-2 bg-green-700/30 px-5 py-3 rounded-xl border border-green-600/50 flex-1 justify-center">
-                <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps} reps</span>
-                <span className="text-green-500 text-sm">@</span>
-                <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
-              </div>
-              <button
-                onClick={() => handleSetUncomplete(exIndex, setIndex, userType)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 transition-all shadow-md flex-shrink-0"
-                title="Mark as not complete"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Plate display - shown below on mobile only, centered */}
-        {set.weight > 0 && (
-          <div className="flex sm:hidden justify-center">
-            <MiniPlateDisplay
-              targetWeight={set.weight}
-              availablePlates={availablePlates}
-            />
-          </div>
+          </>
         )}
       </div>
       {isTimerActive && isCurrentCompletedSet && (
@@ -706,3 +778,4 @@ const SetCard = ({
     </div>
   );
 };
+

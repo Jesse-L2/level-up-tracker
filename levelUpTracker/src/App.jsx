@@ -59,14 +59,71 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
           targetWeight: set.weight,
         }));
         initialLog.user[exIndex] = setsData;
-        if (userProfile.partner) {
-          initialLog.partner[exIndex] = JSON.parse(JSON.stringify(setsData));
+
+        // Initialize partner with their own weights from partner's workout plan
+        if (userProfile.partner && userProfile.partner.workoutPlan) {
+          const partnerDayData = userProfile.partner.workoutPlan[parsedWorkoutData.dayIdentifier];
+          const partnerExercise = partnerDayData?.exercises?.[exIndex];
+          if (partnerExercise && Array.isArray(partnerExercise.sets)) {
+            initialLog.partner[exIndex] = partnerExercise.sets.map((set) => ({
+              reps: set.reps,
+              weight: set.weight,
+              completed: false,
+              targetReps: set.reps,
+              targetWeight: set.weight,
+            }));
+          } else {
+            // Fallback to user's data if partner doesn't have this exercise
+            initialLog.partner[exIndex] = JSON.parse(JSON.stringify(setsData));
+          }
         }
       });
       setSessionLog(initialLog);
       sessionStorage.setItem('currentSessionLog', JSON.stringify(initialLog));
     }
   }, [navigate, userProfile.partner]);
+
+  // Ensure partner session log is initialized when partner is added mid-session
+  useEffect(() => {
+    if (!workoutData || !userProfile.partner || !userProfile.partner.workoutPlan) return;
+
+    setSessionLog(prevLog => {
+      // Check if partner log is already populated
+      const hasPartnerLog = Object.keys(prevLog.partner || {}).length > 0;
+      if (hasPartnerLog) return prevLog;
+
+      // Initialize partner log from partner's workout plan
+      const newLog = { ...prevLog, partner: {} };
+      const partnerDayData = userProfile.partner.workoutPlan[workoutData.dayIdentifier];
+
+      workoutData.exercises.forEach((ex, exIndex) => {
+        if (!newLog.partner[exIndex]) {
+          const partnerExercise = partnerDayData?.exercises?.[exIndex];
+          if (partnerExercise && Array.isArray(partnerExercise.sets)) {
+            newLog.partner[exIndex] = partnerExercise.sets.map((set) => ({
+              reps: set.reps,
+              weight: set.weight,
+              completed: false,
+              targetReps: set.reps,
+              targetWeight: set.weight,
+            }));
+          } else {
+            // Fallback to user's data
+            newLog.partner[exIndex] = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => ({
+              reps: set.reps,
+              weight: set.weight,
+              completed: false,
+              targetReps: set.reps,
+              targetWeight: set.weight,
+            }));
+          }
+        }
+      });
+
+      sessionStorage.setItem('currentSessionLog', JSON.stringify(newLog));
+      return newLog;
+    });
+  }, [workoutData, userProfile.partner]);
 
   const handleFinishWorkout = useCallback(
     (completedWorkout) => {

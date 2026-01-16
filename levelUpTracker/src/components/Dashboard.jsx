@@ -303,8 +303,11 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              // Always use the primary user's workout data, not the partner's
+                              // The WorkoutPlanner handles partner data separately
+                              const primaryWorkoutDetails = userProfile.workoutPlan[dayName];
                               onNavigate("planner", {
-                                ...workoutDetails,
+                                ...primaryWorkoutDetails,
                                 dayIdentifier: dayName,
                               });
                             }}
