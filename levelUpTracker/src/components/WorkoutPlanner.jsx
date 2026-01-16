@@ -622,7 +622,7 @@ const SetCard = ({
                 />
                 {log.isAMRAP && (
                   <span
-                    className="w-3 h-3 rounded-full bg-gray-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 -ml-4 -mt-3"
+                    className="w-3 h-3 rounded-full bg-gray-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 -ml-3 -mt-3"
                     title="As Many Reps As Possible"
                   >
                     +
