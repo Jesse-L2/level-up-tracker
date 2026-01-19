@@ -17,6 +17,8 @@ export const WorkoutPlanner = ({
   onUpdateWorkoutDay,
   sessionLog,
   setSessionLog,
+  currentExerciseIndex,
+  setCurrentExerciseIndex,
 }) => {
   const {
     isTimerActive,
@@ -25,7 +27,8 @@ export const WorkoutPlanner = ({
     stopTimer,
     lastCompletedSet,
   } = useWorkout();
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  // Lifted to parent
+  /* const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0); */
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [suggested1RM, setSuggested1RM] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -55,15 +58,18 @@ export const WorkoutPlanner = ({
   const hasFixedNamesRef = React.useRef(false);
 
   // Handle snake_case name fix - only run once on mount
+  // Handle snake_case name fix - only run once on mount
   useEffect(() => {
     if (hasFixedNamesRef.current) return;
 
-    // Auto-fix: Check for snake_case names and fix them against the library
+    // Auto-fix: Check for snake_case names OR lowercase names and fix them against the library
     let hasChanges = false;
     const updatedExercises = workoutDay.exercises.map(ex => {
-      if (ex.name.includes('_')) {
+      // Check for underscore OR if name starts with lowercase letter
+      if (ex.name.includes('_') || /^[a-z]/.test(ex.name)) {
         // Convert snake_case to Title Case (e.g., bench_press -> Bench Press)
-        const formatName = (n) => n.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        // Also handles simple lowercase (deadlift -> Deadlift)
+        const formatName = (n) => n.split(/_| /).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         const fixedName = formatName(ex.name);
 
         // Find existing data in library
@@ -91,6 +97,9 @@ export const WorkoutPlanner = ({
       }
       return ex;
     });
+
+    // Handle day 2 lower specifically if it's bugged (Optional heuristic if needed)
+    // For now, the general fix above should catch most issues.
 
     if (hasChanges) {
       hasFixedNamesRef.current = true;
@@ -176,15 +185,23 @@ export const WorkoutPlanner = ({
     const userWorkout = {
       date: new Date().toISOString(),
       dayName: workoutDay.name,
-      exercises: workoutDay.exercises.map((ex, exIndex) => ({
-        name: ex.name,
-        sets: (sessionLog.user[exIndex] || [])
+      exercises: workoutDay.exercises.map((ex, exIndex) => {
+        const sets = (sessionLog.user[exIndex] || [])
           .filter((s) => s.completed)
-          .map((s) => ({
-            reps: s.reps || s.targetReps,
-            weight: s.weight || s.targetWeight,
-          })),
-      })),
+          .map((s) => {
+            // Ensure reps and weight are valid numbers, not undefined or empty strings
+            const reps = s.reps !== undefined && s.reps !== '' ? Number(s.reps) : Number(s.targetReps);
+            const weight = s.weight !== undefined && s.weight !== '' ? Number(s.weight) : Number(s.targetWeight);
+            return {
+              reps: isNaN(reps) ? 0 : reps,
+              weight: isNaN(weight) ? 0 : weight,
+            };
+          });
+        return {
+          name: ex.name,
+          sets,
+        };
+      }),
     };
     onFinish(userWorkout);
 
@@ -192,15 +209,23 @@ export const WorkoutPlanner = ({
       const partnerWorkout = {
         date: new Date().toISOString(),
         dayName: workoutDay.name,
-        exercises: workoutDay.exercises.map((ex, exIndex) => ({
-          name: ex.name,
-          sets: (sessionLog.partner[exIndex] || [])
+        exercises: workoutDay.exercises.map((ex, exIndex) => {
+          const sets = (sessionLog.partner[exIndex] || [])
             .filter((s) => s.completed)
-            .map((s) => ({
-              reps: s.reps || s.targetReps,
-              weight: s.weight || s.targetWeight,
-            })),
-        })),
+            .map((s) => {
+              // Ensure reps and weight are valid numbers, not undefined or empty strings
+              const reps = s.reps !== undefined && s.reps !== '' ? Number(s.reps) : Number(s.targetReps);
+              const weight = s.weight !== undefined && s.weight !== '' ? Number(s.weight) : Number(s.targetWeight);
+              return {
+                reps: isNaN(reps) ? 0 : reps,
+                weight: isNaN(weight) ? 0 : weight,
+              };
+            });
+          return {
+            name: ex.name,
+            sets,
+          };
+        }),
       };
       savePartnerWorkout(userProfile.uid, partnerWorkout);
     }
@@ -218,22 +243,21 @@ export const WorkoutPlanner = ({
         newOneRepMax = originalMax - 5;
       }
 
-      const updatedExercises = workoutDay.exercises.map((ex, index) => {
-        if (index === currentExerciseIndex) {
-          return { ...ex, oneRepMax: newOneRepMax };
-        }
-        return ex;
-      });
+      // 1. Update Library first
+      onUpdateLibrary(currentExercise.name, newOneRepMax);
 
-      const updatedWorkoutDay = {
-        ...workoutDay,
-        exercises: updatedExercises,
-      };
+      // 2. Determine navigation
+      const nextIndex = currentExerciseIndex + 1;
+      const isLastExercise = currentExerciseIndex >= workoutDay.exercises.length - 1;
 
-      onUpdateWorkoutDay(updatedWorkoutDay);
-
-      if (currentExerciseIndex < workoutDay.exercises.length - 1) {
-        setCurrentExerciseIndex(currentExerciseIndex + 1);
+      if (!isLastExercise) {
+        // Use setTimeout to allow the prop update (onUpdateLibrary) to effectively 'clear' 
+        // before we switch the index, or to simply ensure this state update is processed 
+        // in the next tick to avoid batching conflicts.
+        setTimeout(() => {
+          setCurrentExerciseIndex(nextIndex);
+          window.scrollTo(0, 0); // Scroll to top for next exercise
+        }, 0);
       } else {
         handleFinishWorkout();
       }
@@ -243,7 +267,8 @@ export const WorkoutPlanner = ({
       currentExerciseIndex,
       workoutDay,
       handleFinishWorkout,
-      onUpdateWorkoutDay,
+      onUpdateLibrary,
+      setCurrentExerciseIndex
     ]
   );
 

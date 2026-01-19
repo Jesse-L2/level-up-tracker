@@ -22,15 +22,15 @@ const firebaseConfig =
   typeof __firebase_config !== "undefined"
     ? JSON.parse(__firebase_config)
     : {
-        apiKey: import.meta.env.VITE_API_KEY,
-        authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-        databaseURL: import.meta.env.VITE_DATABASE_URL,
-        projectId: import.meta.env.VITE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_APP_ID,
-        measurementId: import.meta.env.VITE_MEASUREMENT_ID,
-      };
+      apiKey: import.meta.env.VITE_API_KEY,
+      authDomain: import.meta.env.VITE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.VITE_DATABASE_URL,
+      projectId: import.meta.env.VITE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_APP_ID,
+      measurementId: import.meta.env.VITE_MEASUREMENT_ID,
+    };
 
 // --- Firebase Initialization ---
 export const app = initializeApp(firebaseConfig);
@@ -89,7 +89,11 @@ export const savePartnerWorkout = async (userId, workout) => {
     `artifacts/${appId}/users/${userId}/profile`,
     "userProfile"
   );
+
+  // Sanitize data to remove any undefined values which Firestore rejects
+  const sanitizedWorkout = JSON.parse(JSON.stringify(workout));
+
   await updateDoc(userDocRef, {
-    "partner.workoutHistory": arrayUnion(workout),
+    "partner.workoutHistory": arrayUnion(sanitizedWorkout),
   });
 };

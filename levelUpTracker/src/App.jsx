@@ -33,6 +33,17 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
   // Session log is managed here to persist across WorkoutPlanner re-renders/re-mounts
   const [sessionLog, setSessionLog] = useState({ user: {}, partner: {} });
 
+  // Also manage currentExerciseIndex here to persist across re-mounts (caused by loading states during updates)
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(() => {
+    const storedIndex = sessionStorage.getItem('currentExerciseIndex');
+    return storedIndex ? parseInt(storedIndex, 10) : 0;
+  });
+
+  const handleSetCurrentExerciseIndex = useCallback((newIndex) => {
+    setCurrentExerciseIndex(newIndex);
+    sessionStorage.setItem('currentExerciseIndex', String(newIndex));
+  }, []);
+
   useEffect(() => {
     // Get workout data from sessionStorage (set before navigating here)
     const storedData = sessionStorage.getItem('currentWorkoutDay');
@@ -42,15 +53,92 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
     }
 
     const parsedWorkoutData = JSON.parse(storedData);
+
+    // Recalculate weights based on current 1RMs (Fix for stale/zero weights)
+    if (userProfile && userProfile.exerciseLibrary && parsedWorkoutData.exercises) {
+      parsedWorkoutData.exercises.forEach(exercise => {
+        // Find matching exercise in library (handle casing mismatch)
+        const libraryExercise = userProfile.exerciseLibrary.find(
+          ex => ex.name.toLowerCase().replace(/_/g, ' ') === exercise.name.toLowerCase().replace(/_/g, ' ')
+        );
+
+        if (libraryExercise && libraryExercise.oneRepMax) {
+          exercise.oneRepMax = libraryExercise.oneRepMax; // Update 1RM in workout data
+          if (exercise.sets) {
+            exercise.sets.forEach(set => {
+              // Ensure we have a valid percentage before recalculating
+              if (typeof set.percentage === 'number') {
+                const calculatedWeight = Math.round((libraryExercise.oneRepMax * set.percentage) / 2.5) * 2.5;
+                // Only update if calculated weight is valid (greater than 0 usually, but 0 is valid for bodyweight)
+                // We update it even if it's different to ensure freshness.
+                set.weight = calculatedWeight;
+              }
+            });
+          }
+        }
+      });
+    }
+
     setWorkoutData(parsedWorkoutData);
 
     // Try to restore sessionLog if it exists, otherwise initialize it
-    const storedSessionLog = sessionStorage.getItem('currentSessionLog');
-    if (storedSessionLog) {
-      setSessionLog(JSON.parse(storedSessionLog));
-    } else {
+    const storedSessionLogString = sessionStorage.getItem('currentSessionLog');
+    let shouldInitialize = true;
+
+    if (storedSessionLogString) {
+      const storedSessionLog = JSON.parse(storedSessionLogString);
+      // Check if the stored log belongs to the current day
+      if (storedSessionLog.dayIdentifier === parsedWorkoutData.dayIdentifier) {
+        // Reconcile sessionLog with fresh workoutData (e.g. if 1RM changed)
+        parsedWorkoutData.exercises.forEach((ex, exIndex) => {
+          if (storedSessionLog.user[exIndex]) {
+            storedSessionLog.user[exIndex] = storedSessionLog.user[exIndex].map((logSet, setIndex) => {
+              const currentSet = ex.sets[setIndex];
+              if (!logSet.completed && currentSet && logSet.targetWeight !== currentSet.weight) {
+                // Update weight if target changed and set is not complete
+                return {
+                  ...logSet,
+                  weight: currentSet.weight,
+                  targetWeight: currentSet.weight,
+                  targetReps: parseReps(currentSet.reps).value // also sync reps if changed
+                };
+              }
+              return logSet;
+            });
+          }
+          // Handle Partner reconciliation similarly
+          if (userProfile.partner && storedSessionLog.partner[exIndex]) {
+            const partnerDayData = userProfile.partner.workoutPlan?.[parsedWorkoutData.dayIdentifier];
+            if (partnerDayData && partnerDayData.exercises[exIndex]) {
+              storedSessionLog.partner[exIndex] = storedSessionLog.partner[exIndex].map((logSet, setIndex) => {
+                const currentPartnerSet = partnerDayData.exercises[exIndex].sets[setIndex];
+                if (!logSet.completed && currentPartnerSet && logSet.targetWeight !== currentPartnerSet.weight) {
+                  return {
+                    ...logSet,
+                    weight: currentPartnerSet.weight,
+                    targetWeight: currentPartnerSet.weight,
+                    targetReps: parseReps(currentPartnerSet.reps).value
+                  };
+                }
+                return logSet;
+              });
+            }
+          }
+        });
+
+        setSessionLog(storedSessionLog);
+        shouldInitialize = false;
+      }
+    }
+
+    if (shouldInitialize) {
       // Initialize sessionLog from workout data
-      const initialLog = { user: {}, partner: {} };
+      const initialLog = {
+        user: {},
+        partner: {},
+        dayIdentifier: parsedWorkoutData.dayIdentifier // Store identifier to prevent pollution
+      };
+
       parsedWorkoutData.exercises.forEach((ex, exIndex) => {
         const setsData = (Array.isArray(ex.sets) ? ex.sets : []).map((set) => {
           const parsedReps = parseReps(set.reps);
@@ -89,6 +177,10 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
       });
       setSessionLog(initialLog);
       sessionStorage.setItem('currentSessionLog', JSON.stringify(initialLog));
+
+      // Also reset index if starting a fresh session for a new day
+      setCurrentExerciseIndex(0);
+      sessionStorage.setItem('currentExerciseIndex', '0');
     }
   }, [navigate, userProfile.partner]);
 
@@ -155,8 +247,11 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
         completedWorkout,
       ];
 
+      // Sanitize data to remove any undefined values which Firestore rejects
+      const sanitizedHistory = JSON.parse(JSON.stringify(updatedHistory));
+
       updateUserProfileInFirestore({
-        workoutHistory: updatedHistory,
+        workoutHistory: sanitizedHistory,
         xp: newXp
       });
 
@@ -307,6 +402,8 @@ function WorkoutPlannerWrapper({ userProfile, updateUserProfileInFirestore }) {
       partner={userProfile.partner}
       sessionLog={sessionLog}
       setSessionLog={handleSetSessionLog}
+      currentExerciseIndex={currentExerciseIndex}
+      setCurrentExerciseIndex={handleSetCurrentExerciseIndex}
     />
   );
 }
