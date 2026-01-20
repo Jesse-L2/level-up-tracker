@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { savePartnerWorkout } from "../firebase";
 import { FormField } from "./ui/FormField";
-import { Edit, Save, X, Plus, Minus } from "lucide-react";
+import { Edit, Save, X, Plus, Minus, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 import { Timer } from "./ui/Timer";
 import { useWorkout } from "../context/WorkoutContext";
+import { PostWorkoutReview } from "./PostWorkoutReview";
 
 export const WorkoutPlanner = ({
   workoutDay,
@@ -37,7 +38,14 @@ export const WorkoutPlanner = ({
   const [partnerEditValue, setPartnerEditValue] = useState({ oneRepMax: "" });
   const [message, setMessage] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isPartnerView, setIsPartnerView] = useState(false);
+  // Initialize partner view from sessionStorage to persist across exercises
+  const [isPartnerView, setIsPartnerView] = useState(() => {
+    const stored = sessionStorage.getItem('isPartnerView');
+    return stored === 'true' && userProfile.partner;
+  });
+  const [showReview, setShowReview] = useState(false);
+  const [completedUserWorkout, setCompletedUserWorkout] = useState(null);
+  const [completedPartnerWorkout, setCompletedPartnerWorkout] = useState(null);
 
   // Set page title
   useEffect(() => {
@@ -51,7 +59,9 @@ export const WorkoutPlanner = ({
   const sets = Array.isArray(currentExercise?.sets) ? currentExercise.sets : [];
 
   const handleToggle = () => {
-    setIsPartnerView((prev) => userProfile.partner && !prev);
+    const newValue = userProfile.partner && !isPartnerView;
+    setIsPartnerView(newValue);
+    sessionStorage.setItem('isPartnerView', String(newValue));
   };
 
   // Ref to track if snake_case names have been fixed
@@ -181,6 +191,7 @@ export const WorkoutPlanner = ({
     setIsEditingPartner(false);
   };
 
+  // Opens the Post-Workout Review screen instead of immediately saving
   const handleFinishWorkout = useCallback(() => {
     const userWorkout = {
       date: new Date().toISOString(),
@@ -189,7 +200,6 @@ export const WorkoutPlanner = ({
         const sets = (sessionLog.user[exIndex] || [])
           .filter((s) => s.completed)
           .map((s) => {
-            // Ensure reps and weight are valid numbers, not undefined or empty strings
             const reps = s.reps !== undefined && s.reps !== '' ? Number(s.reps) : Number(s.targetReps);
             const weight = s.weight !== undefined && s.weight !== '' ? Number(s.weight) : Number(s.targetWeight);
             return {
@@ -203,9 +213,10 @@ export const WorkoutPlanner = ({
         };
       }),
     };
-    onFinish(userWorkout);
+    setCompletedUserWorkout(userWorkout);
 
-    if (userProfile.partner) {
+    // Only create partner workout if partner view toggle was on during the workout
+    if (userProfile.partner && isPartnerView) {
       const partnerWorkout = {
         date: new Date().toISOString(),
         dayName: workoutDay.name,
@@ -213,7 +224,6 @@ export const WorkoutPlanner = ({
           const sets = (sessionLog.partner[exIndex] || [])
             .filter((s) => s.completed)
             .map((s) => {
-              // Ensure reps and weight are valid numbers, not undefined or empty strings
               const reps = s.reps !== undefined && s.reps !== '' ? Number(s.reps) : Number(s.targetReps);
               const weight = s.weight !== undefined && s.weight !== '' ? Number(s.weight) : Number(s.targetWeight);
               return {
@@ -227,50 +237,58 @@ export const WorkoutPlanner = ({
           };
         }),
       };
+      setCompletedPartnerWorkout(partnerWorkout);
+    } else {
+      setCompletedPartnerWorkout(null);
+    }
+
+    setShowReview(true);
+  }, [workoutDay, sessionLog, userProfile, isPartnerView]);
+
+  // Navigate to next exercise or finish workout
+  const handleNextExercise = useCallback(() => {
+    const nextIndex = currentExerciseIndex + 1;
+    const isLastExercise = currentExerciseIndex >= workoutDay.exercises.length - 1;
+
+    if (!isLastExercise) {
+      setCurrentExerciseIndex(nextIndex);
+      window.scrollTo(0, 0);
+    } else {
+      handleFinishWorkout();
+    }
+  }, [currentExerciseIndex, workoutDay.exercises.length, handleFinishWorkout, setCurrentExerciseIndex]);
+
+  // Callback from PostWorkoutReview to save everything
+  const handleReviewSave = useCallback(({ userMaxUpdates, partnerMaxUpdates, userWorkout, partnerWorkout }) => {
+    // Update user 1RMs in the library
+    Object.entries(userMaxUpdates).forEach(([exerciseName, newMax]) => {
+      onUpdateLibrary(exerciseName, newMax);
+    });
+
+    // Update partner 1RMs
+    Object.entries(partnerMaxUpdates).forEach(([exerciseName, newMax]) => {
+      const exerciseId = exerciseName.toLowerCase().replace(/ /g, '_');
+      onUpdatePartnerWorkoutData(exerciseId, newMax);
+    });
+
+    // Save user workout to history
+    onFinish(userWorkout);
+
+    // Save partner workout to history
+    if (partnerWorkout) {
       savePartnerWorkout(userProfile.uid, partnerWorkout);
     }
-  }, [workoutDay, sessionLog, onFinish, userProfile]);
 
-  const handleFeedback = useCallback(
-    (feedback) => {
-      const originalMax = currentExercise.oneRepMax;
-      let newOneRepMax;
-      if (feedback === "easy") {
-        newOneRepMax = originalMax + 5;
-      } else if (feedback === "just_right") {
-        newOneRepMax = originalMax + 2.5;
-      } else if (feedback === "hard") {
-        newOneRepMax = originalMax - 5;
-      }
+    // Clear partner view state for next workout
+    sessionStorage.removeItem('isPartnerView');
+  }, [onUpdateLibrary, onUpdatePartnerWorkoutData, onFinish, userProfile]);
 
-      // 1. Update Library first
-      onUpdateLibrary(currentExercise.name, newOneRepMax);
-
-      // 2. Determine navigation
-      const nextIndex = currentExerciseIndex + 1;
-      const isLastExercise = currentExerciseIndex >= workoutDay.exercises.length - 1;
-
-      if (!isLastExercise) {
-        // Use setTimeout to allow the prop update (onUpdateLibrary) to effectively 'clear' 
-        // before we switch the index, or to simply ensure this state update is processed 
-        // in the next tick to avoid batching conflicts.
-        setTimeout(() => {
-          setCurrentExerciseIndex(nextIndex);
-          window.scrollTo(0, 0); // Scroll to top for next exercise
-        }, 0);
-      } else {
-        handleFinishWorkout();
-      }
-    },
-    [
-      currentExercise,
-      currentExerciseIndex,
-      workoutDay,
-      handleFinishWorkout,
-      onUpdateLibrary,
-      setCurrentExerciseIndex
-    ]
-  );
+  // Cancel review and go back to workout
+  const handleReviewCancel = useCallback(() => {
+    setShowReview(false);
+    setCompletedUserWorkout(null);
+    setCompletedPartnerWorkout(null);
+  }, []);
 
   const handleSetComplete = useCallback(
     (exIndex, setIndex, userType) => {
@@ -321,6 +339,19 @@ export const WorkoutPlanner = ({
     );
   }
 
+  // Show Post-Workout Review screen
+  if (showReview && completedUserWorkout) {
+    return (
+      <PostWorkoutReview
+        completedWorkout={completedUserWorkout}
+        partnerWorkout={completedPartnerWorkout}
+        userProfile={userProfile}
+        onSave={handleReviewSave}
+        onCancel={handleReviewCancel}
+      />
+    );
+  }
+
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-4xl mx-auto">
@@ -356,12 +387,19 @@ export const WorkoutPlanner = ({
 
         <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
           <div className="relative text-center">
-            <h2
-              className="text-4xl font-bold mb-2 text-center text-blue-400 cursor-pointer"
+            <button
+              className="inline-flex items-center gap-2 text-4xl font-bold mb-2 text-center text-blue-400 hover:text-blue-300 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg px-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-expanded={isMenuOpen}
+              aria-haspopup="true"
             >
               {currentExercise.name}
-            </h2>
+              {isMenuOpen ? (
+                <ChevronUp size={28} className="text-blue-400" />
+              ) : (
+                <ChevronDown size={28} className="text-blue-400" />
+              )}
+            </button>
             <p className="text-2xl font-bold text-white mb-2">
               {currentExercise.oneRepMax} lbs
             </p>
@@ -376,19 +414,82 @@ export const WorkoutPlanner = ({
               {workoutDay.exercises.length}
             </p>
             {isMenuOpen && (
-              <div className="absolute z-10 top-full left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-lg shadow-lg mt-2">
-                <ul className="py-2">
-                  {workoutDay.exercises.map((ex, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleSelectExercise(index)}
-                      className="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+              <>
+                {/* Backdrop overlay */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setIsMenuOpen(false)}
+                />
+                {/* Dropdown menu */}
+                <div className="absolute z-20 top-full left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl mt-2 min-w-[280px] overflow-hidden animate-fade-in">
+                  <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Jump to Exercise</span>
+                    <button
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-gray-400 hover:text-white transition-colors p-1 rounded hover:bg-gray-700"
                     >
-                      {ex.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <ul className="py-2 max-h-80 overflow-y-auto">
+                    {workoutDay.exercises.map((ex, index) => {
+                      // Calculate completion status for this exercise
+                      const exerciseSets = sessionLog.user[index] || [];
+                      const completedSets = exerciseSets.filter(s => s.completed).length;
+                      const totalSets = exerciseSets.length;
+                      const isFullyComplete = completedSets > 0 && completedSets === totalSets;
+                      const hasProgress = completedSets > 0 && completedSets < totalSets;
+                      const isCurrent = index === currentExerciseIndex;
+
+                      return (
+                        <li
+                          key={index}
+                          onClick={() => handleSelectExercise(index)}
+                          className={`px-4 py-3 cursor-pointer transition-all flex items-center gap-3 ${isCurrent
+                              ? "bg-blue-600/20 border-l-4 border-blue-500"
+                              : "hover:bg-gray-700/50 border-l-4 border-transparent"
+                            }`}
+                        >
+                          {/* Exercise number/status indicator */}
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${isFullyComplete
+                              ? "bg-green-500 text-white"
+                              : hasProgress
+                                ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500"
+                                : isCurrent
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-gray-700 text-gray-400"
+                            }`}>
+                            {isFullyComplete ? <Check size={16} /> : index + 1}
+                          </div>
+
+                          {/* Exercise name and progress */}
+                          <div className="flex-1 text-left">
+                            <span className={`block font-medium ${isCurrent ? "text-blue-400" : "text-white"
+                              }`}>
+                              {ex.name}
+                            </span>
+                            <span className={`text-xs ${isFullyComplete
+                                ? "text-green-400"
+                                : hasProgress
+                                  ? "text-yellow-400"
+                                  : "text-gray-500"
+                              }`}>
+                              {completedSets}/{totalSets} sets completed
+                            </span>
+                          </div>
+
+                          {/* Current indicator */}
+                          {isCurrent && (
+                            <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
+                              Current
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </>
             )}
           </div>
 
@@ -550,30 +651,16 @@ export const WorkoutPlanner = ({
             })}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-700">
-            <h3 className="text-lg font-semibold text-center mb-4">
-              How did that exercise feel overall?
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <button
-                onClick={() => handleFeedback("hard")}
-                className="bg-red-600 hover:bg-red-500 p-4 rounded-lg font-bold"
-              >
-                Too Hard
-              </button>
-              <button
-                onClick={() => handleFeedback("just_right")}
-                className="bg-yellow-500 hover:bg-yellow-400 p-4 rounded-lg font-bold"
-              >
-                Just Right
-              </button>
-              <button
-                onClick={() => handleFeedback("easy")}
-                className="bg-green-600 hover:bg-green-500 p-4 rounded-lg font-bold"
-              >
-                Too Easy
-              </button>
-            </div>
+          {/* Navigation Buttons */}
+          <div className="mt-8 pt-6 border-t border-gray-700 flex justify-center gap-4">
+            <button
+              onClick={handleNextExercise}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-lg transition-colors"
+            >
+              {currentExerciseIndex >= workoutDay.exercises.length - 1
+                ? "Finish Workout"
+                : "Next Exercise"}
+            </button>
           </div>
         </div>
 

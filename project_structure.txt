@@ -1,54 +1,87 @@
-levelUpTracker/
-├── .firebaserc
+/ (root)
 ├── .gitignore
-├── database-debug.log
-├── database.rules.json
-├── firebase-debug.log
-├── firebase.json
-├── firestore-debug.log
-├── firestore.indexes.json
-├── firestore.rules
-├── index.html
+├── LICENSE
+├── README.md
+├── dev_setup.md
+├── main.py
+├── offline.md
 ├── package-lock.json
 ├── package.json
-├── postcss.config.js
-├── README.md
-├── storage.rules
-├── tailwind.config.js
-├── vite.config.js
-├── functions/
-│   ├── .eslintrc.js
-│   ├── .gitignore
-│   ├── index.js
-│   ├── package-lock.json
-│   └── package.json
-├── public/
-│   ├── default-maxes.json
-│   ├── plate-data.json
-│   └── program-templates.json
-└── src/
-    ├── App.jsx
-    ├── firebase.js
-    ├── main.css
-    ├── main.jsx
-    ├── components/
-    │   ├── CreateWorkout.jsx
-    │   ├── Dashboard.jsx
-    │   ├── ExerciseLibrary.jsx
-    │   ├── Login.jsx
-    │   ├── PlateCalculator.jsx
-    │   ├── ProgramTemplateDetails.jsx
-    │   ├── ProgramTemplates.jsx
-    │   ├── SettingsPage.jsx
-    │   ├── Signup.jsx
-    │   ├── WorkoutGenerator.jsx
-    │   ├── WorkoutPlanner.jsx
-    │   └── ui/
-    │       ├── FormField.jsx
-    │       ├── MiniPlateDisplay.jsx
-    │       └── Modal.jsx
-    ├── hooks/
-    │   └── useFirebaseUser.js
-    └── lib/
-        ├── constants.js
-        └── rep_scheme.js
+├── partner_workout.md
+├── potential_features.md
+├── project_description.md
+├── project_structure.txt
+├── to_do.md
+├── user_setup.md
+└── levelUpTracker/
+    ├── .env
+    ├── .firebaserc
+    ├── .gitignore
+    ├── android/
+    ├── capacitor.config.ts
+    ├── database-debug.log
+    ├── database.rules.json
+    ├── deployment_guide.md
+    ├── firebase.json
+    ├── firestore-debug.log
+    ├── firestore.indexes.json
+    ├── firestore.rules
+    ├── index.html
+    ├── package-lock.json
+    ├── package.json
+    ├── postcss.config.js
+    ├── README.md
+    ├── storage.rules
+    ├── tailwind.config.js
+    ├── vite.config.js
+    ├── functions/
+    │   ├── .eslintrc.js
+    │   ├── .gitignore
+    │   ├── index.js
+    │   ├── package-lock.json
+    │   └── package.json
+    ├── public/
+    │   ├── apple-touch-icon.png
+    │   ├── default-maxes.json
+    │   ├── favicon.ico
+    │   ├── partner_default_maxes.json
+    │   ├── plate-data.json
+    │   ├── program-templates.json
+    │   ├── pwa-192x192.png
+    │   └── pwa-512x512.png
+    └── src/
+        ├── App.jsx
+        ├── firebase.js
+        ├── main.css
+        ├── main.jsx
+        ├── components/
+        │   ├── CreateWorkout.jsx
+        │   ├── Dashboard.jsx
+        │   ├── ExerciseLibrary.jsx
+        │   ├── Login.jsx
+        │   ├── OneRepMaxPrompt.jsx
+        │   ├── PlateCalculator.jsx
+        │   ├── ProgramTemplateDetails.jsx
+        │   ├── ProgramTemplates.jsx
+        │   ├── SettingsPage.jsx
+        │   ├── Signup.jsx
+        │   ├── WorkoutGenerator.jsx
+        │   ├── WorkoutHistory.jsx
+        │   ├── WorkoutPlanner.jsx
+        │   └── ui/
+        │       ├── FormField.jsx
+        │       ├── MiniPlateDisplay.jsx
+        │       ├── Modal.jsx
+        │       └── Timer.jsx
+        ├── context/
+        │   └── WorkoutContext.jsx
+        ├── hooks/
+        │   ├── useFirebaseUser.js
+        │   └── useWorkoutManager.js
+        └── lib/
+            ├── constants.js
+            ├── gamification.js
+            ├── generateWarmupSets.js
+            ├── rep_scheme.js
+            └── routes.js
+

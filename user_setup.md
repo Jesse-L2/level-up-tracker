@@ -1,6 +1,7 @@
 LevelUp Tracker: Setup and User Guide
 
 Welcome to LevelUp Tracker! This guide will walk you through setting up the application for the first time and explain how to use its features to create personalized workout plans, track your progress, and reach your fitness goals.
+
 Part 1: Initial Setup (First Use)
 
 When you first load the application, it automatically creates a secure, anonymous account for you and sets up a default user profile. To get the most out of the app, your first step should be to personalize this profile.
@@ -72,11 +73,11 @@ Starting and Performing a Workout
 
         After all sets for an exercise are done, you'll be asked "How did that feel?".
 
-        Too Easy: The app will increase the weight for this exercise in your next workout.
+        Too Easy: The app will increase the weight for this exercise in your next workout (+5lbs).
 
-        Just Right: The weight will stay the same.
+        Just Right: The weight will increase slightly for your next workout (+2.5lbs)
 
-        Too Hard: The weight will be slightly reduced for next time.
+        Too Hard: The weight will be reduced for next time (-5lbs).
 
         This feedback is key to ensuring you are continuously challenged.
 
