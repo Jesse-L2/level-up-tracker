@@ -5,7 +5,7 @@ import { doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import programTemplates from "../../public/program-templates.json";
 import { EXERCISE_DATABASE } from "../lib/constants";
 
-const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+const appId = import.meta.env.VITE_APP_ID || (typeof __app_id !== "undefined" ? __app_id : "default-app-id");
 
 /**
  * Creates a default user profile when a new user signs up.

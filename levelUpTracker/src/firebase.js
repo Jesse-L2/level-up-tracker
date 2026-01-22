@@ -4,6 +4,7 @@ import {
   connectAuthEmulator,
   setPersistence,
   indexedDBLocalPersistence,
+  GoogleAuthProvider,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -39,12 +40,15 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 export const rtdb = getDatabase(app);
-const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+const appId = import.meta.env.VITE_APP_ID || (typeof __app_id !== "undefined" ? __app_id : "default-app-id");
 
 // --- SET PERSISTENCE ---
 if (typeof window !== "undefined") {
   setPersistence(auth, indexedDBLocalPersistence);
 }
+
+// --- Social Auth Providers ---
+export const googleProvider = new GoogleAuthProvider();
 
 export const addPartner = async (userId, partnerName) => {
   const userDocRef = doc(
