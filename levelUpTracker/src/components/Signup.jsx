@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase.js';
 import { Check, X } from 'lucide-react';
 
@@ -29,6 +29,7 @@ const getErrorMessage = (errorCode) => {
 };
 
 export const Signup = ({ onSwitchToLogin }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,10 +45,16 @@ export const Signup = ({ onSwitchToLogin }) => {
 
   const isPasswordValid = passwordValidation.every((req) => req.passed);
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
+  const isNameValid = name.trim().length >= 2;
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError(null);
+
+    if (!isNameValid) {
+      setError('Please enter your name (at least 2 characters).');
+      return;
+    }
 
     if (!isPasswordValid) {
       setError('Password does not meet all requirements.');
@@ -61,7 +68,9 @@ export const Signup = ({ onSwitchToLogin }) => {
 
     setIsLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Set the display name on the Firebase Auth user
+      await updateProfile(userCredential.user, { displayName: name.trim() });
     } catch (error) {
       setError(getErrorMessage(error.code));
     } finally {
@@ -138,6 +147,32 @@ export const Signup = ({ onSwitchToLogin }) => {
         {/* Email/Password Form */}
         <form onSubmit={handleSignup} className="space-y-5">
           <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={isLoading}
+              className={`w-full p-3 bg-gray-700/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 ${name.length > 0
+                  ? isNameValid
+                    ? 'border-green-500'
+                    : 'border-red-500'
+                  : 'border-gray-600'
+                }`}
+              placeholder="Your name"
+            />
+            {name.length > 0 && !isNameValid && (
+              <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
+                <X size={14} />
+                Name must be at least 2 characters
+              </p>
+            )}
+          </div>
+          <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
               Email
             </label>
@@ -212,7 +247,7 @@ export const Signup = ({ onSwitchToLogin }) => {
           </div>
           <button
             type="submit"
-            disabled={!isPasswordValid || !passwordsMatch || isLoading}
+            disabled={!isNameValid || !isPasswordValid || !passwordsMatch || isLoading}
             className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}

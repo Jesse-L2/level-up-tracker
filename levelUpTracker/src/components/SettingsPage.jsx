@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ALL_EQUIPMENT } from "../lib/constants";
-import { addPartner, removePartner, updatePartnerName } from "../firebase";
+import { addPartner, removePartner, updatePartnerName, auth } from "../firebase";
+import { updateProfile } from "firebase/auth";
 import { FormField } from "./ui/FormField";
-import { Save, Plus, Trash2, Loader2 } from "lucide-react";
+import { Save, Plus, Trash2, Loader2, User } from "lucide-react";
 import { useWorkout } from "../context/WorkoutContext";
 
 export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore, onUpdateWorkoutPlan }) => {
@@ -15,6 +16,9 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   const [partnerMessage, setPartnerMessage] = useState(null);
   const [isSavingMaxes, setIsSavingMaxes] = useState(false);
   const [maxesMessage, setMaxesMessage] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [userNameMessage, setUserNameMessage] = useState(null);
+  const [isSavingUserName, setIsSavingUserName] = useState(false);
 
   // Set page title for Settings
   useEffect(() => {
@@ -61,6 +65,8 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
         ...userProfile,
         restTimer: userProfile.restTimer || 120, // Set default rest timer
       });
+      // Initialize userName from displayName
+      setUserName(userProfile.displayName || "");
       if (userProfile.partner) {
         setPartnerName(userProfile.partner.name);
         setPartnerMessage(null);
@@ -132,6 +138,31 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
         console.error("Failed to remove partner:", error);
         setPartnerMessage("Failed to remove partner. Please try again.");
       }
+    }
+  };
+
+  const handleUpdateUserName = async () => {
+    if (userName.trim().length < 2) {
+      setUserNameMessage("Name must be at least 2 characters.");
+      return;
+    }
+
+    setIsSavingUserName(true);
+    setUserNameMessage(null);
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updateProfile(user, { displayName: userName.trim() });
+        setUserNameMessage("Name updated successfully!");
+        setTimeout(() => setUserNameMessage(null), 3000);
+      } else {
+        setUserNameMessage("Error: No user logged in.");
+      }
+    } catch (error) {
+      console.error("Failed to update name:", error);
+      setUserNameMessage("Failed to update name. Please try again.");
+    } finally {
+      setIsSavingUserName(false);
     }
   };
 
@@ -329,6 +360,49 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           >
             Back to Dashboard
           </button>
+        </div>
+
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+          <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2 flex items-center gap-2">
+            <User size={24} /> Your Account
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <FormField
+                label="Your Name"
+                id="userName"
+                type="text"
+                value={userName}
+                onChange={(e) => {
+                  setUserName(e.target.value);
+                  setUserNameMessage(null);
+                }}
+                placeholder="Enter your name"
+              />
+            </div>
+            <div className="flex items-end gap-4">
+              <button
+                onClick={handleUpdateUserName}
+                disabled={isSavingUserName}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingUserName ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin text-white" /> Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={20} className="text-white" /> Update Name
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          {userNameMessage && (
+            <p className={`text-center mt-4 ${userNameMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+              {userNameMessage}
+            </p>
+          )}
         </div>
 
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">

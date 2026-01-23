@@ -100,13 +100,13 @@ export const PostWorkoutReview = ({
                 </p>
 
                 {/* Grid Layout: Single column for solo, two columns for partner */}
-                <div className={`grid ${hasPartner ? "grid-cols-2 gap-6" : "grid-cols-1"}`}>
+                <div className={`grid ${hasPartner ? "grid-cols-2 gap-6 items-stretch" : "grid-cols-1"}`}>
                     {/* User Column */}
-                    <div>
+                    <div className="flex flex-col">
                         <h2 className="text-xl font-semibold mb-4 text-center border-b border-gray-700 pb-2">
                             {userProfile.displayName}
                         </h2>
-                        <div className="space-y-4">
+                        <div className="space-y-4 flex-grow">
                             {completedWorkout.exercises.map((ex) => (
                                 <ExerciseAdjustmentCard
                                     key={ex.name}
@@ -123,11 +123,11 @@ export const PostWorkoutReview = ({
 
                     {/* Partner Column (only if partner workout exists) */}
                     {hasPartner && (
-                        <div>
+                        <div className="flex flex-col">
                             <h2 className="text-xl font-semibold mb-4 text-center border-b border-gray-700 pb-2">
                                 {userProfile.partner.name}
                             </h2>
-                            <div className="space-y-4">
+                            <div className="space-y-4 flex-grow">
                                 {partnerWorkout.exercises.map((ex) => (
                                     <ExerciseAdjustmentCard
                                         key={ex.name}

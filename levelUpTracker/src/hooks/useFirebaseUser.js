@@ -1,9 +1,30 @@
 // src/hooks/useFirebaseUser.js
 import { useState, useEffect, useCallback } from "react";
-import { db } from "../firebase.js";
+import { db, auth } from "../firebase.js";
 import { doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import programTemplates from "../../public/program-templates.json";
 import { EXERCISE_DATABASE } from "../lib/constants";
+
+/**
+ * Derives a display name from the current Firebase Auth user.
+ * Priority: displayName > email username portion > "User"
+ */
+function getDisplayNameFromAuth() {
+  const user = auth.currentUser;
+  if (!user) return "User";
+
+  if (user.displayName) {
+    return user.displayName;
+  }
+
+  if (user.email) {
+    // Extract the username portion before @ and capitalize first letter
+    const emailUsername = user.email.split("@")[0];
+    return emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1);
+  }
+
+  return "User";
+}
 
 const appId = import.meta.env.VITE_APP_ID || (typeof __app_id !== "undefined" ? __app_id : "default-app-id");
 
@@ -189,14 +210,16 @@ export const useFirebaseUser = (userId) => {
       userDocRef,
       async (docSnap) => {
         try {
+          let profile;
           if (docSnap.exists()) {
             const data = docSnap.data();
-            const profile = await migrateUserProfile(userId, data, userDocRef);
-            setUserProfile(profile);
+            profile = await migrateUserProfile(userId, data, userDocRef);
           } else {
-            const profile = await initializeUserProfile(userId, userDocRef);
-            setUserProfile(profile);
+            profile = await initializeUserProfile(userId, userDocRef);
           }
+          // Merge displayName from Firebase Auth into the profile
+          profile.displayName = getDisplayNameFromAuth();
+          setUserProfile(profile);
         } catch (err) {
           console.error("Error processing user profile:", err);
           setError(err.message);
