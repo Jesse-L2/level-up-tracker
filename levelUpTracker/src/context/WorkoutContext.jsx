@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 const WorkoutContext = createContext();
 
@@ -9,10 +9,18 @@ export const WorkoutProvider = ({
   userProfile,
   handleUpdateProfile,
 }) => {
-  const [workoutPlan, setWorkoutPlan] = useState(userProfile.workoutPlan);
+  const [workoutPlan, setWorkoutPlan] = useState(userProfile?.workoutPlan);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [timerDuration, setTimerDuration] = useState(0);
   const [lastCompletedSet, setLastCompletedSet] = useState(null);
+
+  // Sync workoutPlan state with userProfile.workoutPlan when it changes from Firebase
+  useEffect(() => {
+    if (userProfile?.workoutPlan) {
+      setWorkoutPlan(userProfile.workoutPlan);
+    }
+  }, [userProfile?.workoutPlan]);
+
 
   const handleRecalculateWorkout = useCallback(() => {
     if (!userProfile || !workoutPlan) return;

@@ -170,7 +170,7 @@
       "name": "Starting Strength",
       "description": "A beginner linear progression program focused on compound lifts.",
       "structure": "Alternating A/B days, 3 times a week.",
-      "workout_a": {
+      "day_1_workout_a": {
         "squat": {
           "sets": 3,
           "reps": [
@@ -207,7 +207,7 @@
           ]
         }
       },
-      "workout_b": {
+      "day_2_workout_b": {
         "squat": {
           "sets": 3,
           "reps": [
@@ -756,7 +756,7 @@
       "name": "StrongLifts 5x5",
       "description": "A beginner strength program similar to Starting Strength, using 5 sets of 5 reps.",
       "structure": "Alternating A/B days, 3 times a week.",
-      "workout_a": {
+      "day_1_workout_a": {
         "squat": {
           "sets": 5,
           "reps": [
@@ -809,7 +809,7 @@
           ]
         }
       },
-      "workout_b": {
+      "day_2_workout_b": {
         "squat": {
           "sets": 5,
           "reps": [
@@ -864,7 +864,7 @@
       "name": "Push Pull Legs (PPL)",
       "description": "A common split for hypertrophy and strength, dividing workouts by movement pattern.",
       "structure": "Typically 3 or 6 days a week, repeating the cycle.",
-      "push_day": {
+      "day_1_push": {
         "bench_press": {
           "sets": 4,
           "reps": [
@@ -920,7 +920,7 @@
           ]
         }
       },
-      "pull_day": {
+      "day_2_pull": {
         "deadlift": {
           "sets": 4,
           "reps": [
@@ -978,7 +978,7 @@
           ]
         }
       },
-      "legs_day": {
+      "day_3_legs": {
         "squat": {
           "sets": 4,
           "reps": [
@@ -1027,7 +1027,7 @@
       "name": "Power Hypertrophy Upper Lower (PHUL)",
       "description": "Combines power and hypertrophy training, with upper/lower splits.",
       "structure": "4 days a week, with two power days and two hypertrophy days.",
-      "upper_power": {
+      "day_1_upper_power": {
         "bench_press": {
           "sets": 4,
           "reps": [
@@ -1072,7 +1072,7 @@
           ]
         }
       },
-      "lower_power": {
+      "day_2_lower_power": {
         "squat": {
           "sets": 4,
           "reps": [
@@ -1115,7 +1115,7 @@
           ]
         }
       },
-      "upper_hypertrophy": {
+      "day_3_upper_hypertrophy": {
         "dumbbell_bench": {
           "sets": 4,
           "reps": [
@@ -1160,7 +1160,7 @@
           ]
         }
       },
-      "lower_hypertrophy": {
+      "day_4_lower_hypertrophy": {
         "leg_press": {
           "sets": 4,
           "reps": [

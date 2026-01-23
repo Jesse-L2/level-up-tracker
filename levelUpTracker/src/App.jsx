@@ -468,7 +468,7 @@ function ProgramTemplateDetailsWrapper({ userProfile, updateUserProfileInFiresto
     });
   }, [userProfile, lifts, getAllProgramExercises]);
 
-  const applyProgram = useCallback((prog, additionalExercises = []) => {
+  const applyProgram = useCallback(async (prog, additionalExercises = []) => {
     if (!userProfile) return;
 
     // Merge additional exercises into the library
@@ -523,7 +523,7 @@ function ProgramTemplateDetailsWrapper({ userProfile, updateUserProfileInFiresto
       newWorkoutPlan[dayKey] = { exercises };
     });
 
-    updateUserProfileInFirestore({
+    await updateUserProfileInFirestore({
       workoutPlan: newWorkoutPlan,
       exerciseLibrary: newExerciseLibrary,
     });
@@ -546,10 +546,10 @@ function ProgramTemplateDetailsWrapper({ userProfile, updateUserProfileInFiresto
     [userProfile, findMissingExercises, applyProgram]
   );
 
-  const handleSaveOneRepMaxes = useCallback((newExercises) => {
+  const handleSaveOneRepMaxes = useCallback(async (newExercises) => {
     setShowOneRepMaxPrompt(false);
     if (pendingProgram) {
-      applyProgram(pendingProgram, newExercises);
+      await applyProgram(pendingProgram, newExercises);
     }
     setPendingProgram(null);
     setMissingExercises([]);
