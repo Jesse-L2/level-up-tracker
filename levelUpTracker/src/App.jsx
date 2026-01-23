@@ -14,6 +14,7 @@ import { ExerciseLibrary } from "./components/ExerciseLibrary";
 import { WorkoutHistory } from "./components/WorkoutHistory";
 import ProgramTemplates from "./components/ProgramTemplates";
 import ProgramTemplateDetails from "./components/ProgramTemplateDetails";
+import { EditProgram } from "./components/EditProgram";
 import { OneRepMaxPrompt } from "./components/OneRepMaxPrompt";
 import { Login } from "./components/Login";
 import { Signup } from "./components/Signup";
@@ -615,6 +616,7 @@ function AppContent() {
         calculator: ROUTES.CALCULATOR,
         program_templates: ROUTES.PROGRAM_TEMPLATES,
         history: ROUTES.HISTORY,
+        edit_program: ROUTES.EDIT_PROGRAM,
       };
       navigate(routeMap[page] || ROUTES.DASHBOARD);
     }
@@ -738,6 +740,16 @@ function AppContent() {
         path={ROUTES.HISTORY}
         element={
           <WorkoutHistory userProfile={userProfile} deleteWorkout={deleteWorkout} />
+        }
+      />
+      <Route
+        path={ROUTES.EDIT_PROGRAM}
+        element={
+          <EditProgram
+            userProfile={userProfile}
+            updateUserProfileInFirestore={updateUserProfileInFirestore}
+            onBack={() => navigate(ROUTES.DASHBOARD)}
+          />
         }
       />
       <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />

@@ -78,6 +78,7 @@ export const WorkoutProvider = ({
     startTimer,
     stopTimer,
     lastCompletedSet,
+    updateUserProfileInFirestore: handleUpdateProfile,
   };
 
   return (

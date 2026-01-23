@@ -1,0 +1,88 @@
+npm warn Unknown cli config "--run". This will stop working in the next major version of npm.
+
+> levelup-tracker@0.0.0 test
+> vitest src/lib/__tests__/editProgram.test.js
+
+
+[1m[44m DEV [49m[22m [34mv4.0.18 [39m[90mF:/Antigravity Projects/levelupWorkoutTracker/levelUpTracker[39m
+
+ [31mΓ¥»[39m src/lib/__tests__/editProgram.test.js [2m([22m[2m14 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 11[2mms[22m[39m
+       [32mΓ£ô[39m should convert percentage from decimal to display format[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m should convert percentage from display format to decimal[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should calculate weight from 1RM and percentage[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should round weight to nearest 2.5 lbs[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should handle edge case of 0 oneRepMax[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should clone exercise sets correctly[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should handle AMRAP notation in reps[32m 0[2mms[22m[39m
+[31m       [31m├ù[31m should reconstruct sets from edit modal data[39m[32m 7[2mms[22m[39m
+       [32mΓ£ô[39m should add a new set based on last set values[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should add default values if no sets exist[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should remove a set by index[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should not remove last set[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should generate unique template ID[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should create template object from workout plan[32m 0[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/lib/__tests__/editProgram.test.js > EditProgram Logic > Build sets from edit data > should reconstruct sets from edit modal data
+AssertionError: expected [ { reps: 10, ΓÇª(2) }, ΓÇª(2) ] to deeply equal [ { reps: 10, ΓÇª(2) }, ΓÇª(2) ]
+
+- Expected
++ Received
+
+@@ -5,11 +5,11 @@
+      "weight": 135,
+    },
+    {
+      "percentage": 0.75,
+      "reps": 6,
+-     "weight": 167.5,
++     "weight": 170,
+    },
+    {
+      "percentage": 0.85,
+      "reps": 4,
+      "weight": 192.5,
+
+ Γ¥» src/lib/__tests__/editProgram.test.js:100:29
+     98|             });
+     99| 
+    100|             expect(newSets).toEqual([
+       |                             ^
+    101|                 { reps: 10, percentage: 0.6, weight: 135 },
+    102|                 { reps: 6, percentage: 0.75, weight: 167.5 },
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m13 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 12:04:35
+[2m   Duration [22m 1.20s[2m (transform 23ms, setup 108ms, import 16ms, tests 11ms, environment 905ms)[22m
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/lib/__tests__/editProgram.test.js [22m[34mx1 [34m[39m
+       [2m Filename pattern: [22m[34msrc/lib/__tests__/editProgram.test.js[39m
+
+ [32mΓ£ô[39m src/lib/__tests__/editProgram.test.js [2m([22m[2m14 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 12:05:13
+[2m   Duration [22m 165ms
+
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/lib/__tests__/editProgram.test.js [22m[34mx2 [34m[39m
+       [2m Filename pattern: [22m[34msrc/lib/__tests__/editProgram.test.js[39m
+
+ [32mΓ£ô[39m src/lib/__tests__/editProgram.test.js [2m([22m[2m16 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 12:24:10
+[2m   Duration [22m 202ms
+
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

@@ -221,7 +221,6 @@ export const useFirebaseUser = (userId) => {
         setError("User not authenticated. Please try again.");
         return;
       }
-      setIsLoading(true);
       setError(null);
       try {
         const userDocRef = doc(
@@ -233,8 +232,6 @@ export const useFirebaseUser = (userId) => {
       } catch (err) {
         console.error("Error updating user profile:", err);
         setError(err.message);
-      } finally {
-        setIsLoading(false);
       }
     },
     [userId]

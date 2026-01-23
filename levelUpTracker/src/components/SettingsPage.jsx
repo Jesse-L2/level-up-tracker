@@ -214,6 +214,15 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
     []
   );
 
+  const handleRemoveMaxLift = useCallback((exerciseId) => {
+    if (window.confirm("Are you sure you want to remove this exercise from your library?")) {
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        exerciseLibrary: prevProfile.exerciseLibrary.filter((ex) => ex.id !== exerciseId),
+      }));
+    }
+  }, []);
+
   const handleResetProgress = async () => {
     if (
       window.confirm(
@@ -396,16 +405,26 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {profile.exerciseLibrary.map((ex) => (
-              <FormField
-                key={ex.id}
-                label={ex.name}
-                id={`1rm-${ex.id}`}
-                type="number"
-                value={ex.oneRepMax}
-                onChange={(e) =>
-                  handleOneRepMaxChange(ex.id, parseFloat(e.target.value) || 0)
-                }
-              />
+              <div key={ex.id} className="flex gap-4 items-start">
+                <div className="flex-grow">
+                  <FormField
+                    label={ex.name}
+                    id={`1rm-${ex.id}`}
+                    type="number"
+                    value={ex.oneRepMax}
+                    onChange={(e) =>
+                      handleOneRepMaxChange(ex.id, parseFloat(e.target.value) || 0)
+                    }
+                  />
+                </div>
+                <button
+                  onClick={() => handleRemoveMaxLift(ex.id)}
+                  className="mt-6 p-3 bg-red-800 hover:bg-red-700 text-white rounded-lg transition-colors h-[50px] flex items-center justify-center"
+                  title="Remove Exercise"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
             ))}
           </div>
           <div className="mt-4 flex items-center gap-4">
@@ -570,6 +589,6 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };

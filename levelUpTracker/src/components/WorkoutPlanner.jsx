@@ -3,6 +3,7 @@ import { savePartnerWorkout } from "../firebase";
 import { FormField } from "./ui/FormField";
 import { Edit, Save, X, Plus, Minus, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
+import { isBarbellExercise } from "../lib/constants";
 import { Timer } from "./ui/Timer";
 import { useWorkout } from "../context/WorkoutContext";
 import { PostWorkoutReview } from "./PostWorkoutReview";
@@ -75,35 +76,41 @@ export const WorkoutPlanner = ({
     // Auto-fix: Check for snake_case names OR lowercase names and fix them against the library
     let hasChanges = false;
     const updatedExercises = workoutDay.exercises.map(ex => {
-      // Check for underscore OR if name starts with lowercase letter
-      if (ex.name.includes('_') || /^[a-z]/.test(ex.name)) {
-        // Convert snake_case to Title Case (e.g., bench_press -> Bench Press)
-        // Also handles simple lowercase (deadlift -> Deadlift)
+      let currentEx = { ...ex };
+      let hasUpdates = false;
+
+      // 1. Fix Name if needed (snake_case or lowercase)
+      if (currentEx.name.includes('_') || /^[a-z]/.test(currentEx.name)) {
         const formatName = (n) => n.split(/_| /).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        const fixedName = formatName(ex.name);
+        const fixedName = formatName(currentEx.name);
 
         // Find existing data in library
         const libraryEntry = userProfile.exerciseLibrary?.find(
           libEx => libEx.name.toLowerCase() === fixedName.toLowerCase()
         );
 
+        currentEx.name = fixedName;
+        hasUpdates = true;
+
         if (libraryEntry) {
-          hasChanges = true;
           const newMax = libraryEntry.oneRepMax;
-          return {
-            ...ex,
-            name: fixedName,
-            oneRepMax: newMax,
-            sets: ex.sets.map(s => ({
-              ...s,
-              weight: Math.round((newMax * s.percentage) / 2.5) * 2.5
-            }))
-          };
-        } else {
-          // Just fix the name format even if not in library
-          hasChanges = true;
-          return { ...ex, name: fixedName };
+          currentEx.oneRepMax = newMax;
+          currentEx.sets = currentEx.sets.map(s => ({
+            ...s,
+            weight: Math.round((newMax * s.percentage) / 2.5) * 2.5
+          }));
         }
+      }
+
+      // 2. Fix isBarbell if missing
+      if (currentEx.isBarbell === undefined) {
+        currentEx.isBarbell = isBarbellExercise(currentEx.name);
+        hasUpdates = true;
+      }
+
+      if (hasUpdates) {
+        hasChanges = true;
+        return currentEx;
       }
       return ex;
     });
@@ -446,18 +453,18 @@ export const WorkoutPlanner = ({
                           key={index}
                           onClick={() => handleSelectExercise(index)}
                           className={`px-4 py-3 cursor-pointer transition-all flex items-center gap-3 ${isCurrent
-                              ? "bg-blue-600/20 border-l-4 border-blue-500"
-                              : "hover:bg-gray-700/50 border-l-4 border-transparent"
+                            ? "bg-blue-600/20 border-l-4 border-blue-500"
+                            : "hover:bg-gray-700/50 border-l-4 border-transparent"
                             }`}
                         >
                           {/* Exercise number/status indicator */}
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${isFullyComplete
-                              ? "bg-green-500 text-white"
-                              : hasProgress
-                                ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500"
-                                : isCurrent
-                                  ? "bg-blue-500 text-white"
-                                  : "bg-gray-700 text-gray-400"
+                            ? "bg-green-500 text-white"
+                            : hasProgress
+                              ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500"
+                              : isCurrent
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-700 text-gray-400"
                             }`}>
                             {isFullyComplete ? <Check size={16} /> : index + 1}
                           </div>
@@ -469,10 +476,10 @@ export const WorkoutPlanner = ({
                               {ex.name}
                             </span>
                             <span className={`text-xs ${isFullyComplete
-                                ? "text-green-400"
-                                : hasProgress
-                                  ? "text-yellow-400"
-                                  : "text-gray-500"
+                              ? "text-green-400"
+                              : hasProgress
+                                ? "text-yellow-400"
+                                : "text-gray-500"
                               }`}>
                               {completedSets}/{totalSets} sets completed
                             </span>
@@ -630,6 +637,7 @@ export const WorkoutPlanner = ({
                     setSessionLog={setSessionLog}
                     lastCompletedSet={lastCompletedSet}
                     isPartnerView={isPartnerView}
+                    isBarbell={currentExercise.isBarbell}
                   />
                   {isPartnerView && (
                     <SetCard
@@ -644,6 +652,7 @@ export const WorkoutPlanner = ({
                       setSessionLog={setSessionLog}
                       lastCompletedSet={lastCompletedSet}
                       isPartnerView={isPartnerView}
+                      isBarbell={currentExercise.isBarbell}
                     />
                   )}
                 </React.Fragment>
@@ -689,6 +698,7 @@ const SetCard = ({
   setSessionLog,
   lastCompletedSet,
   isPartnerView = false,
+  isBarbell = false,
 }) => {
   const { isTimerActive, timerDuration, stopTimer } = useWorkout();
   const log = sessionLog[userType]?.[exIndex]?.[setIndex];
@@ -780,7 +790,7 @@ const SetCard = ({
 
             {/* Plate display for partner view - fixed height for consistent card size */}
             <div className="flex justify-center items-end h-14">
-              {set.weight > 0 && (
+              {set.weight > 0 && isBarbell && (
                 <MiniPlateDisplay
                   targetWeight={set.weight}
                   availablePlates={availablePlates}
@@ -896,7 +906,7 @@ const SetCard = ({
             </div>
 
             {/* Plate display - below inputs */}
-            {set.weight > 0 && (
+            {set.weight > 0 && isBarbell && (
               <div className="flex justify-center mt-1">
                 <MiniPlateDisplay
                   targetWeight={set.weight}

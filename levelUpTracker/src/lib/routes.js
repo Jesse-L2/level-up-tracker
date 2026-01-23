@@ -11,6 +11,7 @@ export const ROUTES = {
   HISTORY: '/history',
   LOGIN: '/login',
   SIGNUP: '/signup',
+  EDIT_PROGRAM: '/edit-program',
 };
 
 // Helper to generate dynamic routes

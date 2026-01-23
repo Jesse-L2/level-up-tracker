@@ -59,3 +59,36 @@ export const ALL_EQUIPMENT = [
   { id: "leg_press_machine", name: "Leg Press Machine" },
   { id: "leg_curl_machine", name: "Leg Curl Machine" },
 ];
+
+// Helper to determine if an exercise is a barbell exercise by default
+// Used for migration/inference when the 'isBarbell' property is missing
+export const DEFAULT_BARBELL_EXERCISES = Object.values(EXERCISE_DATABASE)
+  .flat()
+  .filter((ex) => ex.type === "barbell")
+  .map((ex) => ex.name);
+
+// Additional common barbell exercises that might not be in the base DB but user might add
+export const COMMON_BARBELL_EXERCISES = [
+  "Barbell Row",
+  "Front Squat",
+  "Romanian Deadlift",
+  "Close Grip Bench Press",
+  "Zercher Squat",
+  "Calf Raise",
+];
+
+export const isBarbellExercise = (name) => {
+  if (!name) return false;
+  const lowerName = name.toLowerCase();
+
+  // Check exact matches in default list (case insensitive)
+  if (DEFAULT_BARBELL_EXERCISES.some((ex) => ex.toLowerCase() === lowerName))
+    return true;
+  // Check common list (case insensitive)
+  if (COMMON_BARBELL_EXERCISES.some((ex) => ex.toLowerCase() === lowerName))
+    return true;
+  // Heuristic: check if name contains "Barbell" (case insensitive)
+  if (lowerName.includes("barbell")) return true;
+
+  return false;
+};

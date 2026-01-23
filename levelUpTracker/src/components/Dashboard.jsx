@@ -17,7 +17,9 @@ import {
   Weight,
   BookOpen, // New Icon
   LogOut,
+  Edit2, // New Icon
 } from "lucide-react";
+import { isBarbellExercise } from "../lib/constants";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 import { calculateLevel, calculateProgressToNextLevel } from "../lib/gamification";
 import { Trophy } from "lucide-react";
@@ -274,6 +276,12 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                 >
                   Add/Edit Workout Day
                 </button>
+                <button
+                  onClick={() => onNavigate("edit_program")}
+                  className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Edit2 size={18} /> Edit Schedule
+                </button>
               </div>
               {sortedWorkoutPlan.length > 0 ? (
                 <div className="space-y-4">
@@ -354,12 +362,14 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                                       >
                                         Set {i + 1}: {s.reps} reps @ {s.weight}{" "}
                                         lbs ({s.percentage * 100}%)
-                                        <MiniPlateDisplay
-                                          targetWeight={s.weight}
-                                          availablePlates={
-                                            userProfile.availablePlates
-                                          }
-                                        />
+                                        {(ex.isBarbell || isBarbellExercise(ex.name)) && (
+                                          <MiniPlateDisplay
+                                            targetWeight={s.weight}
+                                            availablePlates={
+                                              userProfile.availablePlates
+                                            }
+                                          />
+                                        )}
                                       </li>
                                     )
                                   )}
