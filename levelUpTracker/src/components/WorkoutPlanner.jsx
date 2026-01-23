@@ -395,7 +395,7 @@ export const WorkoutPlanner = ({
         <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
           <div className="relative text-center">
             <button
-              className="inline-flex items-center gap-2 text-4xl font-bold mb-2 text-center text-blue-400 hover:text-blue-300 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg px-2"
+              className="inline-flex items-center gap-2 text-4xl font-bold mb-0 text-center text-blue-400 hover:text-blue-300 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg px-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-expanded={isMenuOpen}
               aria-haspopup="true"
@@ -407,16 +407,16 @@ export const WorkoutPlanner = ({
                 <ChevronDown size={28} className="text-blue-400" />
               )}
             </button>
-            <p className="text-2xl font-bold text-white mb-2">
+            <p className="text-2xl font-bold text-white mb-0">
               {currentExercise.oneRepMax} lbs
             </p>
             {isPartnerView && userProfile.partner && (
-              <p className="text-xl font-bold text-white mb-2">
+              <p className="text-xl font-bold text-white mb-0">
                 {userProfile.partner.name}'s 1RM:{" "}
                 {userProfile.partner.maxes[currentExercise.id] || "N/A"} lbs
               </p>
             )}
-            <p className="text-gray-400 mb-4">
+            <p className="text-gray-400 mb-0">
               Exercise {currentExerciseIndex + 1} of{" "}
               {workoutDay.exercises.length}
             </p>
@@ -500,7 +500,7 @@ export const WorkoutPlanner = ({
             )}
           </div>
 
-          <div className="text-center mb-4">
+          <div className="text-center mb-0">
             {isEditing ? (
               <div className="flex flex-col items-center gap-2 p-4 bg-gray-700 rounded-lg">
                 <h4 className="font-semibold">Update 1 Rep Max</h4>
@@ -544,7 +544,7 @@ export const WorkoutPlanner = ({
             ) : (
               <button
                 onClick={handleStartEditOneRepMax}
-                className="text-blue-400 hover:text-blue-300 mt-1 flex items-center gap-1 mx-auto"
+                className="text-blue-400 hover:text-blue-300 flex items-center gap-1 mx-auto"
               >
                 <Edit size={16} /> Edit 1RM
               </button>
@@ -604,15 +604,15 @@ export const WorkoutPlanner = ({
             )}
           </div>
           <div
-            className={`mt-6 grid ${isPartnerView ? "grid-cols-2" : "grid-cols-1"
+            className={`mt-0 grid ${isPartnerView ? "grid-cols-2" : "grid-cols-1"
               } gap-2 sm:gap-4`}
           >
             {/* Column Headers */}
-            <div className={`font-semibold text-center mb-2 flex items-center justify-center ${isPartnerView ? "text-sm sm:text-xl h-10 sm:h-14" : "text-xl h-14"}`}>
+            <div className={`font-semibold text-center flex items-center justify-center ${isPartnerView ? "text-sm sm:text-xl" : "text-xl"}`}>
               {userProfile.displayName}
             </div>
             {isPartnerView && (
-              <div className="text-sm sm:text-xl font-semibold text-center mb-2 h-10 sm:h-14 flex items-center justify-center">
+              <div className="text-sm sm:text-xl font-semibold text-center flex items-center justify-center">
                 {userProfile.partner.name}
               </div>
             )}

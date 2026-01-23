@@ -270,18 +270,20 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                 <h2 className="text-2xl font-semibold text-white">
                   Your Weekly Plan
                 </h2>
-                <button
-                  onClick={() => onNavigate("create_workout")}
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Add/Edit Workout Day
-                </button>
-                <button
-                  onClick={() => onNavigate("edit_program")}
-                  className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <Edit2 size={18} /> Edit Schedule
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onNavigate("create_workout")}
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                  >
+                    Add/Edit Workout Day
+                  </button>
+                  <button
+                    onClick={() => onNavigate("edit_program")}
+                    className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Edit2 size={18} /> Edit Schedule
+                  </button>
+                </div>
               </div>
               {sortedWorkoutPlan.length > 0 ? (
                 <div className="space-y-4">

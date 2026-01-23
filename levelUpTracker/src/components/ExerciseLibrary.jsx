@@ -86,6 +86,7 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
     }
 
     const exerciseToSave = {
+      id: newExercise.name.toLowerCase().replace(/\s+/g, '_'),
       name: newExercise.name,
       type: newExercise.type,
       oneRepMax:

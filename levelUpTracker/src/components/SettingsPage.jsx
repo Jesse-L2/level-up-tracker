@@ -25,6 +25,37 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   }, []);
 
   useEffect(() => {
+    // Auto-fix missing Exercise IDs
+    if (!userProfile || !userProfile.exerciseLibrary) return;
+
+    let hasChanges = false;
+    const updatedLibrary = userProfile.exerciseLibrary.map((ex) => {
+      if (!ex.id) {
+        hasChanges = true;
+        return {
+          ...ex,
+          id: ex.name.toLowerCase().replace(/\s+/g, '_')
+        };
+      }
+      return ex;
+    });
+
+    if (hasChanges) {
+      console.log("Auto-fixing missing exercise IDs...");
+      const updatedProfile = { ...userProfile, exerciseLibrary: updatedLibrary };
+      // We update the local state AND firestore.
+      // Updating firestore will eventually trigger a meaningful userProfile update via parent, 
+      // but to avoid flicker/loops, we do it here.
+      // Crucially, `updateUserProfileInFirestore` handles merging.
+      updateUserProfileInFirestore(updatedProfile).catch(err => {
+        console.error("Failed to persist auto-fixed IDs:", err);
+      });
+      // We also update local profile state to reflect fixes immediately
+      setProfile(updatedProfile);
+    }
+  }, [userProfile?.exerciseLibrary]); // Run when library changes
+
+  useEffect(() => {
     if (userProfile) {
       setProfile({
         ...userProfile,
@@ -334,7 +365,9 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
             </div>
           </div>
           {partnerMessage && (
-            <p className="text-red-400 text-center mt-4">{partnerMessage}</p>
+            <p className={`text-center mt-4 ${partnerMessage.includes("successfully") ? "text-green-400" : "text-red-400"}`}>
+              {partnerMessage}
+            </p>
           )}
         </div>
 
@@ -463,7 +496,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
                   label={ex.name}
                   id={`partner-1rm-${ex.id}`}
                   type="number"
-                  value={profile.partner.maxes?.[ex.id] || ""}
+                  value={profile.partner.maxes?.[ex.id] !== undefined ? profile.partner.maxes[ex.id] : ""}
                   onChange={(e) =>
                     handlePartnerOneRepMaxChange(
                       ex.id,
