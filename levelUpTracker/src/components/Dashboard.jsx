@@ -84,6 +84,28 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
     if (!plan || typeof plan !== "object") {
       return [];
     }
+
+    // Use saved order if available
+    const savedOrder = isPartnerView
+      ? userProfile.partner?.workoutPlanOrder
+      : userProfile.workoutPlanOrder;
+
+    if (savedOrder && Array.isArray(savedOrder)) {
+      // Return entries in saved order, then any new keys not in order
+      const planKeys = Object.keys(plan);
+      const orderedEntries = savedOrder
+        .filter(key => planKeys.includes(key))
+        .map(key => [key, plan[key]]);
+      // Add any keys not in the saved order
+      planKeys.forEach(key => {
+        if (!savedOrder.includes(key)) {
+          orderedEntries.push([key, plan[key]]);
+        }
+      });
+      return orderedEntries;
+    }
+
+    // Fall back to sorting by day number
     return Object.entries(plan).sort(([dayA], [dayB]) => {
       const dayNumA = parseInt(dayA.split('_')[1]);
       const dayNumB = parseInt(dayB.split('_')[1]);
@@ -270,20 +292,12 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                 <h2 className="text-2xl font-semibold text-white">
                   Your Weekly Plan
                 </h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => onNavigate("create_workout")}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Add/Edit Workout Day
-                  </button>
-                  <button
-                    onClick={() => onNavigate("edit_program")}
-                    className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Edit2 size={18} /> Edit Schedule
-                  </button>
-                </div>
+                <button
+                  onClick={() => onNavigate("edit_program")}
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Edit2 size={18} /> Manage Schedule
+                </button>
               </div>
               {sortedWorkoutPlan.length > 0 ? (
                 <div className="space-y-4">

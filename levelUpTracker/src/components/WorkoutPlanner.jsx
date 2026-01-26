@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { savePartnerWorkout } from "../firebase";
 import { FormField } from "./ui/FormField";
-import { Edit, Save, X, Plus, Minus, ChevronDown, ChevronUp, Check } from "lucide-react";
+import { Edit, Save, X, Plus, Minus, ChevronDown, ChevronUp, ChevronLeft, Check } from "lucide-react";
 import { MiniPlateDisplay } from "./ui/MiniPlateDisplay";
 import { isBarbellExercise } from "../lib/constants";
 import { Timer } from "./ui/Timer";
@@ -267,6 +267,17 @@ export const WorkoutPlanner = ({
       handleFinishWorkout();
     }
   }, [currentExerciseIndex, workoutDay.exercises.length, handleFinishWorkout, setCurrentExerciseIndex, stopTimer]);
+
+  // Navigate to previous exercise
+  const handlePreviousExercise = useCallback(() => {
+    // Stop any running timer when navigating
+    stopTimer();
+
+    if (currentExerciseIndex > 0) {
+      setCurrentExerciseIndex(currentExerciseIndex - 1);
+      window.scrollTo(0, 0);
+    }
+  }, [currentExerciseIndex, setCurrentExerciseIndex, stopTimer]);
 
   // Callback from PostWorkoutReview to save everything
   const handleReviewSave = useCallback(({ userMaxUpdates, partnerMaxUpdates, userWorkout, partnerWorkout }) => {
@@ -665,6 +676,14 @@ export const WorkoutPlanner = ({
 
           {/* Navigation Buttons */}
           <div className="mt-8 pt-6 border-t border-gray-700 flex justify-center gap-4">
+            {currentExerciseIndex > 0 && (
+              <button
+                onClick={handlePreviousExercise}
+                className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <ChevronLeft size={20} /> Previous
+              </button>
+            )}
             <button
               onClick={handleNextExercise}
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-lg transition-colors"

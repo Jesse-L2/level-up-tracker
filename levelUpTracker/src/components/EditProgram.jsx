@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useWorkout } from '../context/WorkoutContext';
 import { EXERCISE_DATABASE } from '../lib/constants';
 import { FormField } from './ui/FormField';
-import { Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronRight, Copy } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronRight, ChevronUp, Copy, GripVertical, Pencil, XCircle, PlusCircle, ArrowUp, ArrowDown } from 'lucide-react';
 import { OneRepMaxPrompt } from './OneRepMaxPrompt';
 import { PlateVisualizer } from './ui/PlateVisualizer';
 import { isBarbellExercise } from '../lib/constants';
@@ -36,17 +36,53 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
         message: '',
         onConfirm: null
     });
+    const [reorderMode, setReorderMode] = useState(false);
+    const [dayOrder, setDayOrder] = useState([]);
+    const [draggedDayKey, setDraggedDayKey] = useState(null);
+    const [renamingDay, setRenamingDay] = useState(null); // dayKey being renamed
+    const [renameValue, setRenameValue] = useState('');
+    const [addDayModalOpen, setAddDayModalOpen] = useState(false);
+    const [newDayName, setNewDayName] = useState('');
 
     useEffect(() => {
         // Only load initial state if local plan is empty
         if (userProfile && userProfile.workoutPlan && !localWorkoutPlan) {
-            setLocalWorkoutPlan(JSON.parse(JSON.stringify(userProfile.workoutPlan)));
+            const plan = JSON.parse(JSON.stringify(userProfile.workoutPlan));
+            setLocalWorkoutPlan(plan);
             // Expand all days by default
             const allDays = {};
-            Object.keys(userProfile.workoutPlan).forEach(key => allDays[key] = true);
+            Object.keys(plan).forEach(key => allDays[key] = true);
             setExpandedDays(allDays);
+            // Initialize day order from saved order or default to sorted keys
+            const savedOrder = userProfile.workoutPlanOrder;
+            const planKeys = Object.keys(plan);
+            if (savedOrder && Array.isArray(savedOrder)) {
+                // Use saved order, but filter out any stale keys and add any new ones
+                const validOrder = savedOrder.filter(k => planKeys.includes(k));
+                planKeys.forEach(k => {
+                    if (!validOrder.includes(k)) validOrder.push(k);
+                });
+                setDayOrder(validOrder);
+            } else {
+                setDayOrder(planKeys.sort());
+            }
         }
     }, [userProfile, localWorkoutPlan]);
+
+    // Keep dayOrder in sync when localWorkoutPlan keys change (e.g., adding a day)
+    useEffect(() => {
+        if (localWorkoutPlan) {
+            const planKeys = Object.keys(localWorkoutPlan);
+            setDayOrder(prevOrder => {
+                // Add any new keys, remove deleted ones, preserve existing order
+                const newOrder = prevOrder.filter(k => planKeys.includes(k));
+                planKeys.forEach(k => {
+                    if (!newOrder.includes(k)) newOrder.push(k);
+                });
+                return newOrder;
+            });
+        }
+    }, [localWorkoutPlan]);
 
     const toggleDay = (dayKey) => {
         setExpandedDays(prev => ({ ...prev, [dayKey]: !prev[dayKey] }));
@@ -55,6 +91,137 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
     const formatDayKey = (key) => {
         return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     };
+
+    // --- Day Rename Handlers ---
+    const handleStartRename = (dayKey, e) => {
+        e.stopPropagation();
+        setRenamingDay(dayKey);
+        // Use the display name if there's a custom name, else format the key
+        setRenameValue(localWorkoutPlan[dayKey].displayName || formatDayKey(dayKey));
+    };
+
+    const handleConfirmRename = (dayKey) => {
+        if (renameValue.trim()) {
+            setLocalWorkoutPlan(prev => ({
+                ...prev,
+                [dayKey]: { ...prev[dayKey], displayName: renameValue.trim() }
+            }));
+        }
+        setRenamingDay(null);
+        setRenameValue('');
+    };
+
+    const handleCancelRename = () => {
+        setRenamingDay(null);
+        setRenameValue('');
+    };
+
+    // --- Clear Day Handler ---
+    const handleClearDay = (dayKey, e) => {
+        e.stopPropagation();
+        setConfirmModal({
+            open: true,
+            title: 'Clear All Exercises',
+            message: `Are you sure you want to remove all exercises from ${localWorkoutPlan[dayKey].displayName || formatDayKey(dayKey)}? This cannot be undone.`,
+            onConfirm: () => {
+                setLocalWorkoutPlan(prev => ({
+                    ...prev,
+                    [dayKey]: { ...prev[dayKey], exercises: [] }
+                }));
+                setConfirmModal(prev => ({ ...prev, open: false }));
+            }
+        });
+    };
+
+    // --- Delete Day Handler ---
+    const handleDeleteDay = (dayKey, e) => {
+        e.stopPropagation();
+        setConfirmModal({
+            open: true,
+            title: 'Delete Day',
+            message: `Are you sure you want to delete ${localWorkoutPlan[dayKey].displayName || formatDayKey(dayKey)}? This will permanently remove this day and all its exercises.`,
+            onConfirm: () => {
+                setLocalWorkoutPlan(prev => {
+                    const newPlan = { ...prev };
+                    delete newPlan[dayKey];
+                    return newPlan;
+                });
+                setDayOrder(prev => prev.filter(k => k !== dayKey));
+                setConfirmModal(prev => ({ ...prev, open: false }));
+            }
+        });
+    };
+
+    // --- Add Day Handler ---
+    const handleAddDay = () => {
+        if (!newDayName.trim()) return;
+        // Generate a unique key
+        const key = `day_${Date.now()}`;
+        setLocalWorkoutPlan(prev => ({
+            ...prev,
+            [key]: { displayName: newDayName.trim(), exercises: [] }
+        }));
+        setExpandedDays(prev => ({ ...prev, [key]: true }));
+        setAddDayModalOpen(false);
+        setNewDayName('');
+    };
+
+    // --- Drag and Drop Handlers ---
+    const handleDragStart = (e, dayKey) => {
+        setDraggedDayKey(dayKey);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e, targetDayKey) => {
+        e.preventDefault();
+        if (!draggedDayKey || draggedDayKey === targetDayKey) {
+            setDraggedDayKey(null);
+            return;
+        }
+        setDayOrder(prev => {
+            const newOrder = [...prev];
+            const draggedIndex = newOrder.indexOf(draggedDayKey);
+            const targetIndex = newOrder.indexOf(targetDayKey);
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedDayKey);
+            return newOrder;
+        });
+        setDraggedDayKey(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedDayKey(null);
+    };
+
+    // --- Mobile-friendly move handlers (touch devices don't support drag) ---
+    const handleMoveUp = (dayKey, e) => {
+        e.stopPropagation();
+        setDayOrder(prev => {
+            const index = prev.indexOf(dayKey);
+            if (index <= 0) return prev;
+            const newOrder = [...prev];
+            [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+            return newOrder;
+        });
+    };
+
+    const handleMoveDown = (dayKey, e) => {
+        e.stopPropagation();
+        setDayOrder(prev => {
+            const index = prev.indexOf(dayKey);
+            if (index >= prev.length - 1) return prev;
+            const newOrder = [...prev];
+            [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+            return newOrder;
+        });
+    };
+
+
 
     const handleRemoveExercise = (dayKey, index) => {
         setConfirmModal({
@@ -260,7 +427,11 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
     const handleSaveChanges = async () => {
         setIsSaving(true);
         try {
-            await updateUserProfileInFirestore({ workoutPlan: localWorkoutPlan });
+            // Save both the workout plan and the order
+            await updateUserProfileInFirestore({
+                workoutPlan: localWorkoutPlan,
+                workoutPlanOrder: dayOrder  // Persist the day order
+            });
             onBack();
         } catch (err) {
             console.error("Error saving plan:", err);
@@ -308,66 +479,155 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
 
     return (
         <div className="container mx-auto p-4 md:p-8 text-white animate-fade-in pb-20">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-3xl font-bold">Edit Schedule</h1>
-                <div className="flex gap-2">
-                    <button onClick={handleSaveAsTemplate} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
-                        <Copy size={18} /> Save as Template
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                <h1 className="text-2xl sm:text-3xl font-bold">Manage Schedule</h1>
+                <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+                    {/* Reorder Toggle */}
+                    <label className="flex items-center gap-2 cursor-pointer bg-gray-700 p-2 rounded-lg select-none text-sm">
+                        <input
+                            type="checkbox"
+                            checked={reorderMode}
+                            onChange={() => setReorderMode(!reorderMode)}
+                            className="w-4 h-4 sm:w-5 sm:h-5 accent-blue-500"
+                        />
+                        <span className="whitespace-nowrap">Reorder</span>
+                    </label>
+                    {/* Add Day */}
+                    <button onClick={() => setAddDayModalOpen(true)} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center gap-1 sm:gap-2 text-sm">
+                        <PlusCircle size={16} /> <span className="hidden sm:inline">Add</span> Day
                     </button>
-                    <button onClick={onBack} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">
+                    <button onClick={handleSaveAsTemplate} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center gap-1 sm:gap-2 text-sm">
+                        <Copy size={16} /> <span className="hidden sm:inline">Save as</span> Template
+                    </button>
+                    <button onClick={onBack} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-sm">
                         Cancel
                     </button>
                 </div>
             </div>
 
             <div className="space-y-6">
-                {Object.keys(localWorkoutPlan).sort().map(dayKey => (
-                    <div key={dayKey} className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+                {dayOrder.map(dayKey => {
+                    const dayData = localWorkoutPlan[dayKey];
+                    if (!dayData) return null; // safety check
+                    const displayName = dayData.displayName || formatDayKey(dayKey);
+                    const hasExercises = dayData.exercises && dayData.exercises.length > 0;
+
+                    return (
                         <div
-                            className="p-4 bg-gray-750 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition"
-                            onClick={() => toggleDay(dayKey)}
+                            key={dayKey}
+                            className={`bg-gray-800 rounded-xl shadow-lg border overflow-hidden transition-all ${draggedDayKey === dayKey ? 'border-blue-500 opacity-70' : 'border-gray-700'}`}
+                            draggable={reorderMode}
+                            onDragStart={(e) => handleDragStart(e, dayKey)}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, dayKey)}
+                            onDragEnd={handleDragEnd}
                         >
-                            <h3 className="text-xl font-semibold text-blue-400">{formatDayKey(dayKey)}</h3>
-                            {expandedDays[dayKey] ? <ChevronDown /> : <ChevronRight />}
-                        </div>
-
-                        {expandedDays[dayKey] && (
-                            <div className="p-4 space-y-4">
-                                {localWorkoutPlan[dayKey].exercises.map((exercise, index) => (
-                                    <div key={`${dayKey}-${index}`} className="flex justify-between items-center bg-gray-700/50 p-3 rounded-lg">
-                                        <div>
-                                            <h4 className="font-bold">{exercise.name}</h4>
-                                            <p className="text-sm text-gray-400">
-                                                {exercise.sets.length} sets x {exercise.sets[0]?.reps} reps @ {Math.round((exercise.sets[0]?.percentage || 0) * 100)}%
-                                            </p>
+                            <div
+                                className="p-4 bg-gray-750 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition"
+                                onClick={() => !renamingDay && toggleDay(dayKey)}
+                            >
+                                <div className="flex items-center gap-3">
+                                    {reorderMode && (
+                                        <GripVertical className="text-gray-400 cursor-grab" size={20} />
+                                    )}
+                                    {renamingDay === dayKey ? (
+                                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="text"
+                                                value={renameValue}
+                                                onChange={(e) => setRenameValue(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleConfirmRename(dayKey)}
+                                                className="bg-gray-700 text-white p-2 rounded text-lg font-semibold w-48"
+                                                autoFocus
+                                            />
+                                            <button onClick={() => handleConfirmRename(dayKey)} className="p-1 text-green-400 hover:text-green-300"><Save size={18} /></button>
+                                            <button onClick={handleCancelRename} className="p-1 text-gray-400 hover:text-gray-200"><X size={18} /></button>
                                         </div>
-                                        <div className="flex gap-2 items-center">
+                                    ) : (
+                                        <h3 className="text-xl font-semibold text-blue-400 flex items-center gap-2">
+                                            {displayName}
+                                            <button onClick={(e) => handleStartRename(dayKey, e)} className="p-1 text-gray-500 hover:text-blue-400" title="Rename Day">
+                                                <Pencil size={14} />
+                                            </button>
+                                        </h3>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {/* Mobile move buttons */}
+                                    {reorderMode && (
+                                        <div className="flex gap-1">
                                             <button
-                                                onClick={() => handleEditExercise(dayKey, index, exercise)}
-                                                className="w-9 h-9 bg-blue-600 rounded hover:bg-blue-500 text-white flex items-center justify-center"
+                                                onClick={(e) => handleMoveUp(dayKey, e)}
+                                                disabled={dayOrder.indexOf(dayKey) === 0}
+                                                className="p-1.5 text-blue-400 hover:text-blue-300 disabled:opacity-30 disabled:cursor-not-allowed rounded"
+                                                title="Move up"
                                             >
-                                                <Edit2 size={16} />
+                                                <ArrowUp size={18} />
                                             </button>
                                             <button
-                                                onClick={() => handleRemoveExercise(dayKey, index)}
-                                                className="w-9 h-9 bg-red-600 rounded hover:bg-red-500 text-white flex items-center justify-center"
+                                                onClick={(e) => handleMoveDown(dayKey, e)}
+                                                disabled={dayOrder.indexOf(dayKey) === dayOrder.length - 1}
+                                                className="p-1.5 text-blue-400 hover:text-blue-300 disabled:opacity-30 disabled:cursor-not-allowed rounded"
+                                                title="Move down"
                                             >
-                                                <Trash2 size={16} />
+                                                <ArrowDown size={18} />
                                             </button>
                                         </div>
-                                    </div>
-                                ))}
-
-                                <button
-                                    onClick={() => handleAddExerciseStart(dayKey)}
-                                    className="w-full py-3 border-2 border-dashed border-gray-600 text-gray-400 rounded-lg hover:border-gray-400 hover:text-white transition flex justify-center items-center gap-2"
-                                >
-                                    <Plus size={20} /> Add Exercise
-                                </button>
+                                    )}
+                                    {hasExercises && (
+                                        <button onClick={(e) => handleClearDay(dayKey, e)} className="p-1.5 text-yellow-500 hover:text-yellow-400 rounded" title="Clear all exercises">
+                                            <XCircle size={18} />
+                                        </button>
+                                    )}
+                                    <button onClick={(e) => handleDeleteDay(dayKey, e)} className="p-1.5 text-red-500 hover:text-red-400 rounded" title="Delete day">
+                                        <Trash2 size={18} />
+                                    </button>
+                                    {expandedDays[dayKey] ? <ChevronDown /> : <ChevronRight />}
+                                </div>
                             </div>
-                        )}
-                    </div>
-                ))}
+
+                            {expandedDays[dayKey] && (
+                                <div className="p-4 space-y-4">
+                                    {hasExercises ? (
+                                        dayData.exercises.map((exercise, index) => (
+                                            <div key={`${dayKey}-${index}`} className="flex justify-between items-center bg-gray-700/50 p-3 rounded-lg">
+                                                <div>
+                                                    <h4 className="font-bold">{exercise.name}</h4>
+                                                    <p className="text-sm text-gray-400">
+                                                        {exercise.sets.length} sets x {exercise.sets[0]?.reps} reps @ {Math.round((exercise.sets[0]?.percentage || 0) * 100)}%
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-2 items-center">
+                                                    <button
+                                                        onClick={() => handleEditExercise(dayKey, index, exercise)}
+                                                        className="w-9 h-9 bg-blue-600 rounded hover:bg-blue-500 text-white flex items-center justify-center"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRemoveExercise(dayKey, index)}
+                                                        className="w-9 h-9 bg-red-600 rounded hover:bg-red-500 text-white flex items-center justify-center"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-gray-500 italic text-center py-4">No exercises added yet (Rest Day)</div>
+                                    )}
+
+                                    <button
+                                        onClick={() => handleAddExerciseStart(dayKey)}
+                                        className="w-full py-3 border-2 border-dashed border-gray-600 text-gray-400 rounded-lg hover:border-gray-400 hover:text-white transition flex justify-center items-center gap-2"
+                                    >
+                                        <Plus size={20} /> Add Exercise
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Floating Save Button */}
@@ -585,6 +845,28 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
                     </div>
                 )
             }
+
+            {/* Add Day Modal */}
+            {addDayModalOpen && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold">Add New Workout Day</h3>
+                            <button onClick={() => setAddDayModalOpen(false)}><X size={24} /></button>
+                        </div>
+                        <div className="space-y-4">
+                            <FormField label="Day Name" type="text" placeholder="e.g., Leg Day, Push Day" value={newDayName} onChange={e => setNewDayName(e.target.value)} />
+                            <button
+                                onClick={handleAddDay}
+                                disabled={!newDayName.trim()}
+                                className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg mt-2 disabled:opacity-50"
+                            >
+                                Add Day
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div >
     );

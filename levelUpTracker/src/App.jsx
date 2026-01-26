@@ -9,7 +9,7 @@ import { Dashboard } from "./components/Dashboard";
 import { SettingsPage } from "./components/SettingsPage";
 import { PlateCalculator } from "./components/PlateCalculator";
 import { WorkoutPlanner } from "./components/WorkoutPlanner";
-import { CreateWorkout } from "./components/CreateWorkout";
+
 import { ExerciseLibrary } from "./components/ExerciseLibrary";
 import { WorkoutHistory } from "./components/WorkoutHistory";
 import ProgramTemplates from "./components/ProgramTemplates";
@@ -686,16 +686,7 @@ function AppContent() {
           />
         }
       />
-      <Route
-        path={ROUTES.CREATE_WORKOUT}
-        element={
-          <CreateWorkout
-            userProfile={userProfile}
-            onSave={handleSaveCustomWorkout}
-            onBack={() => navigate(ROUTES.DASHBOARD)}
-          />
-        }
-      />
+
       <Route
         path={ROUTES.EXERCISE_LIBRARY}
         element={
