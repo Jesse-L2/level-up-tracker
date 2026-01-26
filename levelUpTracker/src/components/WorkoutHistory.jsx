@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown, ChevronUp, Calendar, Dumbbell, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Calendar, Dumbbell, Trash2, AlertTriangle, X } from "lucide-react";
 import { ROUTES } from "../lib/routes";
 
-export const WorkoutHistory = ({ userProfile }) => {
+export const WorkoutHistory = ({ userProfile, deleteWorkout }) => {
     const navigate = useNavigate();
     const [expandedWorkout, setExpandedWorkout] = useState(null);
+    const [confirmModal, setConfirmModal] = useState({ open: false, workoutIndex: null, workout: null });
 
     const workoutHistory = userProfile?.workoutHistory || [];
 
@@ -46,19 +47,23 @@ export const WorkoutHistory = ({ userProfile }) => {
         return totalVolume;
     };
 
-    const handleDelete = async (index, e) => {
+    const handleDeleteClick = (index, workout, e) => {
         e.stopPropagation();
-        if (window.confirm("Are you sure you want to delete this workout? This cannot be undone.")) {
-            // Since the list is reversed for display, we need to find the original index
-            // The original index is: totalLength - 1 - displayIndex
-            const originalIndex = workoutHistory.length - 1 - index;
-            if (userProfile.deleteWorkout) {
-                await userProfile.deleteWorkout(originalIndex);
-            } else {
-                // Fallback for immediate UI update if hook hasn't reloaded yet (unlikely but safe)
-                console.error("Delete function not found on user profile object");
-            }
+        setConfirmModal({ open: true, workoutIndex: index, workout });
+    };
+
+    const handleConfirmDelete = async () => {
+        const { workoutIndex } = confirmModal;
+        // Since the list is reversed for display, we need to find the original index
+        const originalIndex = workoutHistory.length - 1 - workoutIndex;
+        if (deleteWorkout) {
+            await deleteWorkout(originalIndex);
         }
+        setConfirmModal({ open: false, workoutIndex: null, workout: null });
+    };
+
+    const handleCancelDelete = () => {
+        setConfirmModal({ open: false, workoutIndex: null, workout: null });
     };
 
     return (
@@ -121,7 +126,7 @@ export const WorkoutHistory = ({ userProfile }) => {
                                             </p>
                                         </div>
                                         <button
-                                            onClick={(e) => handleDelete(index, e)}
+                                            onClick={(e) => handleDeleteClick(index, workout, e)}
                                             className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-full transition-colors"
                                             title="Delete Workout"
                                         >
@@ -187,6 +192,63 @@ export const WorkoutHistory = ({ userProfile }) => {
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {confirmModal.open && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-fade-in border border-gray-700">
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className="bg-red-600/20 p-3 rounded-full flex-shrink-0">
+                                <AlertTriangle size={24} className="text-red-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white mb-1">Delete Workout</h3>
+                                <p className="text-gray-400 text-sm">
+                                    {confirmModal.workout?.dayName || "Workout"} • {confirmModal.workout && formatDate(confirmModal.workout.date)}
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleCancelDelete}
+                                className="ml-auto text-gray-400 hover:text-white p-1"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="bg-gray-700/50 rounded-lg p-4 mb-6">
+                            <p className="text-gray-300 text-sm">
+                                Are you sure you want to delete this workout? This will:
+                            </p>
+                            <ul className="text-gray-400 text-sm mt-2 space-y-1">
+                                <li className="flex items-center gap-2">
+                                    <span className="text-red-400">•</span> Remove this workout from your history
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-red-400">•</span> Remove this data from your 1RM progress chart
+                                </li>
+                            </ul>
+                            <p className="text-yellow-500 text-sm mt-3 font-medium">
+                                This action cannot be undone.
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={handleCancelDelete}
+                                className="px-5 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 font-medium transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold shadow-lg transition-all active:scale-95"
+                            >
+                                Delete Workout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
