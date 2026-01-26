@@ -254,6 +254,9 @@ export const WorkoutPlanner = ({
 
   // Navigate to next exercise or finish workout
   const handleNextExercise = useCallback(() => {
+    // Stop any running timer when navigating to next exercise
+    stopTimer();
+
     const nextIndex = currentExerciseIndex + 1;
     const isLastExercise = currentExerciseIndex >= workoutDay.exercises.length - 1;
 
@@ -263,7 +266,7 @@ export const WorkoutPlanner = ({
     } else {
       handleFinishWorkout();
     }
-  }, [currentExerciseIndex, workoutDay.exercises.length, handleFinishWorkout, setCurrentExerciseIndex]);
+  }, [currentExerciseIndex, workoutDay.exercises.length, handleFinishWorkout, setCurrentExerciseIndex, stopTimer]);
 
   // Callback from PostWorkoutReview to save everything
   const handleReviewSave = useCallback(({ userMaxUpdates, partnerMaxUpdates, userWorkout, partnerWorkout }) => {
