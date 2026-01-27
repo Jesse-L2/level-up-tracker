@@ -55,12 +55,32 @@ export const PostWorkoutReview = ({
         }));
     }, []);
 
+    const handleUserMaxSet = useCallback((exerciseName, newValue) => {
+        setUserAdjustments((prev) => ({
+            ...prev,
+            [exerciseName]: {
+                ...prev[exerciseName],
+                newMax: Math.max(0, newValue),
+            },
+        }));
+    }, []);
+
     const handlePartnerMaxChange = useCallback((exerciseName, delta) => {
         setPartnerAdjustments((prev) => ({
             ...prev,
             [exerciseName]: {
                 ...prev[exerciseName],
                 newMax: Math.max(0, (prev[exerciseName]?.newMax || 0) + delta),
+            },
+        }));
+    }, []);
+
+    const handlePartnerMaxSet = useCallback((exerciseName, newValue) => {
+        setPartnerAdjustments((prev) => ({
+            ...prev,
+            [exerciseName]: {
+                ...prev[exerciseName],
+                newMax: Math.max(0, newValue),
             },
         }));
     }, []);
@@ -115,6 +135,7 @@ export const PostWorkoutReview = ({
                                     newMax={userAdjustments[ex.name]?.newMax}
                                     onIncrement={() => handleUserMaxChange(ex.name, 2.5)}
                                     onDecrement={() => handleUserMaxChange(ex.name, -2.5)}
+                                    onMaxChange={(newValue) => handleUserMaxSet(ex.name, newValue)}
                                     completedSets={ex.sets}
                                 />
                             ))}
@@ -136,6 +157,7 @@ export const PostWorkoutReview = ({
                                         newMax={partnerAdjustments[ex.name]?.newMax}
                                         onIncrement={() => handlePartnerMaxChange(ex.name, 2.5)}
                                         onDecrement={() => handlePartnerMaxChange(ex.name, -2.5)}
+                                        onMaxChange={(newValue) => handlePartnerMaxSet(ex.name, newValue)}
                                         completedSets={ex.sets}
                                     />
                                 ))}
@@ -168,6 +190,7 @@ export const PostWorkoutReview = ({
  * ExerciseAdjustmentCard Component
  * 
  * Displays a single exercise with its completed sets and allows adjustment of the 1RM.
+ * Users can click the weight value to directly edit it, or use +/- buttons.
  */
 const ExerciseAdjustmentCard = ({
     exerciseName,
@@ -175,10 +198,49 @@ const ExerciseAdjustmentCard = ({
     newMax,
     onIncrement,
     onDecrement,
+    onMaxChange,
     completedSets,
 }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(newMax.toString());
+    const inputRef = React.useRef(null);
+
     const hasChanged = currentMax !== newMax;
     const changeAmount = newMax - currentMax;
+
+    // Update editValue when newMax changes from outside (via chevrons)
+    React.useEffect(() => {
+        if (!isEditing) {
+            setEditValue(newMax.toString());
+        }
+    }, [newMax, isEditing]);
+
+    const handleEditStart = () => {
+        setEditValue(newMax.toString());
+        setIsEditing(true);
+        // Focus the input after a short delay to ensure it's rendered
+        setTimeout(() => inputRef.current?.focus(), 0);
+    };
+
+    const handleEditComplete = () => {
+        setIsEditing(false);
+        const parsed = parseFloat(editValue);
+        if (!isNaN(parsed) && parsed >= 0) {
+            onMaxChange(parsed);
+        } else {
+            // Reset to current value if invalid
+            setEditValue(newMax.toString());
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            handleEditComplete();
+        } else if (e.key === "Escape") {
+            setIsEditing(false);
+            setEditValue(newMax.toString());
+        }
+    };
 
     return (
         <div className="bg-gray-800 p-4 rounded-xl">
@@ -213,7 +275,34 @@ const ExerciseAdjustmentCard = ({
                     >
                         <ChevronDown size={20} />
                     </button>
-                    <span className="text-xl font-bold w-20 text-center">{newMax} lbs</span>
+
+                    {isEditing ? (
+                        <div className="flex items-center">
+                            <input
+                                ref={inputRef}
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={handleEditComplete}
+                                onKeyDown={handleKeyDown}
+                                className="w-16 text-xl font-bold text-center bg-gray-600 text-white rounded border border-gray-500 focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                step="0.5"
+                                min="0"
+                                aria-label={`Edit ${exerciseName} 1RM value`}
+                            />
+                            <span className="text-xl font-bold ml-1">lbs</span>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleEditStart}
+                            className="text-xl font-bold w-20 text-center hover:bg-gray-600 rounded px-1 py-0.5 transition-colors cursor-text"
+                            title="Click to edit value"
+                            aria-label={`Click to edit ${exerciseName} 1RM value, currently ${newMax} lbs`}
+                        >
+                            {newMax} lbs
+                        </button>
+                    )}
+
                     <button
                         onClick={onIncrement}
                         className="bg-green-600 hover:bg-green-500 w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold"
