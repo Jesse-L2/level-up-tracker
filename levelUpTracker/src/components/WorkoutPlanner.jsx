@@ -23,11 +23,9 @@ export const WorkoutPlanner = ({
   setCurrentExerciseIndex,
 }) => {
   const {
-    isTimerActive,
-    timerDuration,
     startTimer,
     stopTimer,
-    lastCompletedSet,
+    stopAllTimers,
   } = useWorkout();
   // Lifted to parent
   /* const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0); */
@@ -254,8 +252,8 @@ export const WorkoutPlanner = ({
 
   // Navigate to next exercise or finish workout
   const handleNextExercise = useCallback(() => {
-    // Stop any running timer when navigating to next exercise
-    stopTimer();
+    // Stop all running timers when navigating to next exercise
+    stopAllTimers();
 
     const nextIndex = currentExerciseIndex + 1;
     const isLastExercise = currentExerciseIndex >= workoutDay.exercises.length - 1;
@@ -266,18 +264,18 @@ export const WorkoutPlanner = ({
     } else {
       handleFinishWorkout();
     }
-  }, [currentExerciseIndex, workoutDay.exercises.length, handleFinishWorkout, setCurrentExerciseIndex, stopTimer]);
+  }, [currentExerciseIndex, workoutDay.exercises.length, handleFinishWorkout, setCurrentExerciseIndex, stopAllTimers]);
 
   // Navigate to previous exercise
   const handlePreviousExercise = useCallback(() => {
-    // Stop any running timer when navigating
-    stopTimer();
+    // Stop all running timers when navigating
+    stopAllTimers();
 
     if (currentExerciseIndex > 0) {
       setCurrentExerciseIndex(currentExerciseIndex - 1);
       window.scrollTo(0, 0);
     }
-  }, [currentExerciseIndex, setCurrentExerciseIndex, stopTimer]);
+  }, [currentExerciseIndex, setCurrentExerciseIndex, stopAllTimers]);
 
   // Callback from PostWorkoutReview to save everything
   const handleReviewSave = useCallback(({ userMaxUpdates, partnerMaxUpdates, userWorkout, partnerWorkout }) => {
@@ -341,8 +339,8 @@ export const WorkoutPlanner = ({
         };
         return newLog;
       });
-      // Stop the timer if it's running
-      stopTimer();
+      // Stop the timer for this user if it's running
+      stopTimer(userType);
     },
     [setSessionLog, stopTimer]
   );
@@ -649,7 +647,6 @@ export const WorkoutPlanner = ({
                     handleSetUncomplete={handleSetUncomplete}
                     availablePlates={availablePlates}
                     setSessionLog={setSessionLog}
-                    lastCompletedSet={lastCompletedSet}
                     isPartnerView={isPartnerView}
                     isBarbell={currentExercise.isBarbell}
                   />
@@ -664,7 +661,6 @@ export const WorkoutPlanner = ({
                       handleSetUncomplete={handleSetUncomplete}
                       availablePlates={availablePlates}
                       setSessionLog={setSessionLog}
-                      lastCompletedSet={lastCompletedSet}
                       isPartnerView={isPartnerView}
                       isBarbell={currentExercise.isBarbell}
                     />
@@ -718,18 +714,16 @@ const SetCard = ({
   handleSetUncomplete,
   availablePlates,
   setSessionLog,
-  lastCompletedSet,
   isPartnerView = false,
   isBarbell = false,
 }) => {
-  const { isTimerActive, timerDuration, stopTimer } = useWorkout();
+  const { timers, stopTimer } = useWorkout();
   const log = sessionLog[userType]?.[exIndex]?.[setIndex];
   if (!log) return null;
 
-  const isCurrentCompletedSet =
-    lastCompletedSet &&
-    lastCompletedSet.userType === userType &&
-    lastCompletedSet.setIndex === setIndex;
+  // Get timer state for this specific user type
+  const timerState = timers[userType];
+  const isThisSetTimerActive = timerState?.isActive && timerState?.setIndex === setIndex;
 
   return (
     <div>
@@ -939,9 +933,9 @@ const SetCard = ({
           </>
         )}
       </div>
-      {isTimerActive && isCurrentCompletedSet && (
+      {isThisSetTimerActive && (
         <div className="flex justify-center py-2">
-          <Timer duration={timerDuration} onComplete={stopTimer} />
+          <Timer duration={timerState.duration} onComplete={() => stopTimer(userType)} />
         </div>
       )}
     </div>

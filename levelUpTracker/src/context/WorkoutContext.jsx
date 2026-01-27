@@ -10,9 +10,12 @@ export const WorkoutProvider = ({
   handleUpdateProfile,
 }) => {
   const [workoutPlan, setWorkoutPlan] = useState(userProfile?.workoutPlan);
-  const [isTimerActive, setIsTimerActive] = useState(false);
-  const [timerDuration, setTimerDuration] = useState(0);
-  const [lastCompletedSet, setLastCompletedSet] = useState(null);
+
+  // Independent timer states for user and partner
+  const [timers, setTimers] = useState({
+    user: { isActive: false, duration: 0, setIndex: null },
+    partner: { isActive: false, duration: 0, setIndex: null },
+  });
 
   // Sync workoutPlan state with userProfile.workoutPlan when it changes from Firebase
   useEffect(() => {
@@ -59,25 +62,37 @@ export const WorkoutProvider = ({
     handleUpdateProfile({ workoutPlan: newWorkoutPlan });
   }, [userProfile, workoutPlan, handleUpdateProfile]);
 
+  // Start timer for a specific user type (user or partner)
   const startTimer = (duration, userType, setIndex) => {
-    setTimerDuration(duration);
-    setIsTimerActive(true);
-    setLastCompletedSet({ userType, setIndex });
+    setTimers((prev) => ({
+      ...prev,
+      [userType]: { isActive: true, duration, setIndex },
+    }));
   };
 
-  const stopTimer = () => {
-    setIsTimerActive(false);
-    setLastCompletedSet(null);
+  // Stop timer for a specific user type
+  const stopTimer = (userType) => {
+    setTimers((prev) => ({
+      ...prev,
+      [userType]: { isActive: false, duration: 0, setIndex: null },
+    }));
+  };
+
+  // Stop all timers (used when navigating between exercises)
+  const stopAllTimers = () => {
+    setTimers({
+      user: { isActive: false, duration: 0, setIndex: null },
+      partner: { isActive: false, duration: 0, setIndex: null },
+    });
   };
 
   const value = {
     workoutPlan,
     recalculateWorkout: handleRecalculateWorkout,
-    isTimerActive,
-    timerDuration,
+    timers,
     startTimer,
     stopTimer,
-    lastCompletedSet,
+    stopAllTimers,
     updateUserProfileInFirestore: handleUpdateProfile,
   };
 
