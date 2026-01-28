@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase.js';
+import { auth, googleProvider, isMobileDevice, signInWithRedirect, getRedirectResult } from '../firebase.js';
 import { Check, X } from 'lucide-react';
 
 // Password validation requirements
@@ -35,6 +35,30 @@ export const Signup = ({ onSwitchToLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Handle redirect result on component mount (for mobile auth flow)
+  // Only run in main window, not in popup windows to prevent auth loops
+  useEffect(() => {
+    // Skip if this is a popup window (opener is set)
+    if (window.opener) {
+      return;
+    }
+
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // User successfully signed up via redirect
+          // The auth state listener in App.jsx will handle the navigation
+        }
+      } catch (error) {
+        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+          setError(getErrorMessage(error.code));
+        }
+      }
+    };
+    handleRedirectResult();
+  }, []);
 
   const passwordValidation = useMemo(() => {
     return PASSWORD_REQUIREMENTS.map((req) => ({
@@ -82,7 +106,14 @@ export const Signup = ({ onSwitchToLogin }) => {
     setError(null);
     setIsLoading(true);
     try {
-      await signInWithPopup(auth, provider);
+      if (isMobileDevice()) {
+        // Use redirect-based flow for mobile browsers
+        // Note: signInWithRedirect will navigate away, so loading state persists
+        await signInWithRedirect(auth, provider);
+      } else {
+        // Use popup-based flow for desktop browsers
+        await signInWithPopup(auth, provider);
+      }
     } catch (error) {
       if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
         setError(getErrorMessage(error.code));
@@ -158,10 +189,10 @@ export const Signup = ({ onSwitchToLogin }) => {
               required
               disabled={isLoading}
               className={`w-full p-3 bg-gray-700/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 ${name.length > 0
-                  ? isNameValid
-                    ? 'border-green-500'
-                    : 'border-red-500'
-                  : 'border-gray-600'
+                ? isNameValid
+                  ? 'border-green-500'
+                  : 'border-red-500'
+                : 'border-gray-600'
                 }`}
               placeholder="Your name"
             />

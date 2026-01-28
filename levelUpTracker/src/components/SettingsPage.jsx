@@ -660,17 +660,17 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Reset Progress
           </h2>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 className="font-semibold text-lg">Clear Workout History</h3>
-              <p className="text-gray-400">
+              <p className="text-gray-400 mt-1">
                 This will permanently delete all of your workout history. This
                 action cannot be undone.
               </p>
             </div>
             <button
               onClick={handleResetProgress}
-              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto"
             >
               Reset Progress
             </button>

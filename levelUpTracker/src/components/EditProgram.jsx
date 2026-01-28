@@ -481,25 +481,26 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
         <div className="container mx-auto p-4 md:p-8 text-white animate-fade-in pb-20">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                 <h1 className="text-2xl sm:text-3xl font-bold">Manage Schedule</h1>
-                <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+                <div className="grid grid-cols-2 sm:flex flex-wrap gap-2 sm:gap-2 items-center w-full sm:w-auto">
                     {/* Reorder Toggle */}
-                    <label className="flex items-center gap-2 cursor-pointer bg-gray-700 p-2 rounded-lg select-none text-sm">
+                    <label className="flex items-center justify-center gap-2 cursor-pointer bg-gray-700 p-2 rounded-lg select-none text-sm h-10 hover:bg-gray-600 transition-colors">
                         <input
                             type="checkbox"
                             checked={reorderMode}
                             onChange={() => setReorderMode(!reorderMode)}
                             className="w-4 h-4 sm:w-5 sm:h-5 accent-blue-500"
                         />
-                        <span className="whitespace-nowrap">Reorder</span>
+                        <span className="whitespace-nowrap font-medium">Reorder</span>
                     </label>
                     {/* Add Day */}
-                    <button onClick={() => setAddDayModalOpen(true)} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center gap-1 sm:gap-2 text-sm">
-                        <PlusCircle size={16} /> <span className="hidden sm:inline">Add</span> Day
+                    <button onClick={() => setAddDayModalOpen(true)} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 text-sm h-10">
+                        <PlusCircle size={16} /> <span className="inline">Add Day</span>
                     </button>
-                    <button onClick={handleSaveAsTemplate} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center gap-1 sm:gap-2 text-sm">
-                        <Copy size={16} /> <span className="hidden sm:inline">Save as</span> Template
+                    {/* Buttons Row 2 on mobile */}
+                    <button onClick={handleSaveAsTemplate} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 text-sm h-10">
+                        <Copy size={16} /> <span className="inline">Template</span>
                     </button>
-                    <button onClick={onBack} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-sm">
+                    <button onClick={onBack} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-sm h-10">
                         Cancel
                     </button>
                 </div>

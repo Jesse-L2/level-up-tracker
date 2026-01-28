@@ -374,15 +374,15 @@ export const WorkoutPlanner = ({
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 flex justify-between items-center">
-          <div className="flex-1"></div>
-          <h1 className="text-3xl font-bold text-center mb-1 flex-1">
+        <div className="bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-0">
+          <div className="hidden md:block flex-1"></div>
+          <h1 className="text-3xl font-bold text-center w-full md:w-auto flex-1">
             {workoutDay.name}
           </h1>
-          <div className="flex-1 flex justify-end items-center gap-4">
+          <div className="w-full md:w-auto md:flex-1 flex justify-center md:justify-end items-center gap-4">
             {userProfile.partner && (
-              <div className="flex items-center gap-2">
-                <span className="text-white">{userProfile.displayName}</span>
+              <div className="flex items-center gap-2 bg-gray-700/50 p-1.5 rounded-lg border border-gray-600/50">
+                <span className="text-white text-sm">{userProfile.displayName}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -390,16 +390,16 @@ export const WorkoutPlanner = ({
                     checked={isPartnerView}
                     onChange={handleToggle}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 bg-gray-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
-                <span className="text-white">{userProfile.partner.name}</span>
+                <span className="text-white text-sm">{userProfile.partner.name}</span>
               </div>
             )}
             <button
               onClick={() => onNavigate("dashboard")}
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm whitespace-nowrap"
             >
-              Return to Dashboard
+              Back to Dashboard
             </button>
           </div>
         </div>
@@ -620,13 +620,16 @@ export const WorkoutPlanner = ({
               } gap-2 sm:gap-4`}
           >
             {/* Column Headers */}
-            <div className={`font-semibold text-center flex items-center justify-center ${isPartnerView ? "text-sm sm:text-xl" : "text-xl"}`}>
-              {userProfile.displayName}
-            </div>
+            {/* Column Headers */}
             {isPartnerView && (
-              <div className="text-sm sm:text-xl font-semibold text-center flex items-center justify-center">
-                {userProfile.partner.name}
-              </div>
+              <>
+                <div className="text-sm sm:text-xl font-semibold text-center flex items-center justify-center">
+                  {userProfile.displayName}
+                </div>
+                <div className="text-sm sm:text-xl font-semibold text-center flex items-center justify-center">
+                  {userProfile.partner.name}
+                </div>
+              </>
             )}
 
             {/* Sets rendered in sequence to fill the grid */}
@@ -818,19 +821,18 @@ const SetCard = ({
           /* Non-Partner View - Clean horizontal layout */
           <>
             {/* Main row with badge and inputs */}
-            <div className="flex items-center gap-3 sm:gap-4 w-full">
-              {/* Set number badge */}
-              <div
-                className={`w-11 h-11 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${log.completed ? "bg-green-500" : "bg-gray-600"}`}
-              >
-                {setIndex + 1}
-              </div>
+            <div className={`flex flex-col w-full ${!log.completed ? "gap-2" : "gap-0"}`}>
+              <div className="flex items-center gap-3 sm:gap-4 w-full">
+                {/* Set number badge */}
+                <div
+                  className={`w-11 h-11 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${log.completed ? "bg-green-500" : "bg-gray-600"}`}
+                >
+                  {setIndex + 1}
+                </div>
 
-              {/* Input controls */}
-              {!log.completed ? (
-                <div className="flex items-center gap-2 flex-1">
-                  {/* Unified input group */}
-                  <div className="flex items-center bg-gray-800 rounded-xl overflow-hidden border border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/30 transition-colors duration-200 flex-1">
+                {/* Input controls */}
+                {!log.completed ? (
+                  <div className="flex items-center bg-gray-800 rounded-xl overflow-hidden border border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/30 transition-colors duration-200 w-full">
                     {/* Reps input group */}
                     <div className="flex items-center flex-1 justify-center px-1">
                       <div className="relative">
@@ -838,7 +840,7 @@ const SetCard = ({
                           id={`reps-${userType}-${setIndex}`}
                           type="number"
                           value={log.reps ?? ''}
-                          className="w-14 sm:w-16 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
+                          className="w-12 sm:w-16 h-12 bg-transparent text-white text-center text-xl sm:text-lg font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none selection:bg-blue-500/40 relative z-10 peer"
                           onChange={(e) => {
                             const reps = e.target.value;
                             setSessionLog((prevLog) => {
@@ -858,7 +860,7 @@ const SetCard = ({
                           +
                         </span>
                       )}
-                      <span className="text-gray-400 text-xs sm:text-sm ml-4">reps</span>
+                      <span className="text-gray-400 text-xs sm:text-sm ml-2">reps</span>
                     </div>
 
                     {/* Centered divider */}
@@ -883,47 +885,63 @@ const SetCard = ({
                         />
                         <div className="absolute inset-1 bg-gray-600/50 rounded opacity-0 peer-focus:opacity-100 transition-opacity pointer-events-none"></div>
                       </div>
-                      <span className="text-gray-400 text-xs sm:text-sm">lbs</span>
+                      <span className="text-gray-400 text-xs sm:text-sm ml-1">lbs</span>
                     </div>
                   </div>
+                ) : (
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="flex items-center gap-2 bg-green-700/30 px-5 py-3 rounded-xl border border-green-600/50 flex-1 justify-center">
+                      <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps}</span>
+                      {log.isAMRAP && (
+                        <span
+                          className="w-4 h-4 rounded-full bg-gray-600 text-white text-base font-bold flex items-center justify-center flex-shrink-0 shadow-md -ml-2 -mt-5"
+                          title="As Many Reps As Possible"
+                        >
+                          +
+                        </span>
+                      )}
+                      <span className="text-sm sm:text-lg font-semibold text-green-300 ml-3">reps</span>
+                      <span className="text-green-500 text-sm">@</span>
+                      <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
+                    </div>
+                    <button
+                      onClick={() => handleSetUncomplete(exIndex, setIndex, userType)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 transition-all shadow-md flex-shrink-0"
+                      title="Mark as not complete"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+              </div>
 
+              {/* Bottom Row: Plates & Save Button */}
+              {!log.completed && (
+                <div className="flex items-center justify-between gap-2 mt-2 w-full px-2">
+                  {/* Plate Display - aligned left (approximately below set number) */}
+                  <div className="flex-1 flex justify-start overflow-x-auto no-scrollbar">
+                    {set.weight > 0 && isBarbell && (
+                      <MiniPlateDisplay
+                        targetWeight={set.weight}
+                        availablePlates={availablePlates}
+                      />
+                    )}
+                  </div>
+
+                  {/* Save Button */}
                   <button
                     onClick={() => handleSetComplete(exIndex, setIndex, userType)}
-                    className="bg-green-600 hover:bg-green-500 text-white font-bold h-12 px-4 sm:px-5 rounded-xl transition-colors text-base shadow-lg hover:shadow-green-500/25 flex-shrink-0"
+                    className="bg-green-600 hover:bg-green-500 text-white font-bold h-10 px-5 rounded-lg transition-colors text-sm shadow-lg hover:shadow-green-500/25 whitespace-nowrap flex-shrink-0"
                   >
                     Save
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="flex items-center gap-2 bg-green-700/30 px-5 py-3 rounded-xl border border-green-600/50 flex-1 justify-center">
-                    <span className="text-sm sm:text-lg font-semibold text-green-300">{log.reps}</span>
-                    {log.isAMRAP && (
-                      <span
-                        className="w-4 h-4 rounded-full bg-gray-600 text-white text-base font-bold flex items-center justify-center flex-shrink-0 shadow-md -ml-2 -mt-5"
-                        title="As Many Reps As Possible"
-                      >
-                        +
-                      </span>
-                    )}
-                    <span className="text-sm sm:text-lg font-semibold text-green-300 ml-3">reps</span>
-                    <span className="text-green-500 text-sm">@</span>
-                    <span className="text-sm sm:text-lg font-semibold text-green-300">{log.weight} lbs</span>
-                  </div>
-                  <button
-                    onClick={() => handleSetUncomplete(exIndex, setIndex, userType)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 transition-all shadow-md flex-shrink-0"
-                    title="Mark as not complete"
-                  >
-                    <X size={16} />
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Plate display - below inputs */}
-            {set.weight > 0 && isBarbell && (
-              <div className="flex justify-center mt-1">
+            {/* Completed state plate display (optional, keep it clean) */}
+            {log.completed && set.weight > 0 && isBarbell && (
+              <div className="flex justify-center mt-1 pl-14">
                 <MiniPlateDisplay
                   targetWeight={set.weight}
                   availablePlates={availablePlates}

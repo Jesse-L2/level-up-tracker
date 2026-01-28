@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase.js';
+import { auth, googleProvider, isMobileDevice, signInWithRedirect, getRedirectResult } from '../firebase.js';
 
 // Helper to map Firebase error codes to user-friendly messages
 const getErrorMessage = (errorCode) => {
@@ -26,6 +26,30 @@ export const Login = ({ onSwitchToSignup }) => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle redirect result on component mount (for mobile auth flow)
+  // Only run in main window, not in popup windows to prevent auth loops
+  useEffect(() => {
+    // Skip if this is a popup window (opener is set)
+    if (window.opener) {
+      return;
+    }
+
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // User successfully signed in via redirect
+          // The auth state listener in App.jsx will handle the navigation
+        }
+      } catch (error) {
+        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+          setError(getErrorMessage(error.code));
+        }
+      }
+    };
+    handleRedirectResult();
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
@@ -43,7 +67,14 @@ export const Login = ({ onSwitchToSignup }) => {
     setError(null);
     setIsLoading(true);
     try {
-      await signInWithPopup(auth, provider);
+      if (isMobileDevice()) {
+        // Use redirect-based flow for mobile browsers
+        // Note: signInWithRedirect will navigate away, so loading state persists
+        await signInWithRedirect(auth, provider);
+      } else {
+        // Use popup-based flow for desktop browsers
+        await signInWithPopup(auth, provider);
+      }
     } catch (error) {
       // Don't show error for user-cancelled popups
       if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {

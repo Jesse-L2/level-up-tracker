@@ -238,9 +238,9 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-6xl mx-auto">
-        <header className="flex flex-wrap justify-between items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-4xl font-bold text-white mb-2">LevelUp Tracker</h1>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 md:gap-4">
+          <div className="w-full md:w-auto">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">LevelUp Tracker</h1>
             <div className="flex items-center gap-4 mb-2">
               <div className="flex items-center gap-2 bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full border border-yellow-500/50">
                 <Trophy size={16} />
@@ -253,19 +253,19 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                 />
               </div>
             </div>
-            <p className="text-gray-300">
+            <p className="text-gray-300 text-sm md:text-base">
               {isPartnerView ? `${userProfile.partner.name}'s personalized workout dashboard.` : 'Your personalized workout dashboard.'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
             {userProfile.partner && (
-              <div className="flex items-center gap-2">
-                <div className="text-white">{userProfile.displayName}</div>
+              <div className="flex items-center gap-2 mr-2 bg-gray-700/50 p-2 rounded-lg border border-gray-600/50">
+                <div className="text-white text-sm font-semibold">{userProfile.displayName}</div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" value="" className="sr-only peer" checked={isPartnerView} onChange={handleToggle} />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
-                <div className="text-white">{userProfile.partner.name}</div>
+                <div className="text-white text-sm font-semibold">{userProfile.partner.name}</div>
               </div>
             )}
             <button
@@ -288,13 +288,13 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 className="text-2xl font-semibold text-white">
                   Your Weekly Plan
                 </h2>
                 <button
                   onClick={() => onNavigate("edit_program")}
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Edit2 size={18} /> Manage Schedule
                 </button>
