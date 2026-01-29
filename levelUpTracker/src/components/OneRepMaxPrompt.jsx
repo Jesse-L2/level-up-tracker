@@ -51,7 +51,7 @@ export const OneRepMaxPrompt = ({
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="card-physical bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-gray-700 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-white">Set Your 1 Rep Maxes</h2>
                     <button
@@ -92,16 +92,16 @@ export const OneRepMaxPrompt = ({
                 <div className="p-6 border-t border-gray-700 flex gap-4">
                     <button
                         onClick={onCancel}
-                        className="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 rounded-lg transition-colors"
+                        className="flex-1 btn-modern bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 rounded-lg"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={!allFilled}
-                        className={`flex-1 font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors ${allFilled
-                                ? 'bg-green-600 hover:bg-green-500 text-white'
-                                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        className={`flex-1 font-bold py-3 rounded-lg flex items-center justify-center gap-2 btn-modern ${allFilled
+                            ? 'bg-green-600 hover:bg-green-500 text-white'
+                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                             }`}
                     >
                         <Save size={20} />

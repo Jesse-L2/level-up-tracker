@@ -32,17 +32,17 @@ const ExerciseDisplay = ({ liftId, exerciseData, lifts, userLibrary }) => {
   });
 
   return (
-    <div className="bg-gray-700/50 p-3 rounded-lg mb-2">
+    <div className="card-inner p-3 rounded-lg mb-2">
       <div className="flex justify-between items-center mb-2">
-        <span className="font-semibold text-white">{liftName}</span>
+        <span className="font-semibold text-theme-primary">{liftName}</span>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 text-sm">
         {setDetails.map((set, i) => (
-          <div key={i} className="bg-gray-800 p-2 rounded text-center">
-            <p className="text-gray-400 text-xs">Set {i + 1}</p>
-            <p className="text-white font-bold">{set.reps}</p>
-            <p className="text-blue-400 text-xs">@ {set.percentage}%</p>
-            {set.weight && <p className="text-green-400 text-xs">{set.weight} lbs</p>}
+          <div key={i} className="bg-theme-input p-2 rounded text-center border border-card-inner">
+            <p className="text-theme-secondary text-xs">Set {i + 1}</p>
+            <p className="text-theme-primary font-bold">{set.reps}</p>
+            <p className="text-theme-secondary text-xs">@ {set.percentage}%</p>
+            {set.weight && <p className="text-theme-primary text-xs">{set.weight} lbs</p>}
           </div>
         ))}
       </div>
@@ -56,8 +56,8 @@ const WorkoutSection = ({ workoutKey, workoutData, lifts, userLibrary }) => {
   const exerciseIds = Object.keys(workoutData);
 
   return (
-    <div className="bg-gray-800 rounded-xl p-4 mb-4 border border-gray-700">
-      <h3 className="text-xl font-semibold text-blue-400 mb-4">{title}</h3>
+    <div className="card-physical rounded-xl p-4 mb-4">
+      <h3 className="text-xl font-semibold text-theme-primary mb-4">{title}</h3>
       {exerciseIds.map((liftId) => (
         <ExerciseDisplay
           key={liftId}
@@ -94,7 +94,7 @@ function ProgramTemplateDetails({ id, program, lifts, loading, error, onBack, on
   };
 
   if (loading) {
-    return <div className="text-white text-center mt-8">Loading program details...</div>;
+    return <div className="text-theme-primary text-center mt-8">Loading program details...</div>;
   }
 
   if (error) {
@@ -102,27 +102,27 @@ function ProgramTemplateDetails({ id, program, lifts, loading, error, onBack, on
   }
 
   if (!program) {
-    return <div className="text-white text-center mt-8">Program not found.</div>;
+    return <div className="text-theme-primary text-center mt-8">Program not found.</div>;
   }
 
   const workoutKeys = getWorkoutKeys(program);
   const userLibrary = userProfile?.exerciseLibrary || [];
 
   return (
-    <div className="container mx-auto p-4 text-white">
+    <div className="container mx-auto p-4 text-theme-primary">
       <button
         onClick={onBack}
-        className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md mb-6 transition-colors duration-200"
+        className="btn-modern font-bold py-2 px-4 rounded-md mb-6 text-theme-primary"
       >
         &larr; Back to Programs
       </button>
 
       <h1 className="text-3xl font-bold mb-2">{program.name}</h1>
-      <p className="text-gray-300 mb-2">{program.description}</p>
-      <p className="text-gray-500 text-sm mb-6 italic">{program.structure}</p>
+      <p className="text-theme-secondary mb-2">{program.description}</p>
+      <p className="text-theme-secondary text-sm mb-6 italic">{program.structure}</p>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Program Breakdown</h2>
+        <h2 className="text-2xl font-semibold mb-4 border-b border-card pb-2">Program Breakdown</h2>
         {workoutKeys.length > 0 ? (
           workoutKeys.map((key) => (
             <WorkoutSection
@@ -134,19 +134,19 @@ function ProgramTemplateDetails({ id, program, lifts, loading, error, onBack, on
             />
           ))
         ) : (
-          <p className="text-gray-500">No workout details available for this program.</p>
+          <p className="text-theme-secondary">No workout details available for this program.</p>
         )}
       </div>
 
-      <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+      <div className="card-physical rounded-lg p-6">
         <button
           onClick={handleSelectProgram}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg transition-colors duration-200"
+          className="w-full btn-modern btn-modern-primary text-white font-bold py-3 px-6 rounded-md text-lg"
         >
           Select This Program
         </button>
       </div>
-    </div>
+    </div >
   );
 }
 

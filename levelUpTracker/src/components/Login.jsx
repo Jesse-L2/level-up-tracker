@@ -86,10 +86,10 @@ export const Login = ({ onSwitchToSignup }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white px-4">
-      <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700/50">
+    <div className="min-h-screen flex items-center justify-center text-white px-4">
+      <div className="card-physical p-8 rounded-2xl w-full max-w-md">
         <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          Welcome Back
+          LevelUp Workout Tracker
         </h2>
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm text-center">

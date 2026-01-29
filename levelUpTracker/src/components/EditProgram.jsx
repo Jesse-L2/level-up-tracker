@@ -483,7 +483,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
                 <h1 className="text-2xl sm:text-3xl font-bold">Manage Schedule</h1>
                 <div className="grid grid-cols-2 sm:flex flex-wrap gap-2 sm:gap-2 items-center w-full sm:w-auto">
                     {/* Reorder Toggle */}
-                    <label className="flex items-center justify-center gap-2 cursor-pointer bg-gray-700 p-2 rounded-lg select-none text-sm h-10 hover:bg-gray-600 transition-colors">
+                    <label className="flex items-center justify-center gap-2 cursor-pointer card-physical p-2 rounded-lg select-none text-sm h-10 hover:bg-gray-600/50 transition-colors">
                         <input
                             type="checkbox"
                             checked={reorderMode}
@@ -493,14 +493,14 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
                         <span className="whitespace-nowrap font-medium">Reorder</span>
                     </label>
                     {/* Add Day */}
-                    <button onClick={() => setAddDayModalOpen(true)} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 text-sm h-10">
+                    <button onClick={() => setAddDayModalOpen(true)} className="btn-modern btn-modern-green text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 text-sm h-10">
                         <PlusCircle size={16} /> <span className="inline">Add Day</span>
                     </button>
                     {/* Buttons Row 2 on mobile */}
-                    <button onClick={handleSaveAsTemplate} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 text-sm h-10">
+                    <button onClick={handleSaveAsTemplate} className="btn-modern bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 text-sm h-10">
                         <Copy size={16} /> <span className="inline">Template</span>
                     </button>
-                    <button onClick={onBack} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-sm h-10">
+                    <button onClick={onBack} className="btn-modern bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg text-sm h-10">
                         Cancel
                     </button>
                 </div>
@@ -516,7 +516,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
                     return (
                         <div
                             key={dayKey}
-                            className={`bg-gray-800 rounded-xl shadow-lg border overflow-hidden transition-all ${draggedDayKey === dayKey ? 'border-blue-500 opacity-70' : 'border-gray-700'}`}
+                            className={`card-physical rounded-xl overflow-hidden transition-all ${draggedDayKey === dayKey ? 'border-blue-500 opacity-70' : ''}`}
                             draggable={reorderMode}
                             onDragStart={(e) => handleDragStart(e, dayKey)}
                             onDragOver={handleDragOver}
@@ -591,7 +591,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
                                 <div className="p-4 space-y-4">
                                     {hasExercises ? (
                                         dayData.exercises.map((exercise, index) => (
-                                            <div key={`${dayKey}-${index}`} className="flex justify-between items-center bg-gray-700/50 p-3 rounded-lg">
+                                            <div key={`${dayKey}-${index}`} className="flex justify-between items-center card-inner p-3 rounded-lg">
                                                 <div>
                                                     <h4 className="font-bold">{exercise.name}</h4>
                                                     <p className="text-sm text-gray-400">
@@ -632,11 +632,11 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
             </div>
 
             {/* Floating Save Button */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-900 border-t border-gray-800 flex justify-center z-10">
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-900/90 backdrop-blur-sm border-t border-gray-800 flex justify-center z-10">
                 <button
                     onClick={handleSaveChanges}
                     disabled={isSaving}
-                    className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-12 rounded-full shadow-lg flex items-center gap-2 text-lg disabled:opacity-50"
+                    className="btn-modern btn-modern-green text-white font-bold py-3 px-12 rounded-full shadow-lg flex items-center gap-2 text-lg disabled:opacity-50"
                 >
                     <Save size={24} /> {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -645,7 +645,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
             {/* Add Exercise Modal */}
             {addingExerciseDay && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+                    <div className="card-physical bg-gray-900 rounded-2xl shadow-xl max-w-md w-full p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold">Add Exercise to {formatDayKey(addingExerciseDay)}</h3>
                             <button onClick={() => setAddingExerciseDay(null)}><X size={24} /></button>
@@ -706,7 +706,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
                                 <FormField label="%" type="number" value={newExercise.percentage} onChange={e => setNewExercise({ ...newExercise, percentage: e.target.value })} />
                             )}
 
-                            <button onClick={handleAddExerciseSubmit} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-2">
+                            <button onClick={handleAddExerciseSubmit} className="w-full btn-modern btn-modern-primary text-white font-bold py-3 rounded-lg mt-2">
                                 Add Exercise
                             </button>
                         </div>
@@ -717,7 +717,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
             {/* Edit Exercise Modal */}
             {editingExercise && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full p-6 my-8">
+                    <div className="card-physical bg-gray-900 rounded-2xl shadow-xl max-w-2xl w-full p-6 my-8">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold">Edit {editingExercise.name}</h3>
                             <button onClick={() => setEditingExercise(null)}><X size={24} /></button>
@@ -777,7 +777,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
                             <Plus size={18} /> Add Set
                         </button>
 
-                        <button onClick={handleUpdateExercise} className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg mt-4">
+                        <button onClick={handleUpdateExercise} className="w-full btn-modern btn-modern-green text-white font-bold py-3 rounded-lg mt-4">
                             Update Exercise
                         </button>
                     </div>
@@ -789,7 +789,7 @@ export const EditProgram = ({ userProfile, onBack, updateUserProfileInFirestore 
             {
                 saveTemplateModalOpen && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+                        <div className="card-physical bg-gray-900 rounded-2xl shadow-xl max-w-md w-full p-6">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-xl font-bold">Save as New Template</h3>
                                 <button onClick={() => setSaveTemplateModalOpen(false)}><X size={24} /></button>

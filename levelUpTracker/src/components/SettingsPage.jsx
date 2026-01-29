@@ -19,6 +19,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   const [userName, setUserName] = useState("");
   const [userNameMessage, setUserNameMessage] = useState(null);
   const [isSavingUserName, setIsSavingUserName] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(userProfile?.theme || 'dark');
 
   // Set page title for Settings
   useEffect(() => {
@@ -74,8 +75,22 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
         setPartnerName("");
         setPartnerMessage(null);
       }
+      if (userProfile.theme) {
+        setCurrentTheme(userProfile.theme);
+      }
     }
   }, [userProfile]);
+
+  const handleThemeChange = async (newTheme) => {
+    setCurrentTheme(newTheme);
+    // Apply immediately to document for instant feedback
+    document.documentElement.setAttribute('data-theme', newTheme);
+    try {
+      await updateUserProfileInFirestore({ theme: newTheme });
+    } catch (error) {
+      console.error("Failed to update theme:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchPlateData = async () => {
@@ -344,26 +359,26 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   if (!profile) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin text-white" size={48} />
+        <Loader2 className="animate-spin text-theme-primary" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-8 text-white animate-fade-in">
+    <div className="p-4 md:p-8 text-theme-primary animate-fade-in">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold">Settings</h1>
           <button
             onClick={onBack}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            className="btn-modern font-bold py-2 px-4 rounded-lg text-theme-primary transition-colors"
           >
             Back to Dashboard
           </button>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
-          <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2 flex items-center gap-2">
+        <div className="card-physical p-6 rounded-2xl mb-8">
+          <h2 className="text-2xl font-semibold mb-4 border-b border-card-inner pb-2 flex items-center gap-2">
             <User size={24} /> Your Account
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -384,7 +399,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
               <button
                 onClick={handleUpdateUserName}
                 disabled={isSavingUserName}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-modern btn-modern-primary text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSavingUserName ? (
                   <>
@@ -405,7 +420,60 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           )}
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+
+
+        {/* Color Schemes Section */}
+        <div className="card-physical p-6 rounded-2xl mb-8">
+          <h2 className="text-2xl font-semibold mb-4 border-b border-card pb-2 flex items-center gap-2">
+            Color Schemes
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <button
+              onClick={() => handleThemeChange('dark')}
+              className={`p-4 rounded-xl border transition-all ${currentTheme === 'dark' ? 'border-blue-500 ring-2 ring-blue-500/20 bg-gray-800' : 'border-card hover:bg-card-inner-hover'}`}
+            >
+              <div className="w-full h-12 bg-gray-900 rounded-lg mb-2 border border-gray-700 shadow-inner"></div>
+              <span className="font-semibold text-sm">Dark</span>
+            </button>
+            <button
+              onClick={() => handleThemeChange('light')}
+              className={`p-4 rounded-xl border transition-all ${currentTheme === 'light' ? 'border-blue-500 ring-2 ring-blue-500/20 bg-slate-100' : 'border-card hover:bg-card-inner-hover'}`}
+            >
+              <div className="w-full h-12 bg-white rounded-lg mb-2 border border-gray-200 shadow-inner"></div>
+              <span className="font-semibold text-sm">Light</span>
+            </button>
+            <button
+              onClick={() => handleThemeChange('midnight')}
+              className={`p-4 rounded-xl border transition-all ${currentTheme === 'midnight' ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-900' : 'border-card hover:bg-card-inner-hover'}`}
+            >
+              <div className="w-full h-12 bg-blue-950 rounded-lg mb-2 border border-blue-800 shadow-inner"></div>
+              <span className="font-semibold text-sm">Midnight</span>
+            </button>
+            <button
+              onClick={() => handleThemeChange('forest')}
+              className={`p-4 rounded-xl border transition-all ${currentTheme === 'forest' ? 'border-green-500 ring-2 ring-green-500/20 bg-[#354f52]' : 'border-card hover:bg-card-inner-hover'}`}
+            >
+              <div className="w-full h-12 bg-[#2f3e46] rounded-lg mb-2 border border-[#52796f] shadow-inner"></div>
+              <span className="font-semibold text-sm">Forest</span>
+            </button>
+            <button
+              onClick={() => handleThemeChange('crimson')}
+              className={`p-4 rounded-xl border transition-all ${currentTheme === 'crimson' ? 'border-red-500 ring-2 ring-red-500/20 bg-[#7f1d1d]' : 'border-card hover:bg-card-inner-hover'}`}
+            >
+              <div className="w-full h-12 bg-[#450a0a] rounded-lg mb-2 border border-[#991b1b] shadow-inner"></div>
+              <span className="font-semibold text-sm">Crimson</span>
+            </button>
+            <button
+              onClick={() => handleThemeChange('pink')}
+              className={`p-4 rounded-xl border transition-all ${currentTheme === 'pink' ? 'border-pink-500 ring-2 ring-pink-500/20 bg-pink-100' : 'border-card hover:bg-card-inner-hover'}`}
+            >
+              <div className="w-full h-12 bg-pink-500 rounded-lg mb-2 border border-pink-400 shadow-inner"></div>
+              <span className="font-semibold text-sm">Pink</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Partner Settings
           </h2>
@@ -423,7 +491,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
             <div className="flex items-end gap-4">
               <button
                 onClick={handleAddPartner}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                className="btn-modern btn-modern-primary text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
                 <Plus size={20} className="text-white" />{" "}
                 {userProfile.partner ? "Update" : "Add"} Partner
@@ -431,7 +499,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
               {userProfile.partner && (
                 <button
                   onClick={handleRemovePartner}
-                  className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  className="btn-modern bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
                 >
                   <Trash2 size={20} className="text-white" /> Remove Partner
                 </button>
@@ -445,7 +513,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           )}
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Your Profile
           </h2>
@@ -486,7 +554,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Available Equipment
           </h2>
@@ -497,7 +565,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
                 onClick={() => handleEquipmentChange(equip.id)}
                 className={`p-4 rounded-lg text-center transition-all duration-200 ${profile.availableEquipment.includes(equip.id)
                   ? "bg-blue-600 text-white ring-2 ring-blue-400"
-                  : "bg-gray-700 hover:bg-gray-600"
+                  : "card-inner hover:bg-opacity-80"
                   }`}
               >
                 {equip.name}
@@ -506,7 +574,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Your Max Lifts (1RM)
           </h2>
@@ -538,7 +606,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
             <button
               onClick={handleUpdateMaxes}
               disabled={isSavingMaxes}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-modern btn-modern-primary text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSavingMaxes ? (
                 <>
@@ -559,7 +627,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
         </div>
 
         {profile.partner && (
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+          <div className="card-physical p-6 rounded-2xl mb-8">
             <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
               {profile.partner.name}'s Max Lifts (1RM)
             </h2>
@@ -583,7 +651,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </div>
         )}
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Your Weight Plates (lbs)
           </h2>
@@ -621,7 +689,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
             </div>
             <button
               onClick={handleAddWeight}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
+              className="btn-modern btn-modern-primary text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
             >
               <Plus size={20} className="text-white" /> Add Plates
             </button>
@@ -634,7 +702,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
               profile.availablePlates.map((plate) => (
                 <div
                   key={plate.weight}
-                  className="flex justify-between items-center bg-gray-700 p-3 rounded-lg"
+                  className="flex justify-between items-center card-inner p-3 rounded-lg"
                 >
                   <span className="font-semibold">
                     {plate.weight} lbs x {plate.count}
@@ -656,7 +724,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">
             Reset Progress
           </h2>
@@ -670,7 +738,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
             </div>
             <button
               onClick={handleResetProgress}
-              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto"
+              className="btn-modern bg-red-800 hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto"
             >
               Reset Progress
             </button>
@@ -681,7 +749,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-modern btn-modern-green text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <>

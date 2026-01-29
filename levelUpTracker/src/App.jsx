@@ -826,7 +826,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="bg-gray-900 min-h-screen font-sans text-white">
+      <div className="min-h-screen font-sans text-white">
         <Toaster
           position="top-right"
           toastOptions={{

@@ -104,15 +104,15 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
   }, [targetWeight, barbellWeight, plates]);
 
   return (
-    <div className="p-4 md:p-8 text-white animate-fade-in">
-      <div className="max-w-2xl mx-auto bg-gray-800 p-6 rounded-2xl shadow-lg">
+    <div className="p-4 md:p-8 text-theme-primary animate-fade-in">
+      <div className="max-w-2xl mx-auto card-physical p-6 rounded-2xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Weight size={32} className="text-white" /> Plate Calculator
+            <Weight size={32} className="text-theme-primary" /> Plate Calculator
           </h1>
           <button
             onClick={onBack}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            className="btn-modern font-bold py-2 px-4 rounded-lg text-theme-primary"
           >
             Back
           </button>
@@ -138,7 +138,7 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
 
         <button
           onClick={calculatePlates}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors mb-6"
+          className="w-full btn-modern btn-modern-primary text-white font-bold py-3 rounded-lg transition-colors mb-6"
         >
           Calculate
         </button>
@@ -146,12 +146,12 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
         {message && <p className="text-red-400 text-center mb-4">{message}</p>}
 
         {calculation && (
-          <div className="bg-gray-900 p-6 rounded-lg animate-fade-in">
+          <div className="card-inner p-6 rounded-lg animate-fade-in">
             <h2 className="text-xl font-semibold mb-4 text-center">
               {calculation.message}
             </h2>
             {calculation.platesPerSide.length > 0 && (
-              <div className="flex items-center justify-center space-x-2 bg-gray-700 p-4 rounded-lg overflow-x-auto">
+              <div className="flex items-center justify-center space-x-2 bg-theme-input p-4 rounded-lg overflow-x-auto">
                 <div
                   className="h-2 bg-gray-400 rounded-l-lg flex-shrink-0"
                   style={{ width: "3rem" }}
@@ -201,7 +201,7 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
               </div>
             )}
             {calculation.totalAchieved && (
-              <p className="text-center mt-4 text-gray-400">
+              <p className="text-center mt-4 text-theme-secondary">
                 Total Weight: {calculation.totalAchieved.toFixed(1)} lbs
               </p>
             )}

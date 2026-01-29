@@ -129,30 +129,30 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
   };
 
   return (
-    <div className="p-4 md:p-8 text-white animate-fade-in">
+    <div className="p-4 md:p-8 text-theme-primary animate-fade-in">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold">Exercise Library</h1>
           <button
             onClick={onBack}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
+            className="btn-modern font-bold py-2 px-4 rounded-lg text-theme-primary"
           >
             Back
           </button>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4">Your Lifts</h2>
           {library.length > 0 ? (
             <div className="space-y-3">
               {library.map((ex) => (
                 <div
                   key={ex.name}
-                  className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"
+                  className="card-inner p-3 rounded-lg flex justify-between items-center"
                 >
                   <div>
-                    <p className="font-bold text-white">{ex.name}</p>
-                    <p className="text-sm text-gray-300">
+                    <p className="font-bold text-theme-primary">{ex.name}</p>
+                    <p className="text-sm text-theme-secondary">
                       {ex.type === "weighted" || ex.type === "barbell"
                         ? `1RM: ${ex.oneRepMax} lbs`
                         : "Bodyweight"}
@@ -176,13 +176,13 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">
+            <p className="text-theme-secondary text-center py-4">
               Your library is empty. Add a lift to get started.
             </p>
           )}
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4">
             {editingExercise ? "Edit Lift" : "Add New Lift"}
           </h2>
@@ -226,7 +226,7 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
           <div className="flex gap-2 mt-6">
             <button
               onClick={handleAddExercise}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+              className="w-full btn-modern btn-modern-primary text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
             >
               {editingExercise ? <Save size={20} /> : <Plus size={20} />}{" "}
               {editingExercise ? "Save Changes" : "Add to Library"}
@@ -234,7 +234,7 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
             {editingExercise && (
               <button
                 onClick={handleCancelEdit}
-                className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+                className="w-full btn-modern bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
               >
                 <X size={20} /> Cancel
               </button>
@@ -242,18 +242,18 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
+        <div className="card-physical p-6 rounded-2xl">
           <h2 className="text-2xl font-semibold mb-4">Template Exercises</h2>
           {templateExercises.length > 0 ? (
             <div className="space-y-3">
               {templateExercises.map((ex) => (
                 <div
                   key={ex.name}
-                  className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"
+                  className="card-inner p-3 rounded-lg flex justify-between items-center"
                 >
                   <div>
-                    <p className="font-bold text-white">{ex.name}</p>
-                    <p className="text-sm text-gray-300">
+                    <p className="font-bold text-theme-primary">{ex.name}</p>
+                    <p className="text-sm text-theme-secondary">
                       {ex.type === "weighted" || ex.type === "barbell"
                         ? `1RM: ${ex.oneRepMax} lbs`
                         : "Bodyweight"}
@@ -263,7 +263,7 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">
+            <p className="text-theme-secondary text-center py-4">
               No template exercises found.
             </p>
           )}
@@ -272,7 +272,7 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleSaveLibrary}
-            className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2"
+            className="btn-modern btn-modern-green text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2"
           >
             <Save size={20} /> Save Library
           </button>

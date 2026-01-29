@@ -136,13 +136,13 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
           <h1 className="text-4xl font-bold">Build Your Workout</h1>
           <button
             onClick={onBack}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
+            className="btn-modern bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
           >
             Back
           </button>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4">Workout Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
@@ -168,7 +168,7 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <div className="card-physical p-6 rounded-2xl mb-8">
           <h2 className="text-2xl font-semibold mb-4">Added Exercises</h2>
           {exercises.length > 0 ? (
             <div className="space-y-3">
@@ -210,7 +210,7 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
           )}
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
+        <div className="card-physical p-6 rounded-2xl">
           <h2 className="text-2xl font-semibold mb-4">
             Add Exercise to Workout
           </h2>
@@ -315,7 +315,7 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
           )}
           <button
             onClick={handleAddExercise}
-            className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+            className="w-full mt-6 btn-modern btn-modern-primary text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
           >
             <Plus size={20} /> Add Exercise to Day
           </button>
@@ -324,7 +324,7 @@ export const CreateWorkout = ({ userProfile, onSave, onBack }) => {
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleSaveWorkout}
-            className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2"
+            className="btn-modern btn-modern-green text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2"
           >
             <Save size={20} /> Save Workout Day
           </button>

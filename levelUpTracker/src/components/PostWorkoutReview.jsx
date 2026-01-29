@@ -112,7 +112,7 @@ export const PostWorkoutReview = ({
     }, [userAdjustments, partnerAdjustments, completedWorkout, partnerWorkout, hasPartner, onSave]);
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8 animate-fade-in">
+        <div className="min-h-screen text-white p-4 md:p-8 animate-fade-in">
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-3xl font-bold text-center mb-2">Workout Complete!</h1>
                 <p className="text-gray-400 text-center mb-8">
@@ -170,13 +170,13 @@ export const PostWorkoutReview = ({
                 <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
                     <button
                         onClick={onCancel}
-                        className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                        className="btn-modern bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition-colors"
                     >
                         Go Back
                     </button>
                     <button
                         onClick={handleSave}
-                        className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                        className="btn-modern btn-modern-green text-white font-bold py-3 px-8 rounded-lg"
                     >
                         Save & Finish
                     </button>
@@ -243,7 +243,7 @@ const ExerciseAdjustmentCard = ({
     };
 
     return (
-        <div className="bg-gray-800 p-4 rounded-xl">
+        <div className="card-physical p-4 rounded-xl">
             <div className="flex justify-between items-center mb-2">
                 <h3 className="font-semibold text-lg">{exerciseName}</h3>
                 {hasChanged && (
@@ -270,7 +270,7 @@ const ExerciseAdjustmentCard = ({
                 <div className="flex items-center gap-2">
                     <button
                         onClick={onDecrement}
-                        className="bg-red-600 hover:bg-red-500 w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold"
+                        className="btn-modern bg-red-600 hover:bg-red-500 w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold"
                         aria-label={`Decrease ${exerciseName} 1RM`}
                     >
                         <ChevronDown size={20} />
@@ -305,7 +305,7 @@ const ExerciseAdjustmentCard = ({
 
                     <button
                         onClick={onIncrement}
-                        className="bg-green-600 hover:bg-green-500 w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold"
+                        className="btn-modern bg-green-600 hover:bg-green-500 w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold"
                         aria-label={`Increase ${exerciseName} 1RM`}
                     >
                         <ChevronUp size={20} />

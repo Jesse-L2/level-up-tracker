@@ -28,7 +28,7 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
       <div
         ref={modalRef}
         tabIndex="-1"
-        className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md m-4 transform transition-all duration-300 scale-95 hover:scale-100 focus:outline-none"
+        className="card-physical bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md m-4 transform transition-all duration-300 scale-95 hover:scale-100 focus:outline-none"
       >
         <div className="flex justify-between items-center p-5 border-b border-gray-700">
           <h3 className="text-xl font-bold text-white">{title}</h3>

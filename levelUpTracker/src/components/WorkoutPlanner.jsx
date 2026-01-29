@@ -374,14 +374,14 @@ export const WorkoutPlanner = ({
   return (
     <div className="p-4 md:p-8 text-white animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-0">
+        <div className="card-physical rounded-2xl p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-0">
           <div className="hidden md:block flex-1"></div>
-          <h1 className="text-3xl font-bold text-center w-full md:w-auto flex-1">
+          <h1 className="text-3xl font-bold text-center w-full md:w-auto flex-1 text-gradient-gold">
             {workoutDay.name}
           </h1>
           <div className="w-full md:w-auto md:flex-1 flex justify-center md:justify-end items-center gap-4">
             {userProfile.partner && (
-              <div className="flex items-center gap-2 bg-gray-700/50 p-1.5 rounded-lg border border-gray-600/50">
+              <div className="flex items-center gap-2 bg-gray-700/50 p-1.5 rounded-lg border border-gray-600/50 shadow-inner">
                 <span className="text-white text-sm">{userProfile.displayName}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -397,14 +397,14 @@ export const WorkoutPlanner = ({
             )}
             <button
               onClick={() => onNavigate("dashboard")}
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm whitespace-nowrap"
+              className="btn-modern bg-gray-700 text-white font-bold py-2 px-3 rounded-lg text-sm whitespace-nowrap"
             >
               Back to Dashboard
             </button>
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="card-physical rounded-2xl p-6">
           <div className="relative text-center">
             <button
               className="inline-flex items-center gap-2 text-4xl font-bold mb-0 text-center text-blue-400 hover:text-blue-300 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg px-2"
@@ -440,7 +440,7 @@ export const WorkoutPlanner = ({
                   onClick={() => setIsMenuOpen(false)}
                 />
                 {/* Dropdown menu */}
-                <div className="absolute z-20 top-full left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl mt-2 min-w-[280px] overflow-hidden animate-fade-in">
+                <div className="absolute z-20 top-full left-1/2 -translate-x-1/2 card-physical bg-gray-900 rounded-xl mt-2 min-w-[280px] overflow-hidden animate-fade-in">
                   <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
                     <span className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Jump to Exercise</span>
                     <button
@@ -527,13 +527,13 @@ export const WorkoutPlanner = ({
                   />
                   <button
                     onClick={() => handleOneRepMaxChange(-2.5)}
-                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"
+                    className="p-2 rounded-full btn-modern bg-blue-600 text-white"
                   >
                     <Minus size={16} />
                   </button>
                   <button
                     onClick={() => handleOneRepMaxChange(2.5)}
-                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500"
+                    className="p-2 rounded-full btn-modern bg-blue-600 text-white"
                   >
                     <Plus size={16} />
                   </button>
@@ -598,7 +598,7 @@ export const WorkoutPlanner = ({
                   </button>
                   <button
                     onClick={() => setIsEditingPartner(false)}
-                    className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+                    className="btn-modern bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
                   >
                     <X size={18} /> Cancel
                   </button>
@@ -678,14 +678,14 @@ export const WorkoutPlanner = ({
             {currentExerciseIndex > 0 && (
               <button
                 onClick={handlePreviousExercise}
-                className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center gap-2"
+                className="btn-modern bg-gray-600 text-white font-bold py-4 px-6 rounded-lg flex items-center gap-2"
               >
                 <ChevronLeft size={20} /> Previous
               </button>
             )}
             <button
               onClick={handleNextExercise}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-lg transition-colors"
+              className="btn-modern btn-modern-primary text-white font-bold py-4 px-8 rounded-lg"
             >
               {currentExerciseIndex >= workoutDay.exercises.length - 1
                 ? "Finish Workout"
@@ -697,7 +697,7 @@ export const WorkoutPlanner = ({
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleFinishWorkout}
-            className="bg-gray-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg"
+            className="btn-modern bg-gray-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg"
           >
             Finish Workout Early
           </button>

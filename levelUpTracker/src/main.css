@@ -6,124 +6,428 @@
 html {
   /* Prevent pull-to-refresh on mobile */
   overscroll-behavior-y: contain;
+  min-height: 100%;
+}
+
+/* Modern Universal Backgrounds (Variables for Reference) */
+:root {
+  --bg-modern-dark: radial-gradient(circle at 50% 0%, #1f2937 0%, #111827 40%, #030712 100%);
+  --bg-modern-light: radial-gradient(circle at 50% 0%, #ffffff 0%, #f3f4f6 40%, #e5e7eb 100%);
+
+  /* Shared Defaults */
+  --bg-card: linear-gradient(145deg, #233044, #162032);
+  --bg-card-inner: rgba(51, 65, 85, 0.5);
+  --bg-card-inner-hover: rgba(51, 65, 85, 0.8);
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: #94a3b8;
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-card-inner: rgba(255, 255, 255, 0.08);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --bg-input: #374151;
+  --text-input: #ffffff;
+  --border-input: #4b5563;
+  --btn-bg: #374151;
+  --btn-border: rgba(255, 255, 255, 0.05);
+
+  /* Abstract Button Colors (Default: Blue/Green) */
+  --btn-primary-bg: #2563eb;
+  --btn-success-bg: #16a34a;
+}
+
+/* =========================================
+   EXPLICIT THEME BACKGROUNDS
+   ========================================= */
+
+/* Default / Dark Theme */
+body,
+html[data-theme='dark'] body {
+  background: radial-gradient(circle at 50% 0%, #111827 0%, #030712 60%, #020617 100%) !important;
+  /* Darker: Gray-900 -> Gray-950 */
+  background-attachment: fixed !important;
+}
+
+/* Light Theme */
+[data-theme='light'] {
+  --bg-card: linear-gradient(145deg, #ffffff, #f8fafc);
+  /* Pure White to Slate-50 */
+  --bg-card-inner: #f1f5f9;
+  /* Slate-100 */
+  --bg-card-inner-hover: #e2e8f0;
+  --text-primary: #0f172a;
+  /* Slate-900 - High Contrast */
+  --text-secondary: #475569;
+  /* Slate-600 */
+  --border-card: rgba(0, 0, 0, 0.08);
+  /* Darker border */
+  --border-card-inner: rgba(0, 0, 0, 0.06);
+  --shadow-color: rgba(0, 0, 0, 0.25);
+  /* Even darker shadow */
+  --bg-input: #ffffff;
+  --text-input: #0f172a;
+  --border-input: #cbd5e1;
+  --btn-bg: #e2e8f0;
+  --btn-border: rgba(0, 0, 0, 0.08);
+
+  /* Light Theme Button Overrides */
+  --btn-primary-bg: #2563eb;
+  --btn-success-bg: #16a34a;
+}
+
+html[data-theme='light'] body {
+  background: radial-gradient(circle at 50% 0%, #f1f5f9 0%, #e2e8f0 100%) !important;
+  /* Darker Gray Back for Contrast */
+  background-attachment: fixed !important;
+}
+
+/* Midnight Theme */
+/* Midnight Theme */
+[data-theme='midnight'] {
+  --bg-card: linear-gradient(145deg, #0f172a, #020617);
+  /* Slate-900 to Slate-950 */
+  --bg-card-inner: rgba(2, 6, 23, 0.5);
+  /* Slate-950 Transparent */
+  --bg-card-inner-hover: rgba(15, 23, 42, 0.6);
+  --text-primary: #f8fafc;
+  /* Slate-50 */
+  --text-secondary: #94a3b8;
+  /* Slate-400 */
+  --border-card: rgba(56, 189, 248, 0.3);
+  /* Cyan Glow: 0.3 */
+  --border-card-inner: rgba(56, 189, 248, 0.15);
+  --shadow-color: rgba(0, 0, 0, 0.8);
+  /* Deep Dark Shadow */
+  --bg-input: #020617;
+  --text-input: #f8fafc;
+  --border-input: #1e293b;
+  /* Slate-800 */
+  --btn-bg: #1e293b;
+  --btn-border: rgba(56, 189, 248, 0.15);
+
+  /* Midnight specific buttons (Subdued) */
+  --btn-primary-bg: #1e3a8a;
+  /* Blue-900 */
+  --btn-success-bg: #14532d;
+  /* Green-900 */
+}
+
+html[data-theme='midnight'] body {
+  background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 80%, #000000 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Forest Theme */
+/* Forest Theme */
+[data-theme='forest'] {
+  --bg-card: linear-gradient(145deg, #3f2e18, #271c16);
+  /* Dark Wood Gradient */
+  --bg-card-inner: rgba(66, 32, 6, 0.3);
+  /* Dark Oak Transparent */
+  --bg-card-inner-hover: rgba(66, 32, 6, 0.5);
+  --text-primary: #fef3c7;
+  /* Amber-50 (Cream) */
+  --text-secondary: #d4a373;
+  /* Tan/Beige */
+  --border-card: rgba(146, 64, 14, 0.4);
+  /* Bronze/Brown */
+  --border-card-inner: rgba(146, 64, 14, 0.2);
+  --shadow-color: rgba(20, 10, 5, 0.8);
+  /* Deep Brown Shadow */
+  --bg-input: #291a10;
+  --text-input: #fef3c7;
+  --border-input: #5c4033;
+  /* Medium Brown */
+  --btn-bg: #15803d;
+  /* Green-700 (Leaves) */
+  --btn-border: rgba(134, 239, 172, 0.3);
+
+  /* Forest Buttons: Leafy Greens */
+  --btn-primary-bg: #166534;
+  /* Green-800 */
+  --btn-success-bg: #14532d;
+  /* Green-900 */
+}
+
+html[data-theme='forest'] body {
+  background: radial-gradient(circle at 50% 0%, #166534 0%, #14532d 60%, #052e16 100%) !important;
+  /* Green-800 -> Green-900 -> Deep Forest Black/Green */
+  background-attachment: fixed !important;
+}
+
+/* Crimson Theme */
+[data-theme='crimson'] {
+  --bg-card: linear-gradient(145deg, #7f1d1d, #450a0a);
+  --bg-card-inner: rgba(153, 27, 27, 0.4);
+  /* #991b1b */
+  --bg-card-inner-hover: rgba(153, 27, 27, 0.6);
+  --text-primary: #fff1f2;
+  /* rose-50 */
+  --text-secondary: #fed7aa;
+  /* orange-200 */
+  --border-card: rgba(251, 191, 36, 0.3);
+  /* Gold */
+  --border-card-inner: rgba(251, 191, 36, 0.15);
+  --shadow-color: rgba(0, 0, 0, 0.6);
+  --bg-input: #450a0a;
+  --text-input: #fff1f2;
+  --border-input: #fbbf24;
+  /* amber-400 */
+  --btn-bg: #be123c;
+  /* Deep Rose */
+  --btn-border: rgba(251, 191, 36, 0.3);
+
+  /* Crimson Buttons: Punchy Red & Deep Crimson */
+  --btn-primary-bg: #dc2626;
+  /* Red-600 */
+  --btn-success-bg: #b91c1c;
+  /* Red-700 */
+}
+
+html[data-theme='crimson'] body {
+  background: radial-gradient(circle at 50% 0%, #7f1d1d 0%, #450a0a 60%, #200505 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Pink Theme (Barbie Inspired) */
+[data-theme='pink'] {
+  --bg-card: linear-gradient(145deg, #ffffff, #fbcfe8);
+  /* White to Pink-200 */
+  --bg-card-inner: #fce7f3;
+  /* Pink-100 */
+  --bg-card-inner-hover: #fbcfe8;
+  /* Pink-200 */
+  --text-primary: #831843;
+  /* Pink-900 */
+  --text-secondary: #db2777;
+  /* Pink-600 */
+  --border-card: rgba(236, 72, 153, 0.2);
+  /* Pink-500 glow */
+  --border-card-inner: rgba(236, 72, 153, 0.1);
+  --shadow-color: rgba(236, 72, 153, 0.15);
+  /* Pink shadow! */
+  --bg-input: #ffffff;
+  --text-input: #831843;
+  --border-input: #f472b6;
+  /* Pink-400 */
+  --btn-bg: #ec4899;
+  /* Pink-500 */
+  --btn-border: rgba(255, 255, 255, 0.2);
+
+  /* Pink Buttons: Hot Pink & Vibrant Rose */
+  --btn-primary-bg: #db2777;
+  /* Pink-600 */
+  --btn-success-bg: #be185d;
+  /* Pink-700 */
+}
+
+html[data-theme='pink'] body {
+  background: radial-gradient(circle at 50% 0%, #f9a8d4 0%, #fdf2f8 50%, #ffffff 100%) !important;
+  /* Pink-300 Spotlight */
+  background-attachment: fixed !important;
 }
 
 body {
-  /* Support for iOS safe areas (notch, home indicator) */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-  
-  /* Prevent text selection on mobile for app-like feel */
-  -webkit-user-select: none;
-  user-select: none;
-  
-  /* Smooth scrolling */
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Allow text selection in input fields */
-input, textarea, [contenteditable] {
-  -webkit-user-select: text;
-  user-select: text;
-}
-
-/* Prevent iOS zoom on input focus (requires 16px font size) */
-input, select, textarea {
-  font-size: 16px !important;
-}
-
-/* Touch-friendly button sizes (minimum 44x44px) */
-button, 
-[role="button"],
-a.btn,
-.clickable {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* Active state feedback for touch */
-button:active,
-[role="button"]:active {
-  opacity: 0.8;
-  transform: scale(0.98);
-}
-
-/* Hide scrollbars but keep functionality */
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  background: var(--bg-body) !important;
+  /* Force override */
+  background-attachment: fixed !important;
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Theme Utilities */
+.text-theme-primary {
+  color: var(--text-primary) !important;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.text-theme-secondary {
+  color: var(--text-secondary) !important;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.bg-theme-input {
+  background-color: var(--bg-input) !important;
+  color: var(--text-input) !important;
+  border-color: var(--border-input) !important;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+/* "Physical" Card Effect - Enhanced Contrast */
+.card-physical {
+  background: var(--bg-card);
+  box-shadow:
+    0 10px 20px -5px var(--shadow-color),
+    0 4px 6px -2px var(--shadow-color),
+    inset 0 1px 0 0 var(--border-card);
+  border: 1px solid var(--border-card);
+  position: relative;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-} */
+/* Inner Card for List Items */
+.card-inner {
+  background-color: var(--bg-card-inner);
+  border: 1px solid var(--border-card-inner);
+  box-shadow: 0 4px 6px -1px var(--shadow-color);
+  transition: all 0.2s ease;
+}
+
+.card-inner:hover {
+  background-color: var(--bg-card-inner-hover);
+  border-color: var(--border-card);
+  transform: translateY(-1px);
+}
+
+/* Modern Button */
+.btn-modern {
+  position: relative;
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+  background-color: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  /* Subtle border */
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* Inner top highlight */
+  border-radius: 0.5rem;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Specific color variants */
+.btn-modern-primary {
+  background-color: var(--btn-primary-bg);
+  /* Theme-aware primary color */
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-modern-green {
+  background-color: var(--btn-success-bg);
+  /* Theme-aware success color */
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Active State: Shrink & Darken */
+.btn-modern:active,
+button:active:not(:disabled) {
+  transform: scale(0.97) translateY(1px);
+  filter: brightness(0.9);
+  box-shadow:
+    0 0 0 rgba(0, 0, 0, 0),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  /* Inner shadow on press */
+}
+
+/* List Item Feedback */
+.list-item-feedback {
+  transition: background-color 0.1s ease;
+}
+
+.list-item-feedback:active {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Subtle Gradient Text */
+.text-gradient-gold {
+  background: linear-gradient(to bottom right, #fbbf24, #d97706);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Tool Button Classes */
+.btn-tools-indigo {
+  background-color: #4f46e5;
+}
+
+.btn-tools-teal {
+  background-color: #0d9488;
+}
+
+.btn-tools-purple {
+  background-color: #9333ea;
+}
+
+[data-theme='midnight'] .btn-tools-indigo {
+  background-color: #312e81;
+  /* Indigo-900 */
+}
+
+[data-theme='midnight'] .btn-tools-teal {
+  background-color: #134e4a;
+  /* Teal-900 */
+}
+
+[data-theme='midnight'] .btn-tools-purple {
+  background-color: #581c87;
+  /* Purple-900 */
+}
+
+/* Forest Specific Tool Buttons */
+[data-theme='forest'] .btn-tools-indigo {
+  background-color: #3f6212;
+  /* Deep Moss (Lime-800) */
+}
+
+[data-theme='forest'] .btn-tools-teal {
+  background-color: #15803d;
+  /* Forest Green (Green-700) */
+}
+
+[data-theme='forest'] .btn-tools-purple {
+  background-color: #14532d;
+  /* Deep Pine (Green-900) */
+}
+
+/* Pink Specific Tool Buttons */
+[data-theme='pink'] .btn-tools-indigo {
+  background-color: #d946ef;
+  /* Fuchsia-500 */
+}
+
+[data-theme='pink'] .btn-tools-teal {
+  background-color: #ec4899;
+  /* Pink-500 */
+}
+
+[data-theme='pink'] .btn-tools-purple {
+  background-color: #be185d;
+  /* Pink-700 */
+}
+
+/* Forest Gradient Buttons */
+[data-theme='forest'] .btn-modern,
+[data-theme='forest'] .btn-modern-primary,
+[data-theme='forest'] .btn-modern-green {
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.1)) !important;
+  border-color: rgba(110, 231, 183, 0.3) !important;
+}
+
+[data-theme='forest'] .btn-modern-primary {
+  background-color: #166534;
+  /* Green-800 */
+}
+
+[data-theme='forest'] .btn-modern-green {
+  background-color: #14532d;
+  /* Green-900 */
+}
+
+/* Crimson Specific Tool Buttons */
+[data-theme='crimson'] .btn-tools-indigo {
+  background-color: #7f1d1d;
+  /* Red-900 */
+}
+
+[data-theme='crimson'] .btn-tools-teal {
+  background-color: #991b1b;
+  /* Red-800 */
+}
+
+[data-theme='crimson'] .btn-tools-purple {
+  background-color: #b91c1c;
+  /* Red-700 */
+}

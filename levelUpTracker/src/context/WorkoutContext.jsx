@@ -24,6 +24,14 @@ export const WorkoutProvider = ({
     }
   }, [userProfile?.workoutPlan]);
 
+  // Apply Theme
+  useEffect(() => {
+    if (userProfile) {
+      const theme = userProfile.theme || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }, [userProfile?.theme]);
+
 
   const handleRecalculateWorkout = useCallback(() => {
     if (!userProfile || !workoutPlan) return;

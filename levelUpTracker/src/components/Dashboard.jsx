@@ -236,65 +236,65 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
   };
 
   return (
-    <div className="p-4 md:p-8 text-white animate-fade-in">
+    <div className="p-4 md:p-8 text-theme-primary animate-fade-in">
       <div className="max-w-6xl mx-auto">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 md:gap-4">
           <div className="w-full md:w-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">LevelUp Tracker</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-theme-primary mb-2">LevelUp Tracker</h1>
             <div className="flex items-center gap-4 mb-2">
               <div className="flex items-center gap-2 bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full border border-yellow-500/50">
                 <Trophy size={16} />
                 <span className="font-bold">Level {calculateLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}</span>
               </div>
-              <div className="w-32 md:w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div className="w-32 md:w-48 h-2 bg-theme-input rounded-full overflow-hidden shadow-inner">
                 <div
-                  className="h-full bg-yellow-500 transition-all duration-1000"
+                  className="h-full bg-yellow-500 transition-all duration-1000 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
                   style={{ width: `${calculateProgressToNextLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}%` }}
                 />
               </div>
             </div>
-            <p className="text-gray-300 text-sm md:text-base">
+            <p className="text-theme-secondary text-sm md:text-base">
               {isPartnerView ? `${userProfile.partner.name}'s personalized workout dashboard.` : 'Your personalized workout dashboard.'}
             </p>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto justify-end">
             {userProfile.partner && (
-              <div className="flex items-center gap-2 mr-2 bg-gray-700/50 p-2 rounded-lg border border-gray-600/50">
-                <div className="text-white text-sm font-semibold">{userProfile.displayName}</div>
+              <div className="flex items-center gap-2 mr-2 bg-card-inner p-2 rounded-lg border border-card-inner">
+                <div className="text-theme-primary text-sm font-semibold">{userProfile.displayName}</div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" value="" className="sr-only peer" checked={isPartnerView} onChange={handleToggle} />
-                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 bg-theme-input peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
-                <div className="text-white text-sm font-semibold">{userProfile.partner.name}</div>
+                <div className="text-theme-primary text-sm font-semibold">{userProfile.partner.name}</div>
               </div>
             )}
             <button
               onClick={() => onNavigate("settings")}
-              className="bg-gray-700 hover:bg-gray-600 p-3 rounded-full transition-colors"
+              className="btn-modern p-3 rounded-full text-theme-primary"
               aria-label="Settings"
             >
-              <Settings size={20} className="text-white" />
+              <Settings size={20} />
             </button>
             <button
               onClick={() => signOut(getAuth())}
-              className="bg-gray-700 hover:bg-gray-600 p-3 rounded-full transition-colors"
+              className="btn-modern p-3 rounded-full text-theme-primary"
               aria-label="Logout"
             >
-              <LogOut size={20} className="text-white" />
+              <LogOut size={20} />
             </button>
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <div className="card-physical p-6 rounded-2xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h2 className="text-2xl font-semibold text-white">
+                <h2 className="text-2xl font-semibold text-theme-primary">
                   Your Weekly Plan
                 </h2>
                 <button
                   onClick={() => onNavigate("edit_program")}
-                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto btn-modern btn-modern-primary text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2"
                 >
                   <Edit2 size={18} /> Manage Schedule
                 </button>
@@ -304,21 +304,21 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                   {sortedWorkoutPlan.map(([dayName, workoutDetails]) => (
                     <div
                       key={dayName}
-                      className="bg-gray-700 rounded-lg overflow-hidden"
+                      className="card-inner rounded-lg overflow-hidden"
                     >
                       <div
                         onClick={() => toggleDay(dayName)}
-                        className="w-full flex justify-between items-center p-4 text-left cursor-pointer"
+                        className="w-full flex justify-between items-center p-4 text-left cursor-pointer list-item-feedback"
                         aria-expanded={expandedDay === dayName}
                         aria-controls={`workout-day-${dayName}`}
                         role="button"
                       >
                         <div className="flex flex-col text-left">
-                          <span className="font-bold text-lg text-white">
+                          <span className="font-bold text-lg text-theme-primary">
                             {dayName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                           </span>
                           {workoutDetails.name && (
-                            <span className="text-sm text-gray-300">
+                            <span className="text-sm text-theme-secondary">
                               {workoutDetails.name.split('_').slice(2).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                             </span>
                           )}
@@ -335,18 +335,18 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                                 dayIdentifier: dayName,
                               });
                             }}
-                            className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                            className="btn-modern btn-modern-green text-white font-bold py-2 px-4 rounded-lg"
                           >
                             Start Planner
                           </button>
                           {expandedDay === dayName ? (
                             <ChevronUp
-                              className="text-white"
+                              className="text-theme-primary"
                               aria-label="Collapse"
                             />
                           ) : (
                             <ChevronDown
-                              className="text-white"
+                              className="text-theme-primary"
                               aria-label="Expand"
                             />
                           )}
@@ -355,26 +355,26 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                       {expandedDay === dayName && (
                         <div
                           id={`workout-day-${dayName}`}
-                          className="p-4 bg-gray-900/50 border-t border-gray-600"
+                          className="p-4 bg-card-inner/30 border-t border-card-inner"
                         >
                           <ul className="space-y-2">
                             {workoutDetails.exercises.map((ex, exIndex) => (
-                              <li key={exIndex} className="text-white">
+                              <li key={exIndex} className="text-theme-primary">
                                 <div className="flex justify-between items-center">
                                   <span>{ex.name}</span>
-                                  <span className="text-gray-300">
+                                  <span className="text-theme-secondary opacity-80">
                                     {Array.isArray(ex.sets)
                                       ? ex.sets.length
                                       : 0}{" "}
                                     sets
                                   </span>
                                 </div>
-                                <ul className="pl-4 mt-1 border-l-2 border-gray-600">
+                                <ul className="pl-4 mt-1 border-l-2 border-card-inner">
                                   {(Array.isArray(ex.sets) ? ex.sets : []).map(
                                     (s, i) => (
                                       <li
                                         key={i}
-                                        className="text-sm text-gray-300"
+                                        className="text-sm text-theme-secondary"
                                       >
                                         Set {i + 1}: {s.reps} reps @ {s.weight}{" "}
                                         lbs ({s.percentage * 100}%)
@@ -400,12 +400,12 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                 </div>
               ) : (
                 <div className="text-center py-10">
-                  <p className="text-gray-400 mb-4">
+                  <p className="text-theme-secondary mb-4">
                     Your plan is empty. Let's build your first workout!
                   </p>
                   <button
                     onClick={() => onNavigate("create_workout")}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                    className="btn-modern btn-modern-primary text-white font-bold py-3 px-6 rounded-lg transition-colors"
                   >
                     Create a Workout
                   </button>
@@ -413,16 +413,16 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
               )}
             </div>
 
-            <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <div className="card-physical p-6 rounded-2xl">
               <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-                <h2 className="text-2xl font-semibold text-white">
+                <h2 className="text-2xl font-semibold text-theme-primary">
                   1RM Progress
                 </h2>
                 {uniqueExercises.length > 0 && (
                   <select
                     value={selectedExercise || ""}
                     onChange={(e) => setSelectedExercise(e.target.value)}
-                    className="bg-gray-700 text-white p-2 rounded-lg"
+                    className="bg-theme-input p-2 rounded-lg"
                   >
                     {uniqueExercises.map((ex) => (
                       <option key={ex} value={ex}>
@@ -439,14 +439,18 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                       data={chartData}
                       margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-                      <XAxis dataKey="date" stroke="#A0AEC0" padding={{ left: 20, right: 20 }} />
-                      <YAxis stroke="#A0AEC0" domain={chartDomain} ticks={chartTicks} />
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} stroke="currentColor" />
+                      <XAxis dataKey="date" stroke="currentColor" style={{ fontSize: '0.8rem', opacity: 0.7 }} padding={{ left: 20, right: 20 }} />
+                      <YAxis stroke="currentColor" style={{ fontSize: '0.8rem', opacity: 0.7 }} domain={chartDomain} ticks={chartTicks} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#1A202C",
-                          border: "1px solid #4A5568",
+                          backgroundColor: "var(--bg-card)",
+                          borderColor: "var(--border-card)",
+                          color: "var(--text-primary)",
+                          borderRadius: "0.5rem"
                         }}
+                        itemStyle={{ color: "var(--text-primary)" }}
+                        labelStyle={{ color: "var(--text-secondary)" }}
                         formatter={(value) => [
                           `${value.toFixed(1)} lbs`,
                           "1RM",
@@ -458,7 +462,7 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-gray-400 text-center py-8">
+                <p className="text-theme-secondary text-center py-8">
                   {selectedExercise
                     ? `No data for ${formatExerciseName(selectedExercise)}. Complete a workout to track your progress!`
                     : "No exercises found in your plan."}
@@ -468,73 +472,73 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
           </div>
 
           <div className="space-y-8">
-            <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-semibold text-white mb-4">
+            <div className="card-physical p-6 rounded-2xl">
+              <h2 className="text-2xl font-semibold text-theme-primary mb-4">
                 Tools & Library
               </h2>
               <div className="space-y-3">
                 <button
                   onClick={() => onNavigate("calculator")}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full btn-modern btn-tools-indigo text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2"
                 >
-                  <Weight size={20} className="text-white" /> Plate Calculator
+                  <Weight size={20} /> Plate Calculator
                 </button>
                 <button
                   onClick={() => onNavigate("exercise_library")}
-                  className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full btn-modern btn-tools-teal text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2"
                 >
-                  <BookOpen size={20} className="text-white" /> Exercise Library
+                  <BookOpen size={20} /> Exercise Library
                 </button>
                 <button
                   onClick={() => onNavigate("program_templates")}
-                  className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full btn-modern btn-tools-purple text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2"
                 >
-                  <BookOpen size={20} className="text-white" /> Program
+                  <BookOpen size={20} /> Program
                   Templates
                 </button>
               </div>
             </div>
-            <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-semibold text-white mb-4">
+            <div className="card-physical p-6 rounded-2xl">
+              <h2 className="text-2xl font-semibold text-theme-primary mb-4">
                 Workout History
               </h2>
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
                 {(isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory) &&
                   (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory).length > 0 ? (
                   (isPartnerView ? userProfile.partner.workoutHistory : userProfile.workoutHistory)
                     .slice()
                     .reverse()
                     .map((session, index) => (
-                      <div key={index} className="bg-gray-700 rounded-lg overflow-hidden">
+                      <div key={index} className="card-inner rounded-lg overflow-hidden border border-card-inner">
                         <div
                           onClick={() => toggleHistory(index)}
-                          className="w-full flex justify-between items-center p-3 cursor-pointer"
+                          className="w-full flex justify-between items-center p-3 cursor-pointer list-item-feedback"
                         >
                           <div>
-                            <p className="font-semibold text-white">
+                            <p className="font-semibold text-theme-primary">
                               {session.dayName}
                             </p>
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-theme-secondary">
                               {new Date(session.date).toLocaleDateString()}
                             </p>
                           </div>
                           {expandedHistory === index ? (
-                            <ChevronUp className="text-white" />
+                            <ChevronUp className="text-theme-primary" />
                           ) : (
-                            <ChevronDown className="text-white" />
+                            <ChevronDown className="text-theme-primary" />
                           )}
                         </div>
                         {expandedHistory === index && (
-                          <div className="p-4 bg-gray-900/50 border-t border-gray-600">
+                          <div className="p-4 bg-theme-input/50 border-t border-card-inner">
                             <ul className="space-y-2">
                               {session.exercises.map((ex, exIndex) => (
-                                <li key={exIndex} className="text-white">
+                                <li key={exIndex} className="text-theme-primary">
                                   <div className="flex justify-between items-center">
                                     <span>{ex.name}</span>
                                   </div>
-                                  <ul className="pl-4 mt-1 border-l-2 border-gray-600">
+                                  <ul className="pl-4 mt-1 border-l-2 border-card-inner">
                                     {ex.sets.map((s, i) => (
-                                      <li key={i} className="text-sm text-gray-300">
+                                      <li key={i} className="text-sm text-theme-secondary">
                                         Set {i + 1}: {s.reps} reps @ {s.weight} lbs
                                       </li>
                                     ))}
@@ -547,12 +551,12 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
                       </div>
                     ))
                 ) : (
-                  <p className="text-gray-400">No workouts completed yet.</p>
+                  <p className="text-theme-secondary">No workouts completed yet.</p>
                 )}
               </div>
               <button
                 onClick={() => onNavigate("history")}
-                className="w-full mt-4 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                className="w-full mt-4 btn-modern text-theme-primary font-bold py-2 px-4 rounded-lg"
               >
                 View Full History
               </button>

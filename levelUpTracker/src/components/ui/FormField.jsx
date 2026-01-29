@@ -11,14 +11,14 @@ export const FormField = ({
   // Check if custom width or padding class is provided
   const hasCustomWidth = className.includes('w-');
   const hasCustomPadding = className.includes('p-') || className.includes('px-') || className.includes('py-');
-  const baseClasses = `bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500`;
+  const baseClasses = `bg-theme-input rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500`;
   const widthClass = hasCustomWidth ? '' : 'w-full';
   const paddingClass = hasCustomPadding ? '' : 'p-2';
 
   return (
     <div>
       {label && (
-        <label htmlFor={id} className="block text-gray-400 mb-2">
+        <label htmlFor={id} className="block text-theme-secondary mb-2">
           {label}
         </label>
       )}
