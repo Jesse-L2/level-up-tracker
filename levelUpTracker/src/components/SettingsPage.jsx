@@ -367,11 +367,11 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   return (
     <div className="p-4 md:p-8 text-theme-primary animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold">Settings</h1>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4 sm:gap-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-center sm:text-left">Settings</h1>
           <button
             onClick={onBack}
-            className="btn-modern font-bold py-2 px-4 rounded-lg text-theme-primary transition-colors"
+            className="btn-modern font-bold py-2 px-4 rounded-lg text-theme-primary transition-colors w-full sm:w-auto"
           >
             Back to Dashboard
           </button>
@@ -745,7 +745,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </div>
         </div>
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-8 flex justify-center md:justify-end">
           <button
             onClick={handleSave}
             disabled={isSaving}
