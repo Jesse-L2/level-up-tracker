@@ -151,22 +151,20 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
               {calculation.message}
             </h2>
             {calculation.platesPerSide.length > 0 && (
-              <div className="flex items-center justify-center space-x-2 bg-theme-input p-4 rounded-lg overflow-x-auto">
+              <div className="flex items-center justify-center space-x-0.5 sm:space-x-1 bg-theme-input p-2 sm:p-4 rounded-lg overflow-x-auto">
                 <div
-                  className="h-2 bg-gray-400 rounded-l-lg flex-shrink-0"
-                  style={{ width: "3rem" }}
+                  className="hidden sm:block h-2 bg-gray-400 rounded-l-lg flex-shrink-0 w-8 sm:w-12"
                 ></div>
-                <div className="h-8 w-1 bg-gray-400 flex-shrink-0"></div>
+                <div className="hidden sm:block h-6 sm:h-8 w-1 bg-gray-400 flex-shrink-0"></div>
                 {calculation.platesPerSide
                   .slice()
                   .reverse()
                   .map((plateWeight, index) => (
                     <div
                       key={`plate-${index}-${plateWeight}`}
-                      className="bg-blue-500 text-white flex items-center justify-center font-bold rounded-sm text-sm flex-shrink-0"
+                      className="hidden sm:flex bg-blue-500 text-white items-center justify-center font-bold rounded-sm text-[8px] sm:text-sm flex-shrink-0 w-3 sm:w-5"
                       style={{
                         height: `${Math.min(90, 40 + plateWeight * 1.5)}px`,
-                        width: "1.25rem",
                       }}
                       title={`${plateWeight} lbs`}
                       aria-label={`${plateWeight} pound plate`}
@@ -175,17 +173,15 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
                     </div>
                   ))}
                 <div
-                  className="flex-grow h-2 bg-gray-400 flex-shrink-0"
-                  style={{ minWidth: "1.5rem" }}
+                  className="flex-grow h-2 bg-gray-400 flex-shrink-0 min-w-[1rem] sm:min-w-[1.5rem] rounded-l-lg sm:rounded-none"
                 ></div>
 
                 {calculation.platesPerSide.map((plateWeight, index) => (
                   <div
                     key={`mirror-${index}-${plateWeight}`}
-                    className="bg-blue-500 text-white flex items-center justify-center font-bold rounded-sm text-sm flex-shrink-0"
+                    className="bg-blue-500 text-white flex items-center justify-center font-bold rounded-sm text-[8px] sm:text-sm flex-shrink-0 w-3 sm:w-5"
                     style={{
                       height: `${Math.min(90, 40 + plateWeight * 1.5)}px`,
-                      width: "1.25rem",
                     }}
                     title={`${plateWeight} lbs`}
                     aria-label={`${plateWeight} pound plate`}
@@ -193,10 +189,9 @@ export const PlateCalculator = ({ availablePlates, onBack }) => {
                     {plateWeight}
                   </div>
                 ))}
-                <div className="h-8 w-1 bg-gray-400 flex-shrink-0"></div>
+                <div className="h-6 sm:h-8 w-1 bg-gray-400 flex-shrink-0"></div>
                 <div
-                  className="h-2 bg-gray-400 rounded-r-lg flex-shrink-0"
-                  style={{ width: "50px" }}
+                  className="h-2 bg-gray-400 rounded-r-lg flex-shrink-0 w-8 sm:w-[50px]"
                 ></div>
               </div>
             )}

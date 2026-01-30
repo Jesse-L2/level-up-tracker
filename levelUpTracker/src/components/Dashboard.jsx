@@ -238,58 +238,61 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
   return (
     <div className="p-4 md:p-8 text-theme-primary animate-fade-in">
       <div className="max-w-6xl mx-auto">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 md:gap-4">
-          <div className="w-full md:w-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-theme-primary mb-2">LevelUp Tracker</h1>
-            <div className="flex items-center gap-4 mb-2">
-              <div className="flex items-center gap-2 bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full border border-yellow-500/50">
-                <Trophy size={16} />
-                <span className="font-bold">Level {calculateLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}</span>
-              </div>
-              <div className="w-32 md:w-48 h-2 bg-theme-input rounded-full overflow-hidden shadow-inner">
-                <div
-                  className="h-full bg-yellow-500 transition-all duration-1000 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
-                  style={{ width: `${calculateProgressToNextLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}%` }}
-                />
+        <header className="mb-6 md:mb-8">
+          <div className="flex justify-center sm:justify-between items-center sm:items-start gap-16 sm:gap-4">
+            <div className="py-1 sm:flex-1">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-theme-primary mb-1">LevelUp Tracker</h1>
+              <p className="hidden sm:block text-theme-secondary text-xs sm:text-sm md:text-base mb-2">
+                {isPartnerView ? `${userProfile.partner.name}'s dashboard` : 'Your personalized dashboard'}
+              </p>
+
+              <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-0">
+                <div className="flex items-center gap-1.5 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded-full border border-yellow-500/30 text-[10px] sm:text-xs">
+                  <Trophy size={12} className="sm:w-3 sm:h-3" />
+                  <span className="font-bold">Lvl {calculateLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}</span>
+                </div>
+                <div className="w-24 sm:w-32 md:w-48 h-1.5 sm:h-2 bg-theme-input rounded-full overflow-hidden shadow-inner">
+                  <div
+                    className="h-full bg-yellow-500 transition-all duration-1000 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
+                    style={{ width: `${calculateProgressToNextLevel(isPartnerView ? userProfile.partner?.xp : userProfile.xp)}%` }}
+                  />
+                </div>
               </div>
             </div>
-            <p className="text-theme-secondary text-sm md:text-base">
-              {isPartnerView ? `${userProfile.partner.name}'s personalized workout dashboard.` : 'Your personalized workout dashboard.'}
-            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onNavigate("settings")}
+                className="btn-modern p-2 md:p-3 rounded-full text-theme-primary"
+                aria-label="Settings"
+              >
+                <Settings size={18} className="md:w-5 md:h-5" />
+              </button>
+              <button
+                onClick={() => signOut(getAuth())}
+                className="btn-modern p-2 md:p-3 rounded-full text-theme-primary"
+                aria-label="Logout"
+              >
+                <LogOut size={18} className="md:w-5 md:h-5" />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-            {userProfile.partner && (
-              <div className="flex items-center gap-2 mr-2 bg-card-inner p-2 rounded-lg border border-card-inner">
-                <div className="text-theme-primary text-sm font-semibold">{userProfile.displayName}</div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" value="" className="sr-only peer" checked={isPartnerView} onChange={handleToggle} />
-                  <div className="w-9 h-5 bg-theme-input peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-                <div className="text-theme-primary text-sm font-semibold">{userProfile.partner.name}</div>
-              </div>
-            )}
-            <button
-              onClick={() => onNavigate("settings")}
-              className="btn-modern p-3 rounded-full text-theme-primary"
-              aria-label="Settings"
-            >
-              <Settings size={20} />
-            </button>
-            <button
-              onClick={() => signOut(getAuth())}
-              className="btn-modern p-3 rounded-full text-theme-primary"
-              aria-label="Logout"
-            >
-              <LogOut size={20} />
-            </button>
-          </div>
+          {userProfile.partner && (
+            <div className="mt-4 flex items-center justify-end gap-3 w-full sm:w-auto self-end ml-auto">
+              <div className="text-theme-primary text-sm font-semibold">{userProfile.displayName}</div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" value="" className="sr-only peer" checked={isPartnerView} onChange={handleToggle} />
+                <div className="w-9 h-5 bg-theme-input border border-[var(--border-input)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[var(--text-secondary)] after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all transition-colors duration-300"></div>
+              </label>
+              <div className="text-theme-primary text-sm font-semibold">{userProfile.partner.name}</div>
+            </div>
+          )}
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <div className="card-physical p-6 rounded-2xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h2 className="text-2xl font-semibold text-theme-primary">
+                <h2 className="text-xl sm:text-2xl font-semibold text-theme-primary">
                   Your Weekly Plan
                 </h2>
                 <button
@@ -415,7 +418,7 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
 
             <div className="card-physical p-6 rounded-2xl">
               <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-                <h2 className="text-2xl font-semibold text-theme-primary">
+                <h2 className="text-xl sm:text-2xl font-semibold text-theme-primary">
                   1RM Progress
                 </h2>
                 {uniqueExercises.length > 0 && (
@@ -473,7 +476,7 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
 
           <div className="space-y-8">
             <div className="card-physical p-6 rounded-2xl">
-              <h2 className="text-2xl font-semibold text-theme-primary mb-4">
+              <h2 className="text-xl sm:text-2xl font-semibold text-theme-primary mb-4">
                 Tools & Library
               </h2>
               <div className="space-y-3">
@@ -499,7 +502,7 @@ export const Dashboard = ({ userProfile, onNavigate, deleteWorkout }) => {
               </div>
             </div>
             <div className="card-physical p-6 rounded-2xl">
-              <h2 className="text-2xl font-semibold text-theme-primary mb-4">
+              <h2 className="text-xl sm:text-2xl font-semibold text-theme-primary mb-4">
                 Workout History
               </h2>
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">

@@ -119,12 +119,7 @@ export const WorkoutHistory = ({ userProfile, deleteWorkout }) => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <div className="text-right hidden sm:block">
-                                            <p className="text-sm text-theme-secondary">Total Volume</p>
-                                            <p className="font-semibold text-[color:var(--btn-primary-bg)]">
-                                                {calculateTotalVolume(workout).toLocaleString()} lbs
-                                            </p>
-                                        </div>
+
                                         <button
                                             onClick={(e) => handleDeleteClick(index, workout, e)}
                                             className="p-2 text-theme-secondary hover:text-red-500 hover:bg-card-inner-hover rounded-full transition-colors"

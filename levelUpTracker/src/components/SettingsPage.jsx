@@ -4,6 +4,7 @@ import { addPartner, removePartner, updatePartnerName, auth } from "../firebase"
 import { updateProfile } from "firebase/auth";
 import { FormField } from "./ui/FormField";
 import { Save, Plus, Trash2, Loader2, User } from "lucide-react";
+import { Modal } from "./ui/Modal";
 import { useWorkout } from "../context/WorkoutContext";
 
 export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore, onUpdateWorkoutPlan }) => {
@@ -20,6 +21,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
   const [userNameMessage, setUserNameMessage] = useState(null);
   const [isSavingUserName, setIsSavingUserName] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(userProfile?.theme || 'dark');
+  const [showRemovePartnerModal, setShowRemovePartnerModal] = useState(false);
 
   // Set page title for Settings
   useEffect(() => {
@@ -139,20 +141,20 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
     }
   };
 
-  const handleRemovePartner = async () => {
-    if (
-      window.confirm(
-        "Are you sure you want to remove your partner? This action cannot be undone."
-      )
-    ) {
-      try {
-        await removePartner(userProfile.uid);
-        setPartnerName("");
-        setPartnerMessage("Partner removed successfully.");
-      } catch (error) {
-        console.error("Failed to remove partner:", error);
-        setPartnerMessage("Failed to remove partner. Please try again.");
-      }
+  const handleRemovePartner = () => {
+    setShowRemovePartnerModal(true);
+  };
+
+  const confirmRemovePartner = async () => {
+    try {
+      await removePartner(userProfile.uid);
+      setPartnerName("");
+      setPartnerMessage("Partner removed successfully.");
+      setShowRemovePartnerModal(false);
+    } catch (error) {
+      console.error("Failed to remove partner:", error);
+      setPartnerMessage("Failed to remove partner. Please try again.");
+      setShowRemovePartnerModal(false);
     }
   };
 
@@ -427,7 +429,7 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           <h2 className="text-2xl font-semibold mb-4 border-b border-card pb-2 flex items-center gap-2">
             Color Schemes
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <button
               onClick={() => handleThemeChange('dark')}
               className={`p-4 rounded-xl border transition-all ${currentTheme === 'dark' ? 'border-blue-500 ring-2 ring-blue-500/20 bg-gray-800' : 'border-card hover:bg-card-inner-hover'}`}
@@ -488,20 +490,20 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
                 setPartnerMessage(null);
               }}
             />
-            <div className="flex items-end gap-4">
+            <div className="flex w-full gap-2 sm:w-auto sm:items-end sm:gap-4 mt-2 sm:mt-0">
               <button
                 onClick={handleAddPartner}
-                className="btn-modern btn-modern-primary text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                className="btn-modern btn-modern-primary text-white font-bold py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition-colors flex flex-1 sm:flex-none items-center justify-center gap-2 text-sm sm:text-base"
               >
-                <Plus size={20} className="text-white" />{" "}
+                <Plus size={20} className="hidden sm:block text-white" />{" "}
                 {userProfile.partner ? "Update" : "Add"} Partner
               </button>
               {userProfile.partner && (
                 <button
                   onClick={handleRemovePartner}
-                  className="btn-modern bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  className="btn-modern bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-3 sm:py-2 sm:px-4 rounded-lg transition-colors flex flex-1 sm:flex-none items-center justify-center gap-2 text-sm sm:text-base"
                 >
-                  <Trash2 size={20} className="text-white" /> Remove Partner
+                  <Trash2 size={20} className="hidden sm:block text-white" /> Remove Partner
                 </button>
               )}
             </div>
@@ -764,6 +766,33 @@ export const SettingsPage = ({ userProfile, onBack, updateUserProfileInFirestore
           </button>
         </div>
       </div>
+
+
+      <Modal
+        isOpen={showRemovePartnerModal}
+        onClose={() => setShowRemovePartnerModal(false)}
+        title="Remove Partner"
+      >
+        <div className="space-y-4">
+          <p className="text-theme-secondary">
+            Are you sure you want to remove your partner? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={() => setShowRemovePartnerModal(false)}
+              className="px-4 py-2 rounded-lg text-theme-primary opacity-80 hover:bg-theme-input transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmRemovePartner}
+              className="btn-modern btn-modern-primary text-white font-bold py-2 px-6 rounded-lg transition-colors"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div >
   );
 };

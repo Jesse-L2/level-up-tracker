@@ -131,13 +131,13 @@ export const ExerciseLibrary = ({ userProfile, onBack }) => {
   return (
     <div className="p-4 md:p-8 text-theme-primary animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold">Exercise Library</h1>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4 sm:gap-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-center sm:text-left">Exercise Library</h1>
           <button
             onClick={onBack}
-            className="btn-modern font-bold py-2 px-4 rounded-lg text-theme-primary"
+            className="btn-modern font-bold py-2 px-4 rounded-lg text-theme-primary w-full sm:w-auto"
           >
-            Back
+            Back to Dashboard
           </button>
         </div>
 
